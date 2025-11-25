@@ -121,11 +121,15 @@ export const optionalAuth = async (
       const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
       
-      req.user = {
-        id: decoded.id,
-        email: decoded.email,
-        type: decoded.type
-      };
+      // Verify user still exists in database
+      const user = await User.findByPk(decoded.id);
+      if (user) {
+        req.user = {
+          id: decoded.id,
+          email: decoded.email,
+          type: decoded.type
+        };
+      }
     }
   } catch {
     // Token invalid or expired, continue without user

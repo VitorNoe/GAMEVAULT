@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { register, login, logout, getMe } from '../controllers/authController';
 import { authenticate } from '../middlewares/auth';
+import { authLimiter, generalLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ const router = Router();
  */
 router.post(
   '/register',
+  authLimiter,
   [
     body('name')
       .notEmpty()
@@ -36,6 +38,7 @@ router.post(
  */
 router.post(
   '/login',
+  authLimiter,
   [
     body('email')
       .isEmail()
@@ -60,6 +63,6 @@ router.post('/logout', logout);
  * @desc Get current user profile
  * @access Private
  */
-router.get('/me', authenticate, getMe);
+router.get('/me', generalLimiter, authenticate, getMe);
 
 export default router;

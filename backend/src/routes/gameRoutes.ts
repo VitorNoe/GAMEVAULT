@@ -11,6 +11,7 @@ import {
   getAbandonwareGames
 } from '../controllers/gameController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
+import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
@@ -19,35 +20,35 @@ const router = Router();
  * @desc Search games
  * @access Public
  */
-router.get('/search', optionalAuth, searchGames);
+router.get('/search', generalLimiter, optionalAuth, searchGames);
 
 /**
  * @route GET /api/games/upcoming-releases
  * @desc Get upcoming game releases
  * @access Public
  */
-router.get('/upcoming-releases', optionalAuth, getUpcomingReleases);
+router.get('/upcoming-releases', generalLimiter, optionalAuth, getUpcomingReleases);
 
 /**
  * @route GET /api/games/abandonware
  * @desc Get abandonware games
  * @access Public
  */
-router.get('/abandonware', optionalAuth, getAbandonwareGames);
+router.get('/abandonware', generalLimiter, optionalAuth, getAbandonwareGames);
 
 /**
  * @route GET /api/games
  * @desc Get all games
  * @access Public
  */
-router.get('/', optionalAuth, getAllGames);
+router.get('/', generalLimiter, optionalAuth, getAllGames);
 
 /**
  * @route GET /api/games/:id
  * @desc Get game by ID
  * @access Public
  */
-router.get('/:id', optionalAuth, getGameById);
+router.get('/:id', generalLimiter, optionalAuth, getGameById);
 
 /**
  * @route POST /api/games
@@ -56,6 +57,7 @@ router.get('/:id', optionalAuth, getGameById);
  */
 router.post(
   '/',
+  createLimiter,
   authenticate,
   authorizeAdmin,
   [
@@ -90,6 +92,7 @@ router.post(
  */
 router.put(
   '/:id',
+  createLimiter,
   authenticate,
   authorizeAdmin,
   [
@@ -114,6 +117,6 @@ router.put(
  * @desc Delete game
  * @access Private/Admin
  */
-router.delete('/:id', authenticate, authorizeAdmin, deleteGame);
+router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deleteGame);
 
 export default router;

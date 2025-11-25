@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { getAllUsers, getUserById, updateProfile, deleteUser } from '../controllers/userController';
 import { authenticate, authorizeAdmin } from '../middlewares/auth';
+import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
@@ -10,15 +11,16 @@ const router = Router();
  * @desc Get all users
  * @access Private/Admin
  */
-router.get('/', authenticate, authorizeAdmin, getAllUsers);
+router.get('/', generalLimiter, authenticate, authorizeAdmin, getAllUsers);
 
 /**
- * @route GET /api/users/me
+ * @route PUT /api/users/me
  * @desc Update current user profile
  * @access Private
  */
 router.put(
   '/me',
+  createLimiter,
   authenticate,
   [
     body('name')
@@ -42,13 +44,13 @@ router.put(
  * @desc Get user by ID
  * @access Private
  */
-router.get('/:id', authenticate, getUserById);
+router.get('/:id', generalLimiter, authenticate, getUserById);
 
 /**
  * @route DELETE /api/users/:id
  * @desc Delete user
  * @access Private/Admin
  */
-router.delete('/:id', authenticate, authorizeAdmin, deleteUser);
+router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deleteUser);
 
 export default router;

@@ -8,6 +8,7 @@ import {
   deletePlatform
 } from '../controllers/platformController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
+import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
@@ -16,14 +17,14 @@ const router = Router();
  * @desc Get all platforms
  * @access Public
  */
-router.get('/', optionalAuth, getAllPlatforms);
+router.get('/', generalLimiter, optionalAuth, getAllPlatforms);
 
 /**
  * @route GET /api/platforms/:id
  * @desc Get platform by ID
  * @access Public
  */
-router.get('/:id', optionalAuth, getPlatformById);
+router.get('/:id', generalLimiter, optionalAuth, getPlatformById);
 
 /**
  * @route POST /api/platforms
@@ -32,6 +33,7 @@ router.get('/:id', optionalAuth, getPlatformById);
  */
 router.post(
   '/',
+  createLimiter,
   authenticate,
   authorizeAdmin,
   [
@@ -63,6 +65,7 @@ router.post(
  */
 router.put(
   '/:id',
+  createLimiter,
   authenticate,
   authorizeAdmin,
   [
@@ -83,6 +86,6 @@ router.put(
  * @desc Delete platform
  * @access Private/Admin
  */
-router.delete('/:id', authenticate, authorizeAdmin, deletePlatform);
+router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deletePlatform);
 
 export default router;
