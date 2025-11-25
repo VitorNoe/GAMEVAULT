@@ -13,11 +13,7 @@
 
 **Start Date:** November/2024
 
-**Expected Completion Date:** February/2025
-
-**Student(s):** [YOUR NAME]
-
-**Professor/Scrum Master:** [PROFESSOR'S NAME]
+**Student(s):** Vítor Luciano Carodoso Noé
 
 ---
 
