@@ -566,20 +566,26 @@ CREATE TRIGGER update_rerelease_requests_updated_at BEFORE UPDATE ON rerelease_r
 
 CREATE OR REPLACE FUNCTION recalculate_game_rating()
 RETURNS TRIGGER AS $$
+DECLARE
+    target_game_id INTEGER;
+    review_count INTEGER;
+    avg_rating DECIMAL(3,2);
 BEGIN
-    IF TG_OP = 'DELETE' THEN
-        UPDATE games
-        SET average_rating = (SELECT AVG(rating) FROM reviews WHERE game_id = OLD.game_id),
-            total_reviews = (SELECT COUNT(*) FROM reviews WHERE game_id = OLD.game_id)
-        WHERE id = OLD.game_id;
-        RETURN OLD;
-    ELSE
-        UPDATE games
-        SET average_rating = (SELECT AVG(rating) FROM reviews WHERE game_id = NEW.game_id),
-            total_reviews = (SELECT COUNT(*) FROM reviews WHERE game_id = NEW.game_id)
-        WHERE id = NEW.game_id;
-        RETURN NEW;
-    END IF;
+    -- Determine which game_id to use based on operation type
+    target_game_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.game_id ELSE NEW.game_id END;
+    
+    -- Get count and average in a single query
+    SELECT COUNT(*), AVG(rating)
+    INTO review_count, avg_rating
+    FROM reviews
+    WHERE game_id = target_game_id;
+    
+    UPDATE games
+    SET average_rating = CASE WHEN review_count > 0 THEN avg_rating ELSE NULL END,
+        total_reviews = review_count
+    WHERE id = target_game_id;
+    
+    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
 END;
 $$ language 'plpgsql';
 
@@ -625,20 +631,28 @@ CREATE TRIGGER trigger_update_vote_count_delete AFTER DELETE ON rerelease_votes
 
 CREATE OR REPLACE FUNCTION update_review_like_counts()
 RETURNS TRIGGER AS $$
+DECLARE
+    target_review_id INTEGER;
+    new_likes_count INTEGER;
+    new_dislikes_count INTEGER;
 BEGIN
-    IF TG_OP = 'DELETE' THEN
-        UPDATE reviews
-        SET likes_count = (SELECT COUNT(*) FROM review_likes WHERE review_id = OLD.review_id AND like_type = 'like'),
-            dislikes_count = (SELECT COUNT(*) FROM review_likes WHERE review_id = OLD.review_id AND like_type = 'dislike')
-        WHERE id = OLD.review_id;
-        RETURN OLD;
-    ELSE
-        UPDATE reviews
-        SET likes_count = (SELECT COUNT(*) FROM review_likes WHERE review_id = NEW.review_id AND like_type = 'like'),
-            dislikes_count = (SELECT COUNT(*) FROM review_likes WHERE review_id = NEW.review_id AND like_type = 'dislike')
-        WHERE id = NEW.review_id;
-        RETURN NEW;
-    END IF;
+    -- Determine which review_id to use based on operation type
+    target_review_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.review_id ELSE NEW.review_id END;
+    
+    -- Get both counts in a single query using conditional aggregation
+    SELECT 
+        COUNT(*) FILTER (WHERE like_type = 'like'),
+        COUNT(*) FILTER (WHERE like_type = 'dislike')
+    INTO new_likes_count, new_dislikes_count
+    FROM review_likes
+    WHERE review_id = target_review_id;
+    
+    UPDATE reviews
+    SET likes_count = COALESCE(new_likes_count, 0),
+        dislikes_count = COALESCE(new_dislikes_count, 0)
+    WHERE id = target_review_id;
+    
+    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
 END;
 $$ language 'plpgsql';
 
