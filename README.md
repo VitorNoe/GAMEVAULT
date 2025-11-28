@@ -1406,23 +1406,7 @@ async function importGame(rawgId) {
 
 ---
 
-# **17. APPROVALS**
-
-## **17.1. Approved Theme**
-- [ ] Formal professor approval
-- [ ] Approval date: ___/___/2024
-- [ ] Signature: _________________________
-
-## **17.2. Approved Scope**
-- [ ] Requirements reviewed and approved
-- [ ] Data model approved
-- [ ] Architecture approved
-- [ ] Approval date: ___/___/2024
-- [ ] Signature: _________________________
-
----
-
-# **18. CONTACT AND SUPPORT**
+# **17. CONTACT AND SUPPORT**
 
 **Student:** [YOUR NAME]
 **Email:** [YOUR EMAIL @senac.edu.br]
@@ -1436,7 +1420,7 @@ async function importGame(rawgId) {
 
 ---
 
-# **19. FINAL REMARKS**
+# **18. FINAL REMARKS**
 
 This document represents the complete scope of the GameVault project according to the guidelines of the Final Integrating Project of the Technical Course in Systems Development.
 
