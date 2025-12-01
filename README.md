@@ -11,7 +11,7 @@
 
 **Mode:** Individual Project
 
-**Start Date:** November/2024
+**Start Date:** November/2025
 
 **Student(s):** Vítor Luciano Carodoso Noé
 
@@ -1418,16 +1418,6 @@ All described features were carefully planned to:
 - ✅ Serve as professional portfolio
 
 The project will be developed following adapted agile methodology, with the professor acting as Scrum Master, ensuring close monitoring and incremental value deliveries.
-
-**Expected Start:** December/2024
-**Expected Completion:** February/2025
-
----
-
-**Document Version:** 1.0
-**Creation Date:** 11/24/2024
-**Last Update:** 11/24/2024
-**Status:** Awaiting Approval
 
 ---
 
