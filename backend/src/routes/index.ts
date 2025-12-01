@@ -1,0 +1,24 @@
+import { Router } from 'express';
+import authRoutes from './authRoutes';
+import userRoutes from './userRoutes';
+import gameRoutes from './gameRoutes';
+import platformRoutes from './platformRoutes';
+
+const router = Router();
+
+// Health check endpoint
+router.get('/health', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'GameVault API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Mount routes
+router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/games', gameRoutes);
+router.use('/platforms', platformRoutes);
+
+export default router;
