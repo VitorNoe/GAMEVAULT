@@ -1157,7 +1157,7 @@ async function importGame(rawgId) {
 
 # **10. SUGGESTED TIMELINE**
 
-## **Sprint 0 - Planning (Until 12/08/2024)**
+## **Sprint 0 - Planning**
 - [x] Theme definition
 - [ ] Complete briefing
 - [ ] Functional and non-functional requirements
@@ -1165,7 +1165,7 @@ async function importGame(rawgId) {
 - [ ] Figma prototype (low/medium fidelity)
 - [ ] Formal professor approval
 
-## **Sprint 1 - Infrastructure (12/09 - 12/22/2024)**
+## **Sprint 1 - Infrastructure**
 - [ ] GitHub repository setup
 - [ ] GitHub Projects configuration
 - [ ] Codespaces configuration
@@ -1176,7 +1176,7 @@ async function importGame(rawgId) {
 - [ ] First test routes
 - [ ] Initial documentation
 
-## **Sprint 2 - Authentication and Registration (12/23 - 01/12/2025)**
+## **Sprint 2 - Authentication and Registration**
 - [ ] Complete authentication system
 - [ ] User CRUD
 - [ ] Game CRUD (admin)
@@ -1185,7 +1185,7 @@ async function importGame(rawgId) {
 - [ ] Login/registration pages (web + mobile)
 - [ ] API tests
 
-## **Sprint 3 - Catalog and Search (01/13 - 01/26/2025)**
+## **Sprint 3 - Catalog and Search**
 - [ ] Game listing with pagination
 - [ ] Game details page
 - [ ] Search and filter system
@@ -1194,7 +1194,7 @@ async function importGame(rawgId) {
 - [ ] Web catalog interface
 - [ ] Mobile catalog interface
 
-## **Sprint 4 - Collection and Wishlist (01/27 - 02/02/2025)**
+## **Sprint 4 - Collection and Wishlist**
 - [ ] Personal collection system
 - [ ] Collection item CRUD
 - [ ] Collection statistics
@@ -1203,7 +1203,7 @@ async function importGame(rawgId) {
 - [ ] Web interface
 - [ ] Mobile interface
 
-## **Sprint 5 - Advanced Features (02/03 - 02/09/2025)**
+## **Sprint 5 - Advanced Features**
 - [ ] Review system
 - [ ] GOTY system
 - [ ] Release status and countdown
@@ -1211,7 +1211,7 @@ async function importGame(rawgId) {
 - [ ] Re-release voting
 - [ ] Notification system
 
-## **Sprint 6 - Finalization and Testing (02/10 - 02/16/2025)**
+## **Sprint 6 - Finalization and Testing**
 - [ ] UI/UX adjustments
 - [ ] General testing
 - [ ] Bug fixes
@@ -1219,7 +1219,7 @@ async function importGame(rawgId) {
 - [ ] Final documentation
 - [ ] Presentation preparation
 
-## **Final Presentation (02/17 - 02/21/2025)**
+## **Final Presentation**
 - [ ] Complete demonstration
 - [ ] Project defense
 - [ ] Documentation delivery
