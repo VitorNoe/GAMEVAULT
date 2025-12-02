@@ -181,8 +181,8 @@ erDiagram
     }
     
     REVIEW_LIKES {
-        int review_id PK_FK
-        int user_id PK_FK
+        int review_id PK
+        int user_id PK
         enum like_type
         timestamp created_at
     }
@@ -215,7 +215,7 @@ erDiagram
     
     RERELEASE_REQUESTS {
         int id PK
-        int game_id FK_UK
+        int game_id FK
         int total_votes
         enum status
         date fulfilled_date
@@ -224,8 +224,8 @@ erDiagram
     }
     
     RERELEASE_VOTES {
-        int request_id PK_FK
-        int user_id PK_FK
+        int request_id PK
+        int user_id PK
         text comment
         timestamp vote_date
     }
@@ -235,26 +235,26 @@ erDiagram
     %% ============================================
     
     GAMES_PLATFORMS {
-        int game_id PK_FK
-        int platform_id PK_FK
+        int game_id PK
+        int platform_id PK
         date platform_release_date
         enum exclusivity
         timestamp created_at
     }
     
     GAMES_GENRES {
-        int game_id PK_FK
-        int genre_id PK_FK
+        int game_id PK
+        int genre_id PK
     }
     
     GAMES_AWARDS {
-        int game_id PK_FK
-        int award_id PK_FK
+        int game_id PK
+        int award_id PK
     }
     
     GAMES_PRESERVATION {
-        int game_id PK_FK
-        int source_id PK_FK
+        int game_id PK
+        int source_id PK
         boolean available
         varchar specific_url
         text notes
