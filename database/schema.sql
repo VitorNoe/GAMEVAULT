@@ -3,7 +3,7 @@
 -- Complete Platform for Game Management and Preservation
 -- ============================================
 -- Version: 1.0
--- Created: November 2024
+-- Created: November 2025
 -- Database: PostgreSQL / MySQL
 -- ============================================
 
