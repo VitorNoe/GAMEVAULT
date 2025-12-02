@@ -1,90 +1,90 @@
-# Parecer do Modelo de Banco de Dados - GAMEVAULT
+# Database Model Report - GAMEVAULT
 
-## Análise de Conformidade
+## Compliance Analysis
 
-### ✅ **PARECER: MODELO APROVADO**
+### ✅ **REPORT: MODEL APPROVED**
 
-O modelo de banco de dados apresentado está **completamente alinhado** com a descrição do projeto GameVault conforme especificado no README.md.
+The database model presented is **completely aligned** with the GameVault project description as specified in the README. md. 
 
 ---
 
-## Resumo da Análise
+## Analysis Summary
 
-### 1. Cobertura de Entidades
+### 1. Entity Coverage
 
-| Módulo do README | Entidades Implementadas | Status |
+| README Module | Implemented Entities | Status |
 |------------------|-------------------------|--------|
-| Autenticação e Perfil | `users`, `user_activity` | ✅ Completo |
-| Catálogo de Jogos | `games`, `games_platforms`, `games_genres` | ✅ Completo |
-| Plataformas | `platforms`, `games_platforms` | ✅ Completo |
-| Status de Lançamento | `games.release_status`, `game_status_history` | ✅ Completo |
-| Prêmios GOTY | `awards`, `games_awards` | ✅ Completo |
-| Abandonware e Preservação | `games.availability_status`, `preservation_sources`, `games_preservation` | ✅ Completo |
-| Coleção Pessoal | `user_collection` | ✅ Completo |
-| Lista de Desejos | `wishlist` | ✅ Completo |
-| Reviews e Avaliações | `reviews`, `review_likes` | ✅ Completo |
-| Notificações | `notifications` | ✅ Completo |
-| Desenvolvedores/Publishers | `developers`, `publishers` | ✅ Completo |
-| Re-release Requests | `rerelease_requests`, `rerelease_votes` | ✅ Completo |
+| Authentication and Profile | `users`, `user_activity` | ✅ Complete |
+| Game Catalog | `games`, `games_platforms`, `games_genres` | ✅ Complete |
+| Platforms | `platforms`, `games_platforms` | ✅ Complete |
+| Release Status | `games. release_status`, `game_status_history` | ✅ Complete |
+| GOTY Awards | `awards`, `games_awards` | ✅ Complete |
+| Abandonware and Preservation | `games. availability_status`, `preservation_sources`, `games_preservation` | ✅ Complete |
+| Personal Collection | `user_collection` | ✅ Complete |
+| Wishlist | `wishlist` | ✅ Complete |
+| Reviews and Ratings | `reviews`, `review_likes` | ✅ Complete |
+| Notifications | `notifications` | ✅ Complete |
+| Developers/Publishers | `developers`, `publishers` | ✅ Complete |
+| Re-release Requests | `rerelease_requests`, `rerelease_votes` | ✅ Complete |
 
-### 2. Atendimento aos Requisitos Funcionais
+### 2. Compliance with Functional Requirements
 
-- **RF01-RF02 (Autenticação)**: Campos para email, senha hash, tokens de verificação e reset ✅
-- **RF03-RF04 (Catálogo/Plataformas)**: Relacionamento N:N entre jogos e plataformas ✅
-- **RF05 (Status de Lançamento)**: ENUM completo com 8 status + histórico de mudanças ✅
-- **RF06 (GOTY)**: Tabela de prêmios com ano, categoria e relevância ✅
-- **RF07 (Abandonware)**: Status de disponibilidade + fontes de preservação ✅
-- **RF08-RF09 (Coleção/Wishlist)**: Tabelas dedicadas com todos os campos necessários ✅
-- **RF10 (Reviews)**: Sistema completo com likes/dislikes e spoilers ✅
-- **RF11 (Dashboard)**: Suportado através de queries nas tabelas existentes ✅
-- **RF12 (Notificações)**: Tabela com tipos específicos e status de leitura ✅
-- **RF13 (Integração API)**: Campo `rawg_id` para sincronização com RAWG API ✅
-- **RF14 (Administração)**: Campo `user_type` para diferenciar admin de usuário ✅
+- **RF01-RF02 (Authentication)**: Fields for email, password hash, verification tokens and reset ✅
+- **RF03-RF04 (Catalog/Platforms)**: N:N relationship between games and platforms ✅
+- **RF05 (Release Status)**: Complete ENUM with 8 statuses + change history ✅
+- **RF06 (GOTY)**: Awards table with year, category and relevance ✅
+- **RF07 (Abandonware)**: Availability status + preservation sources ✅
+- **RF08-RF09 (Collection/Wishlist)**: Dedicated tables with all necessary fields ✅
+- **RF10 (Reviews)**: Complete system with likes/dislikes and spoilers ✅
+- **RF11 (Dashboard)**: Supported through queries on existing tables ✅
+- **RF12 (Notifications)**: Table with specific types and read status ✅
+- **RF13 (API Integration)**: `rawg_id` field for RAWG API synchronization ✅
+- **RF14 (Administration)**: `user_type` field to differentiate admin from user ✅
 
-### 3. Requisitos Não-Funcionais Atendidos
+### 3. Non-Functional Requirements Met
 
-- **NFR02 (Segurança)**: `password_hash` para senhas criptografadas ✅
-- **NFR05 (Manutenibilidade)**: Schema normalizado e documentado ✅
-- **NFR06 (Escalabilidade)**: Índices em campos frequentemente pesquisados ✅
+- **NFR02 (Security)**: `password_hash` for encrypted passwords ✅
+- **NFR05 (Maintainability)**: Normalized and documented schema ✅
+- **NFR06 (Scalability)**: Indexes on frequently searched fields ✅
 
-### 4. Características Técnicas do Modelo
+### 4. Technical Features of the Model
 
-| Aspecto | Implementação |
-|---------|---------------|
-| **Normalização** | 3FN (Terceira Forma Normal) |
-| **Total de Tabelas** | 19 tabelas |
-| **Tabelas de Relacionamento N:N** | 4 tabelas |
-| **ENUMs Definidos** | 14 tipos enumerados |
-| **Índices** | 40+ índices para otimização |
-| **Triggers** | 11 triggers para automação |
-| **Integridade Referencial** | ON DELETE CASCADE/SET NULL conforme necessidade |
+| Aspect | Implementation |
+|--------|---------------|
+| **Normalization** | 3NF (Third Normal Form) |
+| **Total Tables** | 19 tables |
+| **N:N Relationship Tables** | 4 tables |
+| **ENUMs Defined** | 14 enumerated types |
+| **Indexes** | 40+ indexes for optimization |
+| **Triggers** | 11 triggers for automation |
+| **Referential Integrity** | ON DELETE CASCADE/SET NULL as needed |
 
-### 5. Diferenciais Implementados
+### 5. Implemented Differentials
 
-1. **Histórico de Status**: Tabela `game_status_history` para rastrear mudanças
-2. **Atividade do Usuário**: Tabela `user_activity` com suporte a metadados JSON
-3. **Triggers Automáticos**: Cálculo automático de média de avaliações e contagem de votos
-4. **Sistema de Preservação**: Modelo completo para fontes legais de preservação
-5. **Suporte a Aquisições**: Empresas podem ser marcadas como adquiridas por outras
-
----
-
-## Pontos Fortes
-
-1. **Completude**: Todas as 15+ entidades especificadas no README estão implementadas
-2. **Flexibilidade**: ENUMs bem definidos permitem fácil extensão
-3. **Performance**: Índices estratégicos em campos de busca frequente
-4. **Integridade**: Constraints e foreign keys garantem consistência dos dados
-5. **Automação**: Triggers para cálculos automáticos reduzem lógica de negócio no backend
-
-## Recomendações Futuras
-
-1. Considerar particionamento da tabela `notifications` por data para melhor performance
-2. Adicionar tabela de `tags` para categorização mais flexível além de gêneros
-3. Implementar tabela de `achievements` para gamificação do sistema
+1. **Status History**: `game_status_history` table to track changes
+2. **User Activity**: `user_activity` table with JSON metadata support
+3. **Automatic Triggers**: Automatic calculation of rating averages and vote counts
+4. **Preservation System**: Complete model for legal preservation sources
+5. **Acquisition Support**: Companies can be marked as acquired by others
 
 ---
 
-## Conclusão
+## Strengths
 
-O modelo de banco de dados apresentado é **robusto, completo e adequado** para suportar todas as funcionalidades descritas no projeto GameVault. A estrutura normalizada garante integridade dos dados enquanto os índices e triggers otimizam performance e reduzem complexidade no código da aplicação.
+1. **Completeness**: All 15+ entities specified in the README are implemented
+2. **Flexibility**: Well-defined ENUMs allow easy extension
+3. **Performance**: Strategic indexes on frequently searched fields
+4. **Integrity**: Constraints and foreign keys ensure data consistency
+5. **Automation**: Triggers for automatic calculations reduce backend business logic
+
+## Future Recommendations
+
+1. Consider partitioning the `notifications` table by date for better performance
+2.  Add `tags` table for more flexible categorization beyond genres
+3.  Implement `achievements` table for system gamification
+
+---
+
+## Conclusion
+
+The presented database model is **robust, complete and suitable** for supporting all functionalities described in the GameVault project. The normalized structure ensures data integrity and optimal performance for queries and relationships. 
