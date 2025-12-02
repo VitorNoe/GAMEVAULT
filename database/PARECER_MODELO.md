@@ -88,10 +88,3 @@ O modelo de banco de dados apresentado está **completamente alinhado** com a de
 ## Conclusão
 
 O modelo de banco de dados apresentado é **robusto, completo e adequado** para suportar todas as funcionalidades descritas no projeto GameVault. A estrutura normalizada garante integridade dos dados enquanto os índices e triggers otimizam performance e reduzem complexidade no código da aplicação.
-
-**Aprovado para implementação.**
-
----
-
-*Documento gerado em: Novembro 2024*
-*Versão do Modelo: 1.0*
