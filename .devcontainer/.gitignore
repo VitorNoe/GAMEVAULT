@@ -1,0 +1,9 @@
+# Variáveis de ambiente (NÃO COMMITAR)
+.env
+
+# Backups de configuração
+*.backup
+*.bak
+
+# Logs
+*.log

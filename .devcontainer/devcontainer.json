@@ -1,0 +1,106 @@
+// ============================================================
+// PT: Arquivo de configuração do Devcontainer
+//    - Carrega variáveis via `.devcontainer/.env` (usadas como localEnv)
+//    - Define build args e remoteEnv para disponibilizar variáveis no container
+// EN: Devcontainer configuration file
+//    - Loads variables from `.devcontainer/.env` (referenced via localEnv)
+//    - Defines build args and remoteEnv to expose env vars inside the container
+// ============================================================
+{
+  "name": "PHP + Apache + MySQL + PhpMyAdmin (Configurável via .env)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      // Argumentos de build (podem ser sobrescritos via .env)
+      "INSTALL_XDEBUG": "${localEnv:INSTALL_XDEBUG:false}",
+      "INSTALL_NODEJS": "${localEnv:INSTALL_NODEJS:false}",
+      "NODEJS_VERSION": "${localEnv:NODEJS_VERSION:20}",
+      "TZ": "${localEnv:TZ:America/Sao_Paulo}"
+    }
+  },
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  // Portas a serem expostas (Apache e MySQL)
+  "forwardPorts": [
+    80,
+    3306
+  ],
+  "portsAttributes": {
+    "80": {
+      "label": "Apache Web Server",
+      "onAutoForward": "notify"
+    },
+    "3306": {
+      "label": "MySQL/MariaDB",
+      "onAutoForward": "silent"
+    }
+  },
+  // Variáveis de ambiente carregadas do .env
+  "remoteEnv": {
+    // MySQL/MariaDB
+    "MYSQL_ROOT_PASSWORD": "${localEnv:MYSQL_ROOT_PASSWORD:root}",
+    "MYSQL_DATABASE": "${localEnv:MYSQL_DATABASE:devdb}",
+    "MYSQL_USER": "${localEnv:MYSQL_USER:devuser}",
+    "MYSQL_PASSWORD": "${localEnv:MYSQL_PASSWORD:devpass}",
+    "MYSQL_HOST": "${localEnv:MYSQL_HOST:127.0.0.1}",
+    "MYSQL_PORT": "${localEnv:MYSQL_PORT:3306}",
+    "MYSQL_CHARSET": "${localEnv:MYSQL_CHARSET:utf8mb4}",
+    "MYSQL_COLLATION": "${localEnv:MYSQL_COLLATION:utf8mb4_unicode_ci}",
+    // Apache
+    "APACHE_DOCUMENT_ROOT": "${localEnv:APACHE_DOCUMENT_ROOT:public}",
+    "APACHE_PORT": "${localEnv:APACHE_PORT:80}",
+    "APACHE_SERVER_NAME": "${localEnv:APACHE_SERVER_NAME:localhost}",
+    "APACHE_ALLOW_OVERRIDE": "${localEnv:APACHE_ALLOW_OVERRIDE:true}",
+    "APACHE_INDEXES": "${localEnv:APACHE_INDEXES:true}",
+    "APACHE_REWRITE": "${localEnv:APACHE_REWRITE:true}",
+    // phpMyAdmin
+    "PHPMYADMIN_BLOWFISH_SECRET": "${localEnv:PHPMYADMIN_BLOWFISH_SECRET:change_me_32_chars_minimum_secret}",
+    "PHPMYADMIN_ALLOW_NO_PASSWORD": "${localEnv:PHPMYADMIN_ALLOW_NO_PASSWORD:false}",
+    // PHP
+    "PHP_DISPLAY_ERRORS": "${localEnv:PHP_DISPLAY_ERRORS:On}",
+    "PHP_ERROR_REPORTING": "${localEnv:PHP_ERROR_REPORTING:E_ALL}",
+    "PHP_UPLOAD_MAX_FILESIZE": "${localEnv:PHP_UPLOAD_MAX_FILESIZE:64M}",
+    "PHP_POST_MAX_SIZE": "${localEnv:PHP_POST_MAX_SIZE:64M}",
+    "PHP_MEMORY_LIMIT": "${localEnv:PHP_MEMORY_LIMIT:256M}",
+    "PHP_MAX_EXECUTION_TIME": "${localEnv:PHP_MAX_EXECUTION_TIME:300}",
+    // Composer
+    "COMPOSER_ALLOW_SUPERUSER": "${localEnv:COMPOSER_ALLOW_SUPERUSER:1}",
+    "COMPOSER_NO_INTERACTION": "${localEnv:COMPOSER_NO_INTERACTION:1}",
+    // Workspace
+    "TZ": "${localEnv:TZ:America/Sao_Paulo}",
+    "APP_ENV": "${localEnv:APP_ENV:development}",
+    "APP_DEBUG": "${localEnv:APP_DEBUG:true}"
+  },
+  // Extensões do VS Code recomendadas
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "felixfbecker.php-debug",
+        "xdebug.php-debug",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "php.validate.executablePath": "/usr/bin/php",
+        "intelephense.environment.phpVersion": "8.2",
+        "files.eol": "\n",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  // Comando executado após a criação do container
+  "postCreateCommand": "bash .devcontainer/init.sh ${localWorkspaceFolderBasename}",
+  // Features adicionais (opcional)
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+  // Mounts adicionais (se necessário)
+  // "mounts": [
+  //   "source=${localWorkspaceFolder}/.devcontainer/.env,target=/workspaces/${localWorkspaceFolderBasename}/.devcontainer/.env,type=bind"
+  // ],
+  // Configurações de segurança
+  "containerEnv": {
+    "DEBIAN_FRONTEND": "noninteractive"
+  }
+}
