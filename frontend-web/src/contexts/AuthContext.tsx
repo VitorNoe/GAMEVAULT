@@ -36,16 +36,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [loadUser]);
 
   const login = async (credentials: LoginCredentials) => {
-    const response = await authService.login(credentials);
-    if (response.data?.user) {
-      setUser(response.data.user);
+    try {
+      const response = await authService.login(credentials);
+      if (response.data?.user) {
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
   const register = async (data: RegisterData) => {
-    const response = await authService.register(data);
-    if (response.data?.user) {
-      setUser(response.data.user);
+    try {
+      const response = await authService.register(data);
+      if (response.data?.user) {
+        setUser(response.data.user);
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
     }
   };
 

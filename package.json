@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "children": "^0.2.3",
     "console": "^0.7.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -8,12 +9,15 @@
     "jsonwebtoken": "^9.0.3",
     "node": "^24.12.0",
     "process": "^0.11.10",
+    "react": "^19.2.3",
     "res": "^0.4.0",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.0.2"
+    "@types/node": "^25.0.2",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
   }
 }
