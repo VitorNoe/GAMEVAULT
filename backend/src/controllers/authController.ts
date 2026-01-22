@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { validationResult } from 'express-validator';
 import User from '../models/User';
 import config from '../config/app';
 import { AuthenticatedRequest } from '../middlewares/auth';
@@ -17,6 +18,17 @@ const generateToken = (payload: { id: number; email: string; type: string }): st
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+      return;
+    }
+
     const { name, email, password } = req.body;
 
     // Check if user already exists
@@ -71,6 +83,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
  */
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+      return;
+    }
+
     const { email, password } = req.body;
 
     // Find user

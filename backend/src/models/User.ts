@@ -76,7 +76,8 @@ User.init(
     type: {
       type: DataTypes.ENUM('regular', 'admin'),
       defaultValue: 'regular',
-      allowNull: false
+      allowNull: false,
+      field: 'user_type'
     },
     created_at: {
       type: DataTypes.DATE,
