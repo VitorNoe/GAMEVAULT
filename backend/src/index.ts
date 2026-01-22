@@ -6,6 +6,10 @@ import dotenv from 'dotenv';
 import routes from './routes';
 import { errorHandler, notFound } from './middlewares';
 import { config, connectDatabase } from './config';
+import sequelize from './config/database';
+import User from './models/User';
+import Game from './models/Game';
+import Platform from './models/Platform';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +52,10 @@ const startServer = async (): Promise<void> => {
   try {
     // Connect to database
     await connectDatabase();
+    
+    // Sync database models
+    await sequelize.sync();
+    console.log('✅ Database models synchronized');
     
     // Start listening
     app.listen(config.port, () => {
