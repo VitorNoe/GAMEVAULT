@@ -22,13 +22,13 @@ CREATE TABLE IF NOT EXISTS companies (
 
 -- Insert sample users
 INSERT INTO users (name, email, password_hash, user_type, created_at, updated_at) VALUES
-('Admin User', 'admin@gamevault.com', '$2b$10$YourHashedPasswordHere', 'admin', NOW(), NOW()),
-('John Doe', 'john@example.com', '$2b$10$YourHashedPasswordHere', 'regular', NOW(), NOW()),
-('Jane Smith', 'jane@example.com', '$2b$10$YourHashedPasswordHere', 'regular', NOW(), NOW())
+('Admin User', 'admin@gamevault.com', '$2b$10$hFQCk5STnxro6F.UqrybsOBbj6v5k3O3i0L3MqN1zI7FIwofH3u/W', 'admin', NOW(), NOW()),
+('John Doe', 'john@example.com', '$2b$10$hFQCk5STnxro6F.UqrybsOBbj6v5k3O3i0L3MqN1zI7FIwofH3u/W', 'regular', NOW(), NOW()),
+('Jane Smith', 'jane@example.com', '$2b$10$hFQCk5STnxro6F.UqrybsOBbj6v5k3O3i0L3MqN1zI7FIwofH3u/W', 'regular', NOW(), NOW())
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert sample platforms
-INSERT INTO platforms (name, slug, manufacturer, type, generation, release_year, created_at, updated_at) VALUES
+INSERT INTO platforms (name, slug, manufacturer, platform_type, generation, release_year, created_at, updated_at) VALUES
 ('PlayStation 5', 'ps5', 'Sony', 'console', 9, 2020, NOW(), NOW()),
 ('Xbox Series X', 'xbox-series-x', 'Microsoft', 'console', 9, 2020, NOW(), NOW()),
 ('Nintendo Switch', 'nintendo-switch', 'Nintendo', 'handheld', 8, 2017, NOW(), NOW()),

@@ -60,12 +60,9 @@ const startServer = async (): Promise<void> => {
     await sequelize.authenticate();
     console.log('✅ Database connection established');
 
-    // Sync models with database
-    await sequelize.sync({
-      alter: process.env.NODE_ENV === 'development',
-      force: false
-    });
-    console.log('✅ Database models synchronized');
+    // Skip automatic sync to avoid ENUM type conflicts
+    // Use database/seed.sql for initial setup instead
+    console.log('✅ Database models (sync disabled - using SQL scripts)');
 
     // Start server
     app.listen(PORT, () => {
