@@ -5,33 +5,39 @@ import dotenv from 'dotenv';
 
 import routes from './routes';
 import { errorHandler, notFound } from './middlewares';
-import { config, connectDatabase } from './config';
 import sequelize from './config/database';
-import User from './models/User';
-import Game from './models/Game';
-import Platform from './models/Platform';
 
-// Load environment variables
 dotenv.config();
 
-// Create Express application
 const app: Application = express();
+const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration for frontend
 app.use(cors({
-  origin: config.corsOrigin,
-  credentials: true
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// API routes
+// Routes
 app.use('/api', routes);
+
+// Health check endpoint
+app.get('/api/health', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'API is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Root endpoint
 app.get('/', (_req, res) => {
@@ -39,7 +45,7 @@ app.get('/', (_req, res) => {
     success: true,
     message: 'Welcome to GameVault API',
     version: '1.0.0',
-    documentation: '/api/health'
+    health: '/api/health'
   });
 });
 
@@ -47,21 +53,23 @@ app.get('/', (_req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
+// Initialize database and start server
 const startServer = async (): Promise<void> => {
   try {
-    // Connect to database
-    await connectDatabase();
-    
-    // Sync database models
-    await sequelize.sync();
-    console.log('✅ Database models synchronized');
-    
-    // Start listening
-    app.listen(config.port, () => {
-      console.log(`🎮 GameVault API running on port ${config.port}`);
-      console.log(`📍 Environment: ${config.nodeEnv}`);
-      console.log(`🔗 Health check: http://localhost:${config.port}/api/health`);
+    // Authenticate database connection
+    await sequelize.authenticate();
+    console.log('✅ Database connection established');
+
+    // Skip automatic sync to avoid ENUM type conflicts
+    // Use database/seed.sql for initial setup instead
+    console.log('✅ Database models (sync disabled - using SQL scripts)');
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🎮 GameVault API running on http://localhost:${PORT}`);
+      console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+      console.log(`✅ CORS enabled for: ${process.env.CORS_ORIGIN}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

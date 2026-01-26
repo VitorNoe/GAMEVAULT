@@ -1,0 +1,27 @@
+                List of relations
+ Schema |         Name         | Type  |  Owner   
+--------+----------------------+-------+----------
+ public | awards               | table | postgres
+ public | companies            | table | postgres
+ public | developers           | table | postgres
+ public | game_status_history  | table | postgres
+ public | games                | table | postgres
+ public | games_awards         | table | postgres
+ public | games_genres         | table | postgres
+ public | games_platforms      | table | postgres
+ public | games_preservation   | table | postgres
+ public | genres               | table | postgres
+ public | notifications        | table | postgres
+ public | platforms            | table | postgres
+ public | preservation_sources | table | postgres
+ public | publishers           | table | postgres
+ public | rerelease_requests   | table | postgres
+ public | rerelease_votes      | table | postgres
+ public | review_likes         | table | postgres
+ public | reviews              | table | postgres
+ public | user_activity        | table | postgres
+ public | user_collection      | table | postgres
+ public | users                | table | postgres
+ public | wishlist             | table | postgres
+(22 rows)
+

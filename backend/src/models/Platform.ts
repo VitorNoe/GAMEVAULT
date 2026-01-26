@@ -56,7 +56,8 @@ Platform.init(
     },
     type: {
       type: DataTypes.ENUM('console', 'handheld', 'pc', 'mobile'),
-      allowNull: false
+      allowNull: false,
+      field: 'platform_type'
     },
     generation: {
       type: DataTypes.INTEGER,
