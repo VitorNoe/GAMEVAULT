@@ -6,6 +6,10 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Games } from './pages/Games';
+import { Dashboard } from './pages/Dashboard';
+import { Collection } from './pages/Collection';
+import { Profile } from './pages/Profile';
+import { Wishlist } from './pages/Wishlist';
 import { useAuth } from './hooks/useAuth';
 import { ROUTES } from './utils/constants';
 import { Loading } from './components/common/Loading';
@@ -34,7 +38,7 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.HOME} replace />;
+    return <Navigate to={ROUTES.COLLECTION} replace />;
   }
 
   return <>{children}</>;
@@ -49,7 +53,7 @@ function App() {
             {/* Public Routes */}
             <Route path={ROUTES.HOME} element={<Home />} />
             <Route path={ROUTES.GAMES} element={<Games />} />
-            
+
             {/* Public Only Routes */}
             <Route
               path={ROUTES.LOGIN}
@@ -70,13 +74,18 @@ function App() {
 
             {/* Protected Routes */}
             <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path={ROUTES.COLLECTION}
               element={
                 <ProtectedRoute>
-                  <div className="text-center py-12">
-                    <h1 className="text-3xl font-bold">My Collection</h1>
-                    <p className="text-gray-600 mt-2">Coming soon...</p>
-                  </div>
+                  <Collection />
                 </ProtectedRoute>
               }
             />
@@ -84,10 +93,7 @@ function App() {
               path={ROUTES.WISHLIST}
               element={
                 <ProtectedRoute>
-                  <div className="text-center py-12">
-                    <h1 className="text-3xl font-bold">My Wishlist</h1>
-                    <p className="text-gray-600 mt-2">Coming soon...</p>
-                  </div>
+                  <Wishlist />
                 </ProtectedRoute>
               }
             />
@@ -95,10 +101,7 @@ function App() {
               path={ROUTES.PROFILE}
               element={
                 <ProtectedRoute>
-                  <div className="text-center py-12">
-                    <h1 className="text-3xl font-bold">Profile</h1>
-                    <p className="text-gray-600 mt-2">Coming soon...</p>
-                  </div>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
@@ -130,7 +133,7 @@ function App() {
           </Routes>
         </Layout>
       </AuthProvider>
-    </Router>
+    </Router >
   );
 }
 
