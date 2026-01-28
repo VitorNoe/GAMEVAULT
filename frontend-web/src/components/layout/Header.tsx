@@ -23,11 +23,19 @@ export const Header: React.FC = () => {
               <span className="text-2xl font-bold text-blue-600">{APP_NAME}</span>
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              {isAuthenticated && (
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
+                >
+                  🏠 Dashboard
+                </Link>
+              )}
               <Link
                 to={ROUTES.GAMES}
                 className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-blue-600"
               >
-                Games
+                🎮 Games
               </Link>
               {isAuthenticated && (
                 <>
@@ -35,13 +43,13 @@ export const Header: React.FC = () => {
                     to={ROUTES.COLLECTION}
                     className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-blue-600"
                   >
-                    Collection
+                    📚 Collection
                   </Link>
                   <Link
                     to={ROUTES.WISHLIST}
                     className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-blue-600"
                   >
-                    Wishlist
+                    ⭐ Wishlist
                   </Link>
                 </>
               )}

@@ -94,30 +94,30 @@ ID | Email                | Type    | Status
 
 ---
 
-## 🚀 Testar Funcionalidades
+## 🚀 Testing Features
 
-### 1. Registrar Novo Usuário (Frontend)
-1. Acesse http://localhost:3001
-2. Clique em "Create Account"
-3. Preencha: Nome, Email, Senha
-4. Clique em "Sign Up"
-5. ✅ Será redirecionado para home após sucesso
+### 1. Register New User (Frontend)
+1. Access http://localhost:3001
+2. Click "Create Account"
+3. Fill in: Name, Email, Password
+4. Click "Sign Up"
+5. ✅ You will be redirected to home after success
 
-### 2. Registrar Novo Usuário (API)
+### 2. Register New User (API)
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Seu Nome",
-    "email": "seu-email@test.com",
-    "password": "SenhaForte123!"
+    "name": "Your Name",
+    "email": "your-email@test.com",
+    "password": "StrongPassword123!"
   }'
 ```
 
-### 3. Verificar no Banco
+### 3. Verify in Database
 ```bash
 docker exec gamevault_postgres psql -U postgres -d gamevault \
-  -c "SELECT id, name, email, user_type FROM users WHERE email='seu-email@test.com';"
+  -c "SELECT id, name, email, user_type FROM users WHERE email='your-email@test.com';"
 ```
 
 ---

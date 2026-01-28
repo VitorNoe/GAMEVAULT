@@ -1,14 +1,6 @@
-# 📊 Resumo da Arquitetura Modular / Modular Architecture Summary
+# 📊 Modular Architecture Summary
 
-## 🇧🇷 Versão em Português — Resumo
-
-Este repositório oferece uma arquitetura modular para um ambiente de desenvolvimento PHP dentro de GitHub Codespaces / devcontainer. O objetivo é permitir configuração rápida, repetível e facilmente extensível com Apache, PHP, MariaDB/MySQL e phpMyAdmin.
-
-### 🎯 Fluxo de Configuração
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-# Modular Architecture Summary
+## Overview
 
 This file documents the modular architecture used by this Codespaces / devcontainer template. It explains the configuration flow, reload workflow (no rebuild), modular scripts, environment variables, security recommendations, and how to extend the system.
 

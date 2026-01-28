@@ -1,12 +1,15 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+import { getApiBaseUrl } from '../utils/constants';
 
 class ApiService {
   private api: AxiosInstance;
 
   constructor() {
+    const baseURL = getApiBaseUrl();
+    console.log('API Base URL:', baseURL); // Debug log
+
     this.api = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL: baseURL,
       headers: {
         'Content-Type': 'application/json',
       },
