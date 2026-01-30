@@ -79,6 +79,8 @@ export const GameDetail: React.FC = () => {
             setIsInWishlist(true);
         }
 
+        // Dispatch event to update stats in sidebar
+        window.dispatchEvent(new Event('wishlist-updated'));
         setWishlistLoading(false);
     };
 
@@ -149,8 +151,8 @@ export const GameDetail: React.FC = () => {
                             />
                             {game.metacritic_score && (
                                 <div className={`absolute top-4 right-4 px-3 py-2 rounded-lg text-white text-xl font-bold backdrop-blur-sm ${game.metacritic_score >= 90 ? 'bg-green-500/80' :
-                                        game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
-                                            game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
+                                    game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
+                                        game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
                                     }`}>
                                     {game.metacritic_score}
                                 </div>
@@ -191,8 +193,8 @@ export const GameDetail: React.FC = () => {
                                     {RELEASE_STATUS_LABELS[game.release_status]}
                                 </span>
                                 <span className={`px-3 py-1 rounded-lg text-sm font-medium ${game.availability_status === 'available'
-                                        ? 'bg-green-500/20 text-green-400'
-                                        : 'bg-yellow-500/20 text-yellow-400'
+                                    ? 'bg-green-500/20 text-green-400'
+                                    : 'bg-yellow-500/20 text-yellow-400'
                                     }`}>
                                     {AVAILABILITY_STATUS_LABELS[game.availability_status]}
                                 </span>
@@ -247,8 +249,8 @@ export const GameDetail: React.FC = () => {
                                         <h3 className="text-sm font-medium text-gray-500 uppercase">Metacritic Score</h3>
                                         <p className="text-lg">
                                             <span className={`inline-block px-2 py-1 rounded-lg text-white font-bold ${game.metacritic_score >= 90 ? 'bg-green-500/80' :
-                                                    game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
-                                                        game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
+                                                game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
+                                                    game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
                                                 }`}>
                                                 {game.metacritic_score}
                                             </span>

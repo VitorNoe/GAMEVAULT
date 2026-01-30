@@ -2,6 +2,88 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import User from '../models/User';
 import { getPaginationParams, getPaginationResult, parseId, updateObjectFields } from '../utils/helpers';
+import { sequelize } from '../config/database';
+import { QueryTypes } from 'sequelize';
+
+/**
+ * Get current user statistics
+ * GET /api/users/me/stats
+ */
+export const getUserStats = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'User not authenticated.'
+      });
+      return;
+    }
+
+    // Get collection count
+    const collectionResult = await sequelize.query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId',
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const collectionCount = parseInt(collectionResult[0]?.count || '0', 10);
+
+    // Get wishlist count
+    const wishlistResult = await sequelize.query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM wishlist WHERE user_id = :userId',
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const wishlistCount = parseInt(wishlistResult[0]?.count || '0', 10);
+
+    // Get playing now count (status = 'playing')
+    const playingResult = await sequelize.query<{ count: string }>(
+      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'playing'",
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const playingCount = parseInt(playingResult[0]?.count || '0', 10);
+
+    // Get completed games count
+    const completedResult = await sequelize.query<{ count: string }>(
+      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'completed'",
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const completedCount = parseInt(completedResult[0]?.count || '0', 10);
+
+    // Get reviews count
+    const reviewsResult = await sequelize.query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM reviews WHERE user_id = :userId',
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const reviewsCount = parseInt(reviewsResult[0]?.count || '0', 10);
+
+    // Get unread notifications count
+    const notificationsResult = await sequelize.query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM notifications WHERE user_id = :userId AND read_at IS NULL',
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const notificationsCount = parseInt(notificationsResult[0]?.count || '0', 10);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          collection: collectionCount,
+          wishlist: wishlistCount,
+          playing: playingCount,
+          completed: completedCount,
+          reviews: reviewsCount,
+          notifications: notificationsCount
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user statistics.'
+    });
+  }
+};
 
 /**
  * Get all users with pagination (admin only)
