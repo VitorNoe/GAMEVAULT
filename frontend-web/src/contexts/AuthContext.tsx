@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, LoginCredentials, RegisterData } from '../types/user.types';
 import { authService } from '../services/authService';
 
@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadUser();
   }, [loadUser]);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = useCallback(async (credentials: LoginCredentials) => {
     try {
       const response = await authService.login(credentials);
       if (response.data?.user) {
@@ -45,9 +45,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Login error:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const register = async (data: RegisterData) => {
+  const register = useCallback(async (data: RegisterData) => {
     try {
       const response = await authService.register(data);
       if (response.data?.user) {
@@ -57,22 +57,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Register error:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await authService.logout();
     setUser(null);
-  };
+  }, []);
 
-  const value: AuthContextType = {
+  // Memoize derived values
+  const isAuthenticated = useMemo(() => !!user, [user]);
+  const isAdmin = useMemo(() => user?.type === 'admin', [user]);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<AuthContextType>(() => ({
     user,
     loading,
     login,
     register,
     logout,
-    isAuthenticated: !!user,
-    isAdmin: user?.type === 'admin',
-  };
+    isAuthenticated,
+    isAdmin,
+  }), [user, loading, login, register, logout, isAuthenticated, isAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

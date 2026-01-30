@@ -1,20 +1,29 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import User from '../models/User';
+import { getPaginationParams, getPaginationResult, parseId, updateObjectFields } from '../utils/helpers';
 
 /**
- * Get all users (admin only)
+ * Get all users with pagination (admin only)
  * GET /api/users
  */
-export const getAllUsers = async (_req: Request, res: Response): Promise<void> => {
+export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const users = await User.findAll({
-      attributes: { exclude: ['password_hash'] }
+    const { page, limit, offset } = getPaginationParams(req);
+
+    const { count, rows: users } = await User.findAndCountAll({
+      attributes: { exclude: ['password_hash'] },
+      limit,
+      offset,
+      order: [['created_at', 'DESC']]
     });
 
     res.status(200).json({
       success: true,
-      data: { users }
+      data: {
+        users,
+        pagination: getPaginationResult(count, page, limit)
+      }
     });
   } catch (error) {
     console.error('Get all users error:', error);
@@ -31,8 +40,16 @@ export const getAllUsers = async (_req: Request, res: Response): Promise<void> =
  */
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    
+    const id = parseId(req.params.id);
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid user ID.'
+      });
+      return;
+    }
+
     const user = await User.findByPk(id, {
       attributes: { exclude: ['password_hash'] }
     });
@@ -64,8 +81,6 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
  */
 export const updateProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { name, bio, avatar_url } = req.body;
-    
     const user = await User.findByPk(req.user?.id);
     if (!user) {
       res.status(404).json({
@@ -75,10 +90,8 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    // Update fields
-    if (name) user.name = name;
-    if (bio !== undefined) user.bio = bio;
-    if (avatar_url !== undefined) user.avatar_url = avatar_url;
+    // Update fields using helper
+    updateObjectFields(user, req.body, ['name', 'bio', 'avatar_url']);
 
     await user.save();
 
@@ -112,7 +125,7 @@ export const updateProfile = async (req: AuthenticatedRequest, res: Response): P
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     const user = await User.findByPk(id);
     if (!user) {
       res.status(404).json({

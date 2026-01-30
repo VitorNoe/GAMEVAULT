@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES, APP_NAME } from '../../utils/constants';
+import { AuroraBackground } from '../effects/AuroraBackground';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -65,7 +66,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   if (isLandingPage) {
     return (
-      <div className="min-h-screen bg-dark-200">
+      <div className="min-h-screen">
+        <AuroraBackground />
         {/* Landing Page Header */}
         <motion.nav
           initial={{ y: -20, opacity: 0 }}
@@ -119,7 +121,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-200 flex">
+    <div className="min-h-screen flex">
+      <AuroraBackground />
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -260 }}

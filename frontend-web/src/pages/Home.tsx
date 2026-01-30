@@ -3,16 +3,18 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES, APP_NAME } from '../utils/constants';
+import { viewportOnce } from '../utils/animations';
 
-const sections = [
+// Move static data outside component to prevent recreation on every render
+const SECTIONS = [
   { id: 0, title: 'Hero' },
   { id: 1, title: 'Features' },
   { id: 2, title: 'Platforms' },
   { id: 3, title: 'Technology' },
   { id: 4, title: 'Get Started' },
-];
+] as const;
 
-const features = [
+const FEATURES = [
   {
     icon: '🎮',
     title: 'Collection Management',
@@ -43,51 +45,49 @@ const features = [
     title: 'Smart Notifications',
     desc: 'Receive alerts for releases, updates and re-releases from your wishlist.',
   },
-];
+] as const;
 
-const platforms = [
+const PLATFORMS = [
   { icon: '🎮', name: 'PlayStation 5 & PS4' },
   { icon: '🎮', name: 'Xbox Series X|S & One' },
   { icon: '🎮', name: 'Nintendo Switch' },
   { icon: '💻', name: 'PC (Steam, Epic, GOG)' },
   { icon: '📱', name: 'Mobile (iOS & Android)' },
   { icon: '🕹️', name: 'Retro & Classic Consoles' },
-];
+] as const;
 
-const techStack = {
+const TECH_STACK = {
   backend: ['Node.js', 'Express', 'TypeScript', 'PostgreSQL', 'JWT Auth', 'REST API', 'Sequelize ORM'],
   frontend: ['React', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'React Router', 'Axios'],
   devops: ['Docker', 'Git', 'VS Code', 'GitHub Actions'],
-};
+} as const;
 
-const stats = [
+const STATS = [
   { number: '15+', label: 'Supported Platforms' },
   { number: '1000+', label: 'Games Cataloged' },
   { number: 'GOTY', label: 'Awards Tracked' },
   { number: '24/7', label: 'Full Access' },
-];
+] as const;
 
 export const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [currentSection, setCurrentSection] = useState(0);
 
   const goToSection = useCallback((index: number) => {
-    if (index >= 0 && index < sections.length) {
+    if (index >= 0 && index < SECTIONS.length) {
       setCurrentSection(index);
     }
   }, []);
 
   const nextSection = useCallback(() => {
-    if (currentSection < sections.length - 1) {
-      setCurrentSection((prev) => prev + 1);
-    }
-  }, [currentSection]);
+    setCurrentSection((prev) =>
+      prev < SECTIONS.length - 1 ? prev + 1 : prev
+    );
+  }, []);
 
   const prevSection = useCallback(() => {
-    if (currentSection > 0) {
-      setCurrentSection((prev) => prev - 1);
-    }
-  }, [currentSection]);
+    setCurrentSection((prev) => prev > 0 ? prev - 1 : prev);
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {
@@ -162,10 +162,10 @@ export const Home: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-dark-200">
+    <div className="fixed inset-0 overflow-hidden">
       {/* Navigation Dots */}
       <div className="fixed top-1/2 right-8 -translate-y-1/2 z-50 flex flex-col gap-3">
-        {sections.map((section) => (
+        {SECTIONS.map((section) => (
           <motion.button
             key={section.id}
             onClick={() => goToSection(section.id)}
@@ -175,6 +175,7 @@ export const Home: React.FC = () => {
               : 'bg-primary-400/30 hover:bg-primary-400/50'
               }`}
             title={section.title}
+            aria-label={`Go to ${section.title}`}
           />
         ))}
       </div>
@@ -191,14 +192,15 @@ export const Home: React.FC = () => {
           ←
         </motion.button>
         <span className="text-gray-400 text-sm">
-          {currentSection + 1} / {sections.length}
+          {currentSection + 1} / {SECTIONS.length}
         </span>
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={nextSection}
-          disabled={currentSection === sections.length - 1}
-          className={`icon-btn ${currentSection === sections.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
+          disabled={currentSection === SECTIONS.length - 1}
+          className={`icon-btn ${currentSection === SECTIONS.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
+          aria-label="Next section"
         >
           →
         </motion.button>
@@ -236,7 +238,7 @@ export const Home: React.FC = () => {
               transition={{ delay: 0.6 }}
               className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12"
             >
-              {stats.map((stat, index) => (
+              {STATS.map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   whileHover={{ y: -5, borderColor: 'rgba(167, 139, 250, 1)' }}
@@ -262,13 +264,14 @@ export const Home: React.FC = () => {
               Key Features
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, index) => (
+              {FEATURES.map((feature, index) => (
                 <motion.div
                   key={feature.title}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -8, borderColor: 'rgba(167, 139, 250, 1)' }}
                   transition={{ delay: index * 0.1 }}
+                  viewport={viewportOnce}
                   className="feature-card"
                 >
                   <span className="text-4xl mb-4 block">{feature.icon}</span>
@@ -308,13 +311,14 @@ export const Home: React.FC = () => {
                 All Platforms in One Place
               </motion.h2>
               <div className="space-y-3">
-                {platforms.map((platform, index) => (
+                {PLATFORMS.map((platform, index) => (
                   <motion.div
                     key={platform.name}
                     initial={{ opacity: 0, x: 20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     whileHover={{ x: 10, color: '#a78bfa' }}
                     transition={{ delay: index * 0.1 }}
+                    viewport={viewportOnce}
                     className="flex items-center gap-4 py-3 border-b border-primary-500/20 cursor-pointer text-gray-300"
                   >
                     <span className="text-2xl">{platform.icon}</span>
@@ -340,10 +344,10 @@ export const Home: React.FC = () => {
               <div>
                 <h3 className="text-2xl font-bold text-primary-400 mb-4">Backend & Database</h3>
                 <div className="flex flex-wrap gap-3">
-                  {techStack.backend.map((tech) => (
+                  {TECH_STACK.backend.map((tech) => (
                     <motion.span
                       key={tech}
-                      whileHover={{ y: -3, background: 'rgba(139, 92, 246, 0.2)' }}
+                      whileHover={{ y: -3, backgroundColor: 'rgba(139, 92, 246, 0.2)' }}
                       className="px-4 py-2 rounded-full text-sm font-semibold glass-card cursor-pointer"
                     >
                       {tech}
@@ -353,10 +357,10 @@ export const Home: React.FC = () => {
 
                 <h3 className="text-2xl font-bold text-primary-400 mb-4 mt-8">Web Frontend</h3>
                 <div className="flex flex-wrap gap-3">
-                  {techStack.frontend.map((tech) => (
+                  {TECH_STACK.frontend.map((tech) => (
                     <motion.span
                       key={tech}
-                      whileHover={{ y: -3, background: 'rgba(139, 92, 246, 0.2)' }}
+                      whileHover={{ y: -3, backgroundColor: 'rgba(139, 92, 246, 0.2)' }}
                       className="px-4 py-2 rounded-full text-sm font-semibold glass-card cursor-pointer"
                     >
                       {tech}
@@ -367,10 +371,10 @@ export const Home: React.FC = () => {
               <div>
                 <h3 className="text-2xl font-bold text-primary-400 mb-4">DevOps & Tools</h3>
                 <div className="flex flex-wrap gap-3">
-                  {techStack.devops.map((tech) => (
+                  {TECH_STACK.devops.map((tech) => (
                     <motion.span
                       key={tech}
-                      whileHover={{ y: -3, background: 'rgba(139, 92, 246, 0.2)' }}
+                      whileHover={{ y: -3, backgroundColor: 'rgba(139, 92, 246, 0.2)' }}
                       className="px-4 py-2 rounded-full text-sm font-semibold glass-card cursor-pointer"
                     >
                       {tech}
