@@ -1,6 +1,14 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
 import Game from '../models/Game';
+import {
+  getPaginationParams,
+  getPaginationResult,
+  parseId,
+  sanitizeSearchQuery,
+  updateObjectFields
+} from '../utils/helpers';
+import { AppError } from '../utils/AppError';
 
 /**
  * Get all games with pagination and filters
@@ -8,24 +16,17 @@ import Game from '../models/Game';
  */
 export const getAllGames = async (req: Request, res: Response): Promise<void> => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      search,
-      release_status,
-      availability_status,
-      year
-    } = req.query;
-
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
-    const offset = (pageNum - 1) * limitNum;
+    const { page, limit, offset } = getPaginationParams(req);
+    const { search, release_status, availability_status, year } = req.query;
 
     // Build where clause
     const where: Record<string, unknown> = {};
 
     if (search) {
-      where.title = { [Op.iLike]: `%${search}%` };
+      const sanitizedSearch = sanitizeSearchQuery(search as string);
+      if (sanitizedSearch) {
+        where.title = { [Op.iLike]: `%${sanitizedSearch}%` };
+      }
     }
 
     if (release_status) {
@@ -37,12 +38,15 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (year) {
-      where.release_year = parseInt(year as string);
+      const yearNum = parseInt(year as string);
+      if (!isNaN(yearNum)) {
+        where.release_year = yearNum;
+      }
     }
 
     const { count, rows: games } = await Game.findAndCountAll({
       where,
-      limit: limitNum,
+      limit,
       offset,
       order: [['created_at', 'DESC']]
     });
@@ -51,12 +55,7 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
       success: true,
       data: {
         games,
-        pagination: {
-          total: count,
-          page: pageNum,
-          limit: limitNum,
-          totalPages: Math.ceil(count / limitNum)
-        }
+        pagination: getPaginationResult(count, page, limit)
       }
     });
   } catch (error) {
@@ -74,7 +73,15 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
  */
 export const getGameById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseId(req.params.id);
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid game ID.'
+      });
+      return;
+    }
 
     const game = await Game.findByPk(id);
 
@@ -173,7 +180,15 @@ export const createGame = async (req: Request, res: Response): Promise<void> => 
  */
 export const updateGame = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = parseId(req.params.id);
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid game ID.'
+      });
+      return;
+    }
 
     const game = await Game.findByPk(id);
     if (!game) {
@@ -184,7 +199,7 @@ export const updateGame = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Update fields
+    // Update fields using helper
     const updateFields = [
       'title', 'description', 'synopsis', 'release_year', 'release_date',
       'cover_url', 'banner_url', 'trailer_url', 'developer_id', 'publisher_id',
@@ -194,11 +209,7 @@ export const updateGame = async (req: Request, res: Response): Promise<void> => 
       'rawg_id', 'metacritic_score'
     ];
 
-    updateFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        (game as unknown as Record<string, unknown>)[field] = req.body[field];
-      }
-    });
+    updateObjectFields(game, req.body, updateFields);
 
     await game.save();
 
