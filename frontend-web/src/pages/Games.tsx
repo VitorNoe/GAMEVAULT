@@ -7,7 +7,7 @@ import { Badge } from '../components/common/Badge';
 import { Loading } from '../components/common/Loading';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { Button } from '../components/common/Button';
-import { RELEASE_STATUS_LABELS, AVAILABILITY_STATUS_LABELS } from '../utils/constants';
+import { RELEASE_STATUS_LABELS } from '../utils/constants';
 
 export const Games: React.FC = () => {
   const [games, setGames] = useState<Game[]>([]);
@@ -62,7 +62,7 @@ export const Games: React.FC = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-4">Games Catalog</h1>
-        
+
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             type="text"
@@ -85,13 +85,31 @@ export const Games: React.FC = () => {
         {games.map((game) => (
           <Link key={game.id} to={`/games/${game.id}`}>
             <Card hoverable padding="none" className="h-full">
-              {game.cover_url && (
-                <img
-                  src={game.cover_url}
-                  alt={game.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-              )}
+              <div className="relative h-64 bg-gray-200 rounded-t-lg overflow-hidden">
+                {game.cover_url ? (
+                  <img
+                    src={game.cover_url}
+                    alt={game.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://placehold.co/300x400/1f2937/ffffff?text=${encodeURIComponent(game.title.substring(0, 20))}`;
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white text-center p-4">
+                    <span className="text-lg font-semibold">{game.title}</span>
+                  </div>
+                )}
+                {game.metacritic_score && (
+                  <div className={`absolute top-2 right-2 px-2 py-1 rounded text-white text-sm font-bold ${game.metacritic_score >= 90 ? 'bg-green-600' :
+                    game.metacritic_score >= 75 ? 'bg-yellow-500' :
+                      game.metacritic_score >= 50 ? 'bg-orange-500' : 'bg-red-600'
+                    }`}>
+                    {game.metacritic_score}
+                  </div>
+                )}
+              </div>
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                   {game.title}
@@ -105,7 +123,15 @@ export const Games: React.FC = () => {
                   )}
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>{game.release_year || 'TBA'}</span>
+                  <span>
+                    {game.release_date
+                      ? new Date(game.release_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })
+                      : game.release_year || 'TBA'}
+                  </span>
                   {game.average_rating && (
                     <span className="flex items-center">
                       ⭐ {game.average_rating.toFixed(1)}

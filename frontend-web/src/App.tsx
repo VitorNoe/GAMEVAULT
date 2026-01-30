@@ -6,6 +6,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Games } from './pages/Games';
+import { GameDetail } from './pages/GameDetail';
 import { Dashboard } from './pages/Dashboard';
 import { Collection } from './pages/Collection';
 import { Profile } from './pages/Profile';
@@ -53,6 +54,7 @@ function App() {
             {/* Public Routes */}
             <Route path={ROUTES.HOME} element={<Home />} />
             <Route path={ROUTES.GAMES} element={<Games />} />
+            <Route path={ROUTES.GAME_DETAILS} element={<GameDetail />} />
 
             {/* Public Only Routes */}
             <Route
