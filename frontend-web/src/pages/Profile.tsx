@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+};
 
 export const Profile: React.FC = () => {
     const { user, logout } = useAuth();
@@ -17,7 +30,6 @@ export const Profile: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Implementar atualização de perfil no futuro
         console.log('Update profile:', formData);
         setIsEditing(false);
     };
@@ -28,30 +40,45 @@ export const Profile: React.FC = () => {
         }
     };
 
+    const settingsItems = [
+        { icon: '🔐', title: 'Password', description: 'Change your password', action: 'Change' },
+        { icon: '📧', title: 'Email Notifications', description: 'Manage your email preferences', action: 'Manage' },
+        { icon: '🔒', title: 'Privacy Settings', description: 'Control who can see your profile', action: 'Configure' },
+        { icon: '🔗', title: 'Connected Accounts', description: 'Link your gaming platforms', action: 'Connect' },
+    ];
+
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <motion.div
+            className="max-w-4xl mx-auto space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
             {/* Header */}
-            <div>
-                <h1 className="text-4xl font-bold mb-2">Profile</h1>
-                <p className="text-gray-600">Manage your account and preferences</p>
-            </div>
+            <motion.div variants={itemVariants}>
+                <h1 className="text-4xl font-bold mb-2 gradient-text">Profile</h1>
+                <p className="text-gray-400">Manage your account and preferences</p>
+            </motion.div>
 
             {/* Profile Card */}
-            <Card>
-                <div className="flex items-start gap-6">
+            <motion.div variants={itemVariants} className="glass-card p-6">
+                <div className="flex flex-col md:flex-row items-start gap-6">
                     {/* Avatar */}
-                    <div className="flex-shrink-0">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                    <motion.div
+                        className="flex-shrink-0"
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-accent-pink rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg shadow-primary-500/20">
                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Info */}
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1 w-full">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4 gap-4">
                             <div>
-                                <h2 className="text-2xl font-bold">{user?.name || 'User'}</h2>
-                                <p className="text-gray-600">{user?.email}</p>
+                                <h2 className="text-2xl font-bold text-white">{user?.name || 'User'}</h2>
+                                <p className="text-gray-400">{user?.email}</p>
                                 <p className="text-sm text-gray-500 mt-1">
                                     Member since {new Date().toLocaleDateString()}
                                 </p>
@@ -66,28 +93,42 @@ export const Profile: React.FC = () => {
                         </div>
 
                         {/* Stats */}
-                        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600">0</div>
-                                <div className="text-sm text-gray-600">Games</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600">0</div>
-                                <div className="text-sm text-gray-600">Completed</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-purple-600">0</div>
-                                <div className="text-sm text-gray-600">Achievements</div>
-                            </div>
+                        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-dark-300">
+                            <motion.div
+                                className="text-center"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">0</div>
+                                <div className="text-sm text-gray-500">Games</div>
+                            </motion.div>
+                            <motion.div
+                                className="text-center"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">0</div>
+                                <div className="text-sm text-gray-500">Completed</div>
+                            </motion.div>
+                            <motion.div
+                                className="text-center"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">0</div>
+                                <div className="text-sm text-gray-500">Achievements</div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>
-            </Card>
+            </motion.div>
 
             {/* Edit Form */}
             {isEditing && (
-                <Card>
-                    <h3 className="text-xl font-bold mb-4">Edit Profile Information</h3>
+                <motion.div
+                    className="glass-card p-6"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                >
+                    <h3 className="text-xl font-bold mb-6 text-white">Edit Profile Information</h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <Input
                             label="Name"
@@ -105,7 +146,7 @@ export const Profile: React.FC = () => {
                         />
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                                 Bio
                             </label>
                             <textarea
@@ -113,7 +154,7 @@ export const Profile: React.FC = () => {
                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                                 placeholder="Tell us about yourself..."
                                 rows={4}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-3 bg-dark-300 border border-dark-100 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                             />
                         </div>
 
@@ -131,74 +172,74 @@ export const Profile: React.FC = () => {
                             placeholder="Your gamer tag"
                         />
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-3 pt-4">
                             <Button type="submit">Save Changes</Button>
                             <Button type="button" variant="secondary" onClick={() => setIsEditing(false)}>
                                 Cancel
                             </Button>
                         </div>
                     </form>
-                </Card>
+                </motion.div>
             )}
 
             {/* Account Settings */}
-            <Card>
-                <h3 className="text-xl font-bold mb-4">Account Settings</h3>
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center py-3 border-b">
-                        <div>
-                            <div className="font-medium">Password</div>
-                            <div className="text-sm text-gray-600">Change your password</div>
-                        </div>
-                        <Button variant="secondary" size="sm">Change</Button>
-                    </div>
+            <motion.div variants={itemVariants} className="glass-card p-6">
+                <h3 className="text-xl font-bold mb-6 text-white">Account Settings</h3>
+                <div className="space-y-2">
+                    {settingsItems.map((item, index) => (
+                        <motion.div
+                            key={item.title}
+                            className="flex justify-between items-center p-4 rounded-xl hover:bg-dark-300/50 transition-colors group"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                        >
+                            <div className="flex items-center gap-4">
+                                <span className="text-2xl">{item.icon}</span>
+                                <div>
+                                    <div className="font-medium text-white group-hover:text-primary-400 transition-colors">
+                                        {item.title}
+                                    </div>
+                                    <div className="text-sm text-gray-500">{item.description}</div>
+                                </div>
+                            </div>
+                            <Button variant="secondary" size="sm">{item.action}</Button>
+                        </motion.div>
+                    ))}
 
-                    <div className="flex justify-between items-center py-3 border-b">
-                        <div>
-                            <div className="font-medium">Email Notifications</div>
-                            <div className="text-sm text-gray-600">Manage your email preferences</div>
-                        </div>
-                        <Button variant="secondary" size="sm">Manage</Button>
-                    </div>
-
-                    <div className="flex justify-between items-center py-3 border-b">
-                        <div>
-                            <div className="font-medium">Privacy Settings</div>
-                            <div className="text-sm text-gray-600">Control who can see your profile</div>
-                        </div>
-                        <Button variant="secondary" size="sm">Configure</Button>
-                    </div>
-
-                    <div className="flex justify-between items-center py-3 border-b">
-                        <div>
-                            <div className="font-medium">Connected Accounts</div>
-                            <div className="text-sm text-gray-600">Link your gaming platforms</div>
-                        </div>
-                        <Button variant="secondary" size="sm">Connect</Button>
-                    </div>
-
-                    <div className="flex justify-between items-center py-3">
-                        <div>
-                            <div className="font-medium text-red-600">Delete Account</div>
-                            <div className="text-sm text-gray-600">Permanently delete your account</div>
+                    <motion.div
+                        className="flex justify-between items-center p-4 rounded-xl hover:bg-red-500/10 transition-colors group mt-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <div className="flex items-center gap-4">
+                            <span className="text-2xl">⚠️</span>
+                            <div>
+                                <div className="font-medium text-red-400">Delete Account</div>
+                                <div className="text-sm text-gray-500">Permanently delete your account</div>
+                            </div>
                         </div>
                         <Button variant="secondary" size="sm">Delete</Button>
-                    </div>
+                    </motion.div>
                 </div>
-            </Card>
+            </motion.div>
 
             {/* Logout */}
-            <Card>
+            <motion.div variants={itemVariants} className="glass-card p-6">
                 <div className="flex justify-between items-center">
-                    <div>
-                        <h3 className="font-medium">Sign Out</h3>
-                        <p className="text-sm text-gray-600">Sign out from your account</p>
+                    <div className="flex items-center gap-4">
+                        <span className="text-2xl">🚪</span>
+                        <div>
+                            <h3 className="font-medium text-white">Sign Out</h3>
+                            <p className="text-sm text-gray-500">Sign out from your account</p>
+                        </div>
                     </div>
                     <Button variant="secondary" onClick={handleLogout}>
-                        🚪 Logout
+                        Logout
                     </Button>
                 </div>
-            </Card>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };

@@ -19,18 +19,40 @@
     }
   },
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  // Portas a serem expostas (Apache e MySQL)
+  // Portas a serem expostas (Apache, MySQL, Frontend e Backend)
   "forwardPorts": [
     80,
-    3306
+    3000,
+    3001,
+    3306,
+    5432,
+    5050
   ],
   "portsAttributes": {
     "80": {
       "label": "Apache Web Server",
       "onAutoForward": "notify"
     },
+    "3000": {
+      "label": "Frontend React",
+      "onAutoForward": "notify",
+      "visibility": "public"
+    },
+    "3001": {
+      "label": "Backend API",
+      "onAutoForward": "notify",
+      "visibility": "public"
+    },
     "3306": {
       "label": "MySQL/MariaDB",
+      "onAutoForward": "silent"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "5050": {
+      "label": "PgAdmin",
       "onAutoForward": "silent"
     }
   },

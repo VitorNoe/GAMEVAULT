@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { ROUTES } from '../utils/constants';
-import { Input } from '../components/common/Input';
+import { ROUTES, APP_NAME } from '../utils/constants';
 import { Button } from '../components/common/Button';
-import { Card } from '../components/common/Card';
 
 export const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -45,71 +44,104 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
-      <Card className="w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-6">Create Account</h2>
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+    <div className="min-h-[calc(100vh-140px)] flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
+      >
+        <div className="glass-card p-8 rounded-2xl">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <Link to={ROUTES.HOME}>
+              <h1 className="text-3xl font-extrabold gradient-text inline-block">{APP_NAME}</h1>
+            </Link>
+            <p className="text-gray-400 mt-2">Join the gaming community!</p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            type="text"
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            required
-          />
+          <h2 className="text-2xl font-bold text-center mb-6 text-white">Create Account</h2>
 
-          <Input
-            type="email"
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            required
-          />
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg mb-6"
+            >
+              {error}
+            </motion.div>
+          )}
 
-          <Input
-            type="password"
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            helperText="Minimum 6 characters"
-            required
-          />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                required
+                className="input"
+              />
+            </div>
 
-          <Input
-            type="password"
-            label="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-          />
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                className="input"
+              />
+            </div>
 
-          <Button
-            type="submit"
-            fullWidth
-            loading={loading}
-            disabled={loading}
-          >
-            Sign Up
-          </Button>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="input"
+              />
+              <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+            </div>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to={ROUTES.LOGIN} className="text-blue-600 hover:underline">
-            Login
-          </Link>
-        </p>
-      </Card>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="input"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              fullWidth
+              loading={loading}
+              disabled={loading}
+            >
+              Create Account
+            </Button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-primary-500/20 text-center">
+            <p className="text-gray-400">
+              Already have an account?{' '}
+              <Link to={ROUTES.LOGIN} className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
+                Login
+              </Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
