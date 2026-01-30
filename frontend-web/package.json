@@ -4,12 +4,13 @@
   "description": "GameVault Web Frontend - Game Management and Preservation Platform",
   "private": true,
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",
-    "react-hook-form": "^7.48.0"
+    "framer-motion": "^10.18.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.48.0",
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.4",
@@ -27,7 +28,7 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "start": "BROWSER=none PORT=3001 react-scripts start",
+    "start": "BROWSER=none PORT=3000 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

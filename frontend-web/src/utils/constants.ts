@@ -5,14 +5,14 @@ export const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined' && window.location.hostname.includes('app.github.dev')) {
     // Codespaces - usar a URL do backend no Codespace
     const hostname = window.location.hostname;
-    const backendHost = hostname.replace('-3001.', '-3000.');
+    const backendHost = hostname.replace('-3000.', '-3001.');
     return `https://${backendHost}/api`;
   }
-  return process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+  return process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 };
 
 // Para compatibilidade, mantemos API_BASE_URL mas será sobrescrito em runtime
-export let API_BASE_URL = 'http://localhost:3000/api';
+export let API_BASE_URL = 'http://localhost:3001/api';
 
 // Inicializar em runtime quando o módulo for carregado no browser
 if (typeof window !== 'undefined') {
