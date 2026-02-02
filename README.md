@@ -13,7 +13,7 @@
 
 **Start Date:** November/2025
 
-**Student(s):** Vítor Luciano Carodoso Noé
+**Student(s):** Vítor Luciano Cardoso Noé
 
 ---
 
