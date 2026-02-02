@@ -16,7 +16,7 @@ services:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,6 +35,50 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres
+
+  backend:
+    image: node:18-alpine
+    container_name: gamevault_backend
+    working_dir: /app
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: gamevault
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: change_me
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:3001
+      RAWG_API_KEY: change_me
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  frontend:
+    image: node:18-alpine
+    container_name: gamevault_frontend
+    working_dir: /app
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      BROWSER: none
+      REACT_APP_API_URL: http://localhost:3000/api
+    volumes:
+      - ./frontend-web:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm start"
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
