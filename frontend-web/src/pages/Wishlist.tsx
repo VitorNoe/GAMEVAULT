@@ -64,6 +64,8 @@ export const Wishlist: React.FC = () => {
         localStorage.setItem('wishlist', JSON.stringify(newWishlist));
         setWishlistIds(newWishlist);
         setGames(games.filter(game => game.id !== gameId));
+        // Dispatch event to update stats
+        window.dispatchEvent(new Event('wishlist-updated'));
     };
 
     const clearWishlist = () => {
@@ -71,6 +73,8 @@ export const Wishlist: React.FC = () => {
             localStorage.setItem('wishlist', JSON.stringify([]));
             setWishlistIds([]);
             setGames([]);
+            // Dispatch event to update stats
+            window.dispatchEvent(new Event('wishlist-updated'));
         }
     };
 
@@ -145,8 +149,8 @@ export const Wishlist: React.FC = () => {
                                     />
                                     {game.metacritic_score && (
                                         <div className={`absolute top-2 right-2 px-2 py-1 rounded-lg text-white text-sm font-bold backdrop-blur-sm ${game.metacritic_score >= 90 ? 'bg-green-500/80' :
-                                                game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
-                                                    game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
+                                            game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
+                                                game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
                                             }`}>
                                             {game.metacritic_score}
                                         </div>

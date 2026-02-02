@@ -1,10 +1,17 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { getAllUsers, getUserById, updateProfile, deleteUser } from '../controllers/userController';
+import { getAllUsers, getUserById, updateProfile, deleteUser, getUserStats } from '../controllers/userController';
 import { authenticate, authorizeAdmin } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
+
+/**
+ * @route GET /api/users/me/stats
+ * @desc Get current user statistics (collection, wishlist, etc.)
+ * @access Private
+ */
+router.get('/me/stats', generalLimiter, authenticate, getUserStats);
 
 /**
  * @route GET /api/users

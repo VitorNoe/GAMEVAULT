@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
+import { useUserStats } from '../../hooks/useUserStats';
 import { ROUTES, APP_NAME } from '../../utils/constants';
 import { AuroraBackground } from '../effects/AuroraBackground';
 
@@ -9,25 +10,35 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const navItems = [
-  { label: 'Dashboard', icon: '🏠', path: '/dashboard', badge: null as string | null, requiresAuth: true },
-  { label: 'Browse Games', icon: '🎮', path: ROUTES.GAMES, badge: null as string | null, requiresAuth: false },
+interface NavItemType {
+  label: string;
+  icon: string;
+  path: string;
+  badgeKey?: 'collection' | 'wishlist' | 'playing' | 'completed' | 'reviews' | 'notifications';
+  requiresAuth: boolean;
+}
+
+const NAV_ITEMS: NavItemType[] = [
+  { label: 'Dashboard', icon: '🏠', path: '/dashboard', requiresAuth: true },
+  { label: 'Browse Games', icon: '🎮', path: ROUTES.GAMES, requiresAuth: false },
 ];
 
-const libraryItems = [
-  { label: 'My Collection', icon: '📚', path: ROUTES.COLLECTION, badge: '127' as string | null, requiresAuth: true },
-  { label: 'Wishlist', icon: '❤️', path: ROUTES.WISHLIST, badge: '34' as string | null, requiresAuth: true },
-  { label: 'Playing Now', icon: '⭐', path: '/playing', badge: '8' as string | null, requiresAuth: true },
+const LIBRARY_ITEMS: NavItemType[] = [
+  { label: 'My Collection', icon: '📚', path: ROUTES.COLLECTION, badgeKey: 'collection', requiresAuth: true },
+  { label: 'Wishlist', icon: '❤️', path: ROUTES.WISHLIST, badgeKey: 'wishlist', requiresAuth: true },
+  { label: 'Playing Now', icon: '⭐', path: '/playing', badgeKey: 'playing', requiresAuth: true },
+  { label: 'Completed', icon: '✅', path: '/completed', badgeKey: 'completed', requiresAuth: true },
 ];
 
-const discoverItems = [
-  { label: 'GOTY Awards', icon: '🏆', path: '/awards', badge: null as string | null, requiresAuth: false },
-  { label: 'Upcoming Releases', icon: '📅', path: '/upcoming', badge: null as string | null, requiresAuth: false },
-  { label: 'Abandonware', icon: '📦', path: '/abandonware', badge: null as string | null, requiresAuth: false },
+const DISCOVER_ITEMS: NavItemType[] = [
+  { label: 'GOTY Awards', icon: '🏆', path: '/awards', requiresAuth: false },
+  { label: 'Upcoming Releases', icon: '📅', path: '/upcoming', requiresAuth: false },
+  { label: 'Abandonware', icon: '📦', path: '/abandonware', requiresAuth: false },
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { stats, formatCount } = useUserStats();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -41,8 +52,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const NavItem = ({ item }: { item: typeof navItems[0] }) => {
+  // Memoize the badge value getter
+  const getBadgeValue = useMemo(() => {
+    return (badgeKey?: NavItemType['badgeKey']): string | null => {
+      if (!badgeKey || !isAuthenticated) return null;
+      const value = stats[badgeKey];
+      return value > 0 ? formatCount(value) : null;
+    };
+  }, [stats, formatCount, isAuthenticated]);
+
+  const NavItem = ({ item }: { item: NavItemType }) => {
     if (item.requiresAuth && !isAuthenticated) return null;
+
+    const badge = getBadgeValue(item.badgeKey);
 
     return (
       <Link to={item.path}>
@@ -53,8 +75,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           <span className="text-xl">{item.icon}</span>
           <span className="font-medium">{item.label}</span>
-          {item.badge && (
-            <span className="ml-auto badge">{item.badge}</span>
+          {badge && (
+            <span className="ml-auto badge">{badge}</span>
           )}
         </motion.div>
       </Link>
@@ -144,7 +166,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">
               Main
             </p>
-            {navItems.map((item) => (
+            {NAV_ITEMS.map((item) => (
               <NavItem key={item.path} item={item} />
             ))}
           </div>
@@ -155,7 +177,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">
                 Library
               </p>
-              {libraryItems.map((item) => (
+              {LIBRARY_ITEMS.map((item) => (
                 <NavItem key={item.path} item={item} />
               ))}
             </div>
@@ -166,7 +188,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-4 mb-2">
               Discover
             </p>
-            {discoverItems.map((item) => (
+            {DISCOVER_ITEMS.map((item) => (
               <NavItem key={item.path} item={item} />
             ))}
           </div>
@@ -248,9 +270,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className="icon-btn relative cursor-pointer"
                 >
                   <span className="text-lg">🔔</span>
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center font-bold">
-                    5
-                  </span>
+                  {stats.notifications > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center font-bold">
+                      {stats.notifications > 99 ? '99+' : stats.notifications}
+                    </span>
+                  )}
                 </motion.div>
 
                 <Link to={ROUTES.PROFILE}>

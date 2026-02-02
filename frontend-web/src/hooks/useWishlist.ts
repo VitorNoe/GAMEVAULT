@@ -37,6 +37,10 @@ export const useWishlist = (): UseWishlistReturn => {
     useEffect(() => {
         try {
             localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
+            // Also update legacy format for useUserStats compatibility
+            localStorage.setItem('wishlist', JSON.stringify(wishlist.map(item => item.id)));
+            // Dispatch custom event for same-tab updates
+            window.dispatchEvent(new Event('wishlist-updated'));
         } catch (error) {
             console.error('Failed to save wishlist to localStorage:', error);
         }
