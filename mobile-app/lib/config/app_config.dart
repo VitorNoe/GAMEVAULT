@@ -11,7 +11,7 @@ class AppConfig {
   /// API Base URL - Change this to your backend URL
   /// For local development: http://10.0.2.2:3001/api (Android emulator)
   /// For physical device: use your computer's IP address
-  static const String apiBaseUrl = 'http://10.0.2.2:3001/api';
+  static const String apiBaseUrl = 'http://10.0.1.154:3001/api';
 
   /// Alternative URLs for different environments
   static const String localApiUrl = 'http://10.0.2.2:3001/api';
