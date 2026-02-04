@@ -191,7 +191,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // App version
-                Text(
+                const Text(
                   'GameVault v1.0.0',
                   style: TextStyle(
                     color: AppTheme.textMuted,

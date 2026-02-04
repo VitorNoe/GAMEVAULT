@@ -68,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.games,
                         size: 64,
                         color: AppTheme.primaryColor,
