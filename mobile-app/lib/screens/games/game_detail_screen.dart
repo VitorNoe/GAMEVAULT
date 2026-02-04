@@ -31,12 +31,8 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
 
   @override
   void dispose() {
-    // Clear selected game when leaving
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<GamesProvider>().clearSelectedGame();
-      }
-    });
+    // Nota: Não limpamos o selectedGame aqui pois pode causar problemas
+    // O selectedGame será substituído quando outra tela de detalhes for aberta
     super.dispose();
   }
 

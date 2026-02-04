@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.games,
                         size: 80,
                         color: AppTheme.primaryColor,

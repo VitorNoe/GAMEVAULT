@@ -112,7 +112,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animation,
-      builder: (context, child) {
+      builder: (context, _) {
         return Container(
           width: widget.width,
           height: widget.height,

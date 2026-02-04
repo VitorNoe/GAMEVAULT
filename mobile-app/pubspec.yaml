@@ -6,57 +6,60 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.1.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
   # UI
-  cupertino_icons: ^1.0.6
-  google_fonts: ^6.1.0
-  cached_network_image: ^3.3.1
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
   shimmer: ^3.0.0
-  flutter_svg: ^2.0.9
+  flutter_svg: ^2.0.10+1
 
   # State Management
-  provider: ^6.1.1
+  provider: ^6.1.2
 
   # Navigation
-  go_router: ^13.0.0
+  go_router: ^14.6.2
 
   # HTTP & API
-  http: ^1.1.2
-  dio: ^5.4.0
+  http: ^1.2.2
+  dio: ^5.7.0
 
   # Local Storage
-  shared_preferences: ^2.2.2
-  flutter_secure_storage: ^9.0.0
+  shared_preferences: ^2.3.3
+  flutter_secure_storage: ^9.2.2
 
   # Utilities
-  intl: ^0.18.1
-  url_launcher: ^6.2.2
+  intl: ^0.19.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^3.0.1
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
 
-  assets:
-    - assets/images/
-    - assets/icons/
+  # Assets (opcional - adicione imagens aqui quando disponíveis)
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
 
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Poppins-Bold.ttf
-          weight: 700
+  # Fontes - Usando google_fonts em vez de fontes locais
+  # Para adicionar fontes locais, baixe do Google Fonts e descomente:
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Poppins-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
