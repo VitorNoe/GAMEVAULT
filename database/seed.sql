@@ -1035,7 +1035,7 @@ INSERT INTO games (
   'Return to Vice City in the most immersive Grand Theft Auto yet.',
   2025,
   '2025-10-01',
-  'https://i.imgur.com/placeholder-gta6.jpg',
+  'https://via.placeholder.com/300x400/1a1a2e/16a085?text=GTA+VI',
   'coming_soon',
   'available',
   'M',
@@ -1080,7 +1080,7 @@ INSERT INTO games (
   'Explore a new realm in Tamriel in this anticipated RPG.',
   2026,
   NULL,
-  'https://i.imgur.com/placeholder-tes6.jpg',
+  'https://via.placeholder.com/300x400/1a1a2e/16a085?text=Elder+Scrolls+VI',
   'in_development',
   'available',
   'M',
@@ -1344,7 +1344,7 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
-WHERE g.slug = 'elden-ring' AND a.slug = 'tga-goty' AND a.year = 2022
+WHERE g.slug = 'god-of-war-ragnarok' AND a.slug = 'tga-goty' AND a.year = 2022
 ON CONFLICT DO NOTHING;
 
 INSERT INTO games_awards (game_id, award_id)
@@ -1364,7 +1364,7 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
-WHERE g.slug = 'god-of-war-2005' AND a.slug = 'tga-goty' AND a.year = 2018
+WHERE g.slug = 'god-of-war-ragnarok' AND a.slug = 'tga-goty' AND a.year = 2018
 ON CONFLICT DO NOTHING;
 
 INSERT INTO games_awards (game_id, award_id)
@@ -1372,10 +1372,11 @@ SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'zelda-breath-of-the-wild' AND a.slug = 'tga-goty' AND a.year = 2017
 ON CONFLICT DO NOTHING;
 
-INSERT INTO games_awards (game_id, award_id)
-SELECT g.id, a.id FROM games g, awards a
-WHERE g.slug = 'overwatch-2' AND a.slug = 'tga-goty' AND a.year = 2016
-ON CONFLICT DO NOTHING;
+-- Note: Original Overwatch (2016 GOTY winner) not in database yet
+-- INSERT INTO games_awards (game_id, award_id)
+-- SELECT g.id, a.id FROM games g, awards a
+-- WHERE g.slug = 'overwatch' AND a.slug = 'tga-goty' AND a.year = 2016
+-- ON CONFLICT DO NOTHING;
 
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a

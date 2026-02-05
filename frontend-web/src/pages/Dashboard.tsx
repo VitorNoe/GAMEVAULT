@@ -51,7 +51,12 @@ export const Dashboard: React.FC = () => {
     if (loading || statsLoading) return <Loading />;
 
     const statCards = [
-        { icon: '📚', value: userStats.collection || catalogTotal, label: userStats.collection > 0 ? 'My Collection' : 'Total Games in Catalog', color: 'from-purple-500 to-pink-500' },
+        { 
+            icon: '📚', 
+            value: userStats.collection || catalogTotal, 
+            label: (userStats.collection !== undefined && userStats.collection !== null && userStats.collection > 0) ? 'My Collection' : 'Games in Catalog', 
+            color: 'from-purple-500 to-pink-500' 
+        },
         { icon: '🎯', value: userStats.playing, label: 'Currently Playing', color: 'from-blue-500 to-cyan-500' },
         { icon: '✅', value: userStats.completed, label: 'Completed', color: 'from-green-500 to-emerald-500' },
         { icon: '⭐', value: userStats.wishlist, label: 'Wishlist', color: 'from-yellow-500 to-orange-500' },
