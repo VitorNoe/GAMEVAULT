@@ -55,11 +55,11 @@ class AppTheme {
         ),
         iconTheme: const IconThemeData(color: textPrimary),
       ),
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         color: cardColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

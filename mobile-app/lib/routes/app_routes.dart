@@ -63,9 +63,7 @@ class AppRoutes {
                   const SizedBox(height: 16),
                   Text(
                     'Page not found',
-                    style: Theme.of(settings.arguments as BuildContext?)
-                            ?.textTheme
-                            .headlineSmall ??
+                    style: Theme.of(context).textTheme.headlineSmall ??
                         const TextStyle(fontSize: 20),
                   ),
                   const SizedBox(height: 8),
