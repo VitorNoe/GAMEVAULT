@@ -8,7 +8,8 @@ import {
   deleteGame,
   searchGames,
   getUpcomingReleases,
-  getAbandonwareGames
+  getAbandonwareGames,
+  getGotyGames
 } from '../controllers/gameController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
@@ -24,7 +25,7 @@ router.get('/search', generalLimiter, optionalAuth, searchGames);
 
 /**
  * @route GET /api/games/upcoming-releases
- * @desc Get upcoming game releases
+ * @desc Get upcoming game releases (auto-detects based on system date)
  * @access Public
  */
 router.get('/upcoming-releases', generalLimiter, optionalAuth, getUpcomingReleases);
@@ -35,6 +36,13 @@ router.get('/upcoming-releases', generalLimiter, optionalAuth, getUpcomingReleas
  * @access Public
  */
 router.get('/abandonware', generalLimiter, optionalAuth, getAbandonwareGames);
+
+/**
+ * @route GET /api/games/goty
+ * @desc Get Game of the Year tagged games
+ * @access Public
+ */
+router.get('/goty', generalLimiter, optionalAuth, getGotyGames);
 
 /**
  * @route GET /api/games

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import User from '../models/User';
 import { getPaginationParams, getPaginationResult, parseId, updateObjectFields } from '../utils/helpers';
-import { sequelize } from '../config/database';
+import sequelize from '../config/database';
 import { QueryTypes } from 'sequelize';
 
 /**
@@ -28,9 +28,9 @@ export const getUserStats = async (req: AuthenticatedRequest, res: Response): Pr
     );
     const collectionCount = parseInt(collectionResult[0]?.count || '0', 10);
 
-    // Get wishlist count
+    // Get wishlist count (from user_collection with wishlist status)
     const wishlistResult = await sequelize.query<{ count: string }>(
-      'SELECT COUNT(*) as count FROM wishlist WHERE user_id = :userId',
+      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'wishlist'",
       { replacements: { userId }, type: QueryTypes.SELECT }
     );
     const wishlistCount = parseInt(wishlistResult[0]?.count || '0', 10);
@@ -58,10 +58,31 @@ export const getUserStats = async (req: AuthenticatedRequest, res: Response): Pr
 
     // Get unread notifications count
     const notificationsResult = await sequelize.query<{ count: string }>(
-      'SELECT COUNT(*) as count FROM notifications WHERE user_id = :userId AND read_at IS NULL',
+      'SELECT COUNT(*) as count FROM notifications WHERE user_id = :userId AND is_read = false',
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    ).catch(() => [{ count: '0' }]);
+    const notificationsCount = parseInt(notificationsResult[0]?.count || '0', 10);
+
+    // Get backlog count
+    const backlogResult = await sequelize.query<{ count: string }>(
+      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'backlog'",
       { replacements: { userId }, type: QueryTypes.SELECT }
     );
-    const notificationsCount = parseInt(notificationsResult[0]?.count || '0', 10);
+    const backlogCount = parseInt(backlogResult[0]?.count || '0', 10);
+
+    // Get paused count
+    const pausedResult = await sequelize.query<{ count: string }>(
+      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'paused'",
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const pausedCount = parseInt(pausedResult[0]?.count || '0', 10);
+
+    // Get abandoned count
+    const abandonedResult = await sequelize.query<{ count: string }>(
+      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'abandoned'",
+      { replacements: { userId }, type: QueryTypes.SELECT }
+    );
+    const abandonedCount = parseInt(abandonedResult[0]?.count || '0', 10);
 
     res.status(200).json({
       success: true,
@@ -71,6 +92,9 @@ export const getUserStats = async (req: AuthenticatedRequest, res: Response): Pr
           wishlist: wishlistCount,
           playing: playingCount,
           completed: completedCount,
+          backlog: backlogCount,
+          paused: pausedCount,
+          abandoned: abandonedCount,
           reviews: reviewsCount,
           notifications: notificationsCount
         }
