@@ -3,6 +3,7 @@ import authRoutes from './authRoutes';
 import userRoutes from './userRoutes';
 import gameRoutes from './gameRoutes';
 import platformRoutes from './platformRoutes';
+import collectionRoutes from './collectionRoutes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/games', gameRoutes);
 router.use('/platforms', platformRoutes);
+router.use('/collection', collectionRoutes);
 
 export default router;

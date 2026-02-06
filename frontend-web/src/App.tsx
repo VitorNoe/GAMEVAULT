@@ -16,6 +16,11 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m
 const Collection = lazy(() => import('./pages/Collection').then(m => ({ default: m.Collection })));
 const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 const Wishlist = lazy(() => import('./pages/Wishlist').then(m => ({ default: m.Wishlist })));
+const PlayingNow = lazy(() => import('./pages/PlayingNow').then(m => ({ default: m.PlayingNow })));
+const CompletedGames = lazy(() => import('./pages/CompletedGames').then(m => ({ default: m.CompletedGames })));
+const GotyAwards = lazy(() => import('./pages/GotyAwards').then(m => ({ default: m.GotyAwards })));
+const UpcomingReleases = lazy(() => import('./pages/UpcomingReleases').then(m => ({ default: m.UpcomingReleases })));
+const Abandonware = lazy(() => import('./pages/Abandonware').then(m => ({ default: m.Abandonware })));
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = memo(({ children }) => {
@@ -69,6 +74,9 @@ function App() {
               <Route path={ROUTES.HOME} element={<Home />} />
               <Route path={ROUTES.GAMES} element={<Games />} />
               <Route path={ROUTES.GAME_DETAILS} element={<GameDetail />} />
+              <Route path={ROUTES.GOTY_AWARDS} element={<GotyAwards />} />
+              <Route path={ROUTES.UPCOMING} element={<UpcomingReleases />} />
+              <Route path={ROUTES.ABANDONWARE} element={<Abandonware />} />
 
               {/* Public Only Routes */}
               <Route
@@ -110,6 +118,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Wishlist />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.PLAYING}
+                element={
+                  <ProtectedRoute>
+                    <PlayingNow />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.COMPLETED}
+                element={
+                  <ProtectedRoute>
+                    <CompletedGames />
                   </ProtectedRoute>
                 }
               />

@@ -30,23 +30,49 @@ const getLocalWishlistCount = (): number => {
     }
 };
 
+// Get playing now count from localStorage
+const getLocalPlayingCount = (): number => {
+    try {
+        const playing = JSON.parse(localStorage.getItem('playing_now') || '[]');
+        return Array.isArray(playing) ? playing.length : 0;
+    } catch {
+        return 0;
+    }
+};
+
+// Get completed count from localStorage
+const getLocalCompletedCount = (): number => {
+    try {
+        const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+        return Array.isArray(completed) ? completed.length : 0;
+    } catch {
+        return 0;
+    }
+};
+
 export const useUserStats = () => {
     const { isAuthenticated } = useAuth();
     const [stats, setStats] = useState<UserStats>(() => ({
         ...defaultStats,
         wishlist: getLocalWishlistCount(),
+        playing: getLocalPlayingCount(),
+        completed: getLocalCompletedCount(),
     }));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchStats = useCallback(async () => {
-        // Always get local wishlist count
+        // Always get local counts
         const localWishlistCount = getLocalWishlistCount();
+        const localPlayingCount = getLocalPlayingCount();
+        const localCompletedCount = getLocalCompletedCount();
 
         if (!isAuthenticated) {
             setStats({
                 ...defaultStats,
                 wishlist: localWishlistCount,
+                playing: localPlayingCount,
+                completed: localCompletedCount,
             });
             return;
         }
@@ -57,19 +83,23 @@ export const useUserStats = () => {
             const response = await api.get('/users/me/stats');
             if (response.data.success) {
                 const serverStats = response.data.data.stats;
-                // Use local wishlist count if server returns 0 (fallback to localStorage)
+                // Use local counts if server returns 0 (fallback to localStorage)
                 setStats({
                     ...serverStats,
                     wishlist: serverStats.wishlist > 0 ? serverStats.wishlist : localWishlistCount,
+                    playing: serverStats.playing > 0 ? serverStats.playing : localPlayingCount,
+                    completed: serverStats.completed > 0 ? serverStats.completed : localCompletedCount,
                 });
             }
         } catch (err: any) {
             console.error('Error fetching user stats:', err);
             setError(err.response?.data?.message || 'Failed to fetch statistics');
-            // On error, at least show local wishlist count
+            // On error, at least show local counts
             setStats(prev => ({
                 ...prev,
                 wishlist: localWishlistCount,
+                playing: localPlayingCount,
+                completed: localCompletedCount,
             }));
         } finally {
             setLoading(false);
@@ -85,27 +115,37 @@ export const useUserStats = () => {
     useEffect(() => {
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === 'wishlist') {
-                setStats(prev => ({
-                    ...prev,
-                    wishlist: getLocalWishlistCount(),
-                }));
+                setStats(prev => ({ ...prev, wishlist: getLocalWishlistCount() }));
+            }
+            if (e.key === 'playing_now') {
+                setStats(prev => ({ ...prev, playing: getLocalPlayingCount() }));
+            }
+            if (e.key === 'completed') {
+                setStats(prev => ({ ...prev, completed: getLocalCompletedCount() }));
             }
         };
 
-        // Custom event for same-tab updates
+        // Custom events for same-tab updates
         const handleWishlistUpdate = () => {
-            setStats(prev => ({
-                ...prev,
-                wishlist: getLocalWishlistCount(),
-            }));
+            setStats(prev => ({ ...prev, wishlist: getLocalWishlistCount() }));
+        };
+        const handlePlayingUpdate = () => {
+            setStats(prev => ({ ...prev, playing: getLocalPlayingCount() }));
+        };
+        const handleCompletedUpdate = () => {
+            setStats(prev => ({ ...prev, completed: getLocalCompletedCount() }));
         };
 
         window.addEventListener('storage', handleStorageChange);
         window.addEventListener('wishlist-updated', handleWishlistUpdate);
+        window.addEventListener('playing-updated', handlePlayingUpdate);
+        window.addEventListener('completed-updated', handleCompletedUpdate);
 
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('wishlist-updated', handleWishlistUpdate);
+            window.removeEventListener('playing-updated', handlePlayingUpdate);
+            window.removeEventListener('completed-updated', handleCompletedUpdate);
         };
     }, []);
 

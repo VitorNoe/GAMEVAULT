@@ -51,11 +51,11 @@ export const Dashboard: React.FC = () => {
     if (loading || statsLoading) return <Loading />;
 
     const statCards = [
-        { 
-            icon: '📚', 
-            value: userStats.collection || catalogTotal, 
-            label: (userStats.collection !== undefined && userStats.collection !== null && userStats.collection > 0) ? 'My Collection' : 'Games in Catalog', 
-            color: 'from-purple-500 to-pink-500' 
+        {
+            icon: '📚',
+            value: userStats.collection || catalogTotal,
+            label: (userStats.collection !== undefined && userStats.collection !== null && userStats.collection > 0) ? 'My Collection' : 'Games in Catalog',
+            color: 'from-purple-500 to-pink-500'
         },
         { icon: '🎯', value: userStats.playing, label: 'Currently Playing', color: 'from-blue-500 to-cyan-500' },
         { icon: '✅', value: userStats.completed, label: 'Completed', color: 'from-green-500 to-emerald-500' },
@@ -153,6 +153,48 @@ export const Dashboard: React.FC = () => {
                                     Wishlist
                                 </div>
                                 <div className="text-sm text-gray-500">Games you want</div>
+                            </div>
+                        </motion.div>
+                    </Link>
+                    <Link to="/playing">
+                        <motion.div
+                            className="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer group"
+                            whileHover={{ scale: 1.02, x: 5 }}
+                        >
+                            <span className="text-3xl">🎯</span>
+                            <div>
+                                <div className="font-semibold text-white group-hover:text-primary-400 transition-colors">
+                                    Playing Now
+                                </div>
+                                <div className="text-sm text-gray-500">Currently playing</div>
+                            </div>
+                        </motion.div>
+                    </Link>
+                    <Link to="/completed">
+                        <motion.div
+                            className="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer group"
+                            whileHover={{ scale: 1.02, x: 5 }}
+                        >
+                            <span className="text-3xl">✅</span>
+                            <div>
+                                <div className="font-semibold text-white group-hover:text-primary-400 transition-colors">
+                                    Completed
+                                </div>
+                                <div className="text-sm text-gray-500">Games you beat</div>
+                            </div>
+                        </motion.div>
+                    </Link>
+                    <Link to="/awards">
+                        <motion.div
+                            className="glass p-4 rounded-xl flex items-center gap-4 cursor-pointer group"
+                            whileHover={{ scale: 1.02, x: 5 }}
+                        >
+                            <span className="text-3xl">🏆</span>
+                            <div>
+                                <div className="font-semibold text-white group-hover:text-primary-400 transition-colors">
+                                    GOTY Awards
+                                </div>
+                                <div className="text-sm text-gray-500">Hall of fame</div>
                             </div>
                         </motion.div>
                     </Link>

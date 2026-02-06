@@ -17,7 +17,7 @@ import { AppError } from '../utils/AppError';
 export const getAllGames = async (req: Request, res: Response): Promise<void> => {
   try {
     const { page, limit, offset } = getPaginationParams(req);
-    const { search, release_status, availability_status, year } = req.query;
+    const { search, release_status, availability_status, year, tag, platform, genre, sort } = req.query;
 
     // Build where clause
     const where: Record<string, unknown> = {};
@@ -25,7 +25,12 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
     if (search) {
       const sanitizedSearch = sanitizeSearchQuery(search as string);
       if (sanitizedSearch) {
-        where.title = { [Op.iLike]: `%${sanitizedSearch}%` };
+        where[Op.or as any] = [
+          { title: { [Op.iLike]: `%${sanitizedSearch}%` } },
+          { description: { [Op.iLike]: `%${sanitizedSearch}%` } },
+          { developer_name: { [Op.iLike]: `%${sanitizedSearch}%` } },
+          { publisher_name: { [Op.iLike]: `%${sanitizedSearch}%` } }
+        ];
       }
     }
 
@@ -44,11 +49,30 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
       }
     }
 
+    if (tag) {
+      where.tags = { [Op.iLike]: `%${tag}%` };
+    }
+
+    if (platform) {
+      where.platforms = { [Op.iLike]: `%${platform}%` };
+    }
+
+    if (genre) {
+      where.genres = { [Op.iLike]: `%${genre}%` };
+    }
+
+    // Determine sort order
+    let order: any = [['created_at', 'DESC']];
+    if (sort === 'title') order = [['title', 'ASC']];
+    else if (sort === 'year') order = [['release_year', 'DESC']];
+    else if (sort === 'metacritic') order = [['metacritic_score', 'DESC']];
+    else if (sort === 'release_date') order = [['release_date', 'DESC']];
+
     const { count, rows: games } = await Game.findAndCountAll({
       where,
       limit,
       offset,
-      order: [['created_at', 'DESC']]
+      order
     });
 
     res.status(200).json({
@@ -313,7 +337,7 @@ export const searchGames = async (req: Request, res: Response): Promise<void> =>
 };
 
 /**
- * Get upcoming releases
+ * Get upcoming releases - auto-detects based on system date
  * GET /api/games/upcoming-releases
  */
 export const getUpcomingReleases = async (req: Request, res: Response): Promise<void> => {
@@ -324,11 +348,17 @@ export const getUpcomingReleases = async (req: Request, res: Response): Promise<
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
+    const today = new Date().toISOString().split('T')[0];
+
     const { count, rows: games } = await Game.findAndCountAll({
       where: {
-        release_status: {
-          [Op.in]: ['coming_soon', 'in_development']
-        }
+        [Op.or]: [
+          { release_status: { [Op.in]: ['coming_soon', 'in_development'] } },
+          {
+            release_date: { [Op.gt]: today },
+            release_status: 'released'
+          }
+        ]
       },
       limit: limitNum,
       offset,
@@ -394,6 +424,48 @@ export const getAbandonwareGames = async (req: Request, res: Response): Promise<
     res.status(500).json({
       success: false,
       message: 'Error fetching abandonware games.'
+    });
+  }
+};
+
+/**
+ * Get GOTY (Game of the Year) games
+ * GET /api/games/goty
+ */
+export const getGotyGames = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    const { count, rows: games } = await Game.findAndCountAll({
+      where: {
+        tags: { [Op.iLike]: '%goty%' }
+      },
+      limit: limitNum,
+      offset,
+      order: [['release_year', 'DESC']]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        games,
+        pagination: {
+          total: count,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(count / limitNum)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get GOTY games error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching GOTY games.'
     });
   }
 };

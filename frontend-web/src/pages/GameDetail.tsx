@@ -32,6 +32,8 @@ export const GameDetail: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isInWishlist, setIsInWishlist] = useState(false);
+    const [isPlayingNow, setIsPlayingNow] = useState(false);
+    const [isCompletedGame, setIsCompletedGame] = useState(false);
     const [wishlistLoading, setWishlistLoading] = useState(false);
 
     useEffect(() => {
@@ -44,9 +46,17 @@ export const GameDetail: React.FC = () => {
                 const gameData = await gameService.getGameById(parseInt(id));
                 setGame(gameData);
 
-                // Check if game is in wishlist (from localStorage for now)
+                // Check if game is in wishlist (from localStorage)
                 const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
                 setIsInWishlist(wishlist.includes(parseInt(id)));
+
+                // Check if game is in playing now (from localStorage)
+                const playing = JSON.parse(localStorage.getItem('playing_now') || '[]');
+                setIsPlayingNow(playing.includes(parseInt(id)));
+
+                // Check if game is in completed (from localStorage)
+                const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+                setIsCompletedGame(completed.includes(parseInt(id)));
             } catch (err: any) {
                 console.error('Error fetching game:', err);
                 setError(err.response?.data?.message || 'Failed to load game details');
@@ -82,6 +92,74 @@ export const GameDetail: React.FC = () => {
         // Dispatch event to update stats in sidebar
         window.dispatchEvent(new Event('wishlist-updated'));
         setWishlistLoading(false);
+    };
+
+    const handlePlayingToggle = () => {
+        if (!isAuthenticated) {
+            navigate(ROUTES.LOGIN);
+            return;
+        }
+
+        const playing = JSON.parse(localStorage.getItem('playing_now') || '[]');
+        const gameIdNum = parseInt(id!);
+
+        if (isPlayingNow) {
+            // Remove from playing
+            const newPlaying = playing.filter((gId: number) => gId !== gameIdNum);
+            localStorage.setItem('playing_now', JSON.stringify(newPlaying));
+            // Also update detailed list
+            try {
+                const detailed = JSON.parse(localStorage.getItem('gamevault_playing_now') || '[]');
+                localStorage.setItem('gamevault_playing_now', JSON.stringify(detailed.filter((item: any) => item.id !== gameIdNum)));
+            } catch { }
+            setIsPlayingNow(false);
+        } else {
+            // Add to playing
+            playing.push(gameIdNum);
+            localStorage.setItem('playing_now', JSON.stringify(playing));
+            // Also update detailed list
+            try {
+                const detailed = JSON.parse(localStorage.getItem('gamevault_playing_now') || '[]');
+                detailed.push({ id: gameIdNum, title: game?.title, cover_url: game?.cover_url, addedAt: new Date().toISOString() });
+                localStorage.setItem('gamevault_playing_now', JSON.stringify(detailed));
+            } catch { }
+            setIsPlayingNow(true);
+        }
+        window.dispatchEvent(new Event('playing-updated'));
+    };
+
+    const handleCompletedToggle = () => {
+        if (!isAuthenticated) {
+            navigate(ROUTES.LOGIN);
+            return;
+        }
+
+        const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+        const gameIdNum = parseInt(id!);
+
+        if (isCompletedGame) {
+            // Remove from completed
+            const newCompleted = completed.filter((gId: number) => gId !== gameIdNum);
+            localStorage.setItem('completed', JSON.stringify(newCompleted));
+            // Also update detailed list
+            try {
+                const detailed = JSON.parse(localStorage.getItem('gamevault_completed') || '[]');
+                localStorage.setItem('gamevault_completed', JSON.stringify(detailed.filter((item: any) => item.id !== gameIdNum)));
+            } catch { }
+            setIsCompletedGame(false);
+        } else {
+            // Add to completed
+            completed.push(gameIdNum);
+            localStorage.setItem('completed', JSON.stringify(completed));
+            // Also update detailed list
+            try {
+                const detailed = JSON.parse(localStorage.getItem('gamevault_completed') || '[]');
+                detailed.push({ id: gameIdNum, title: game?.title, cover_url: game?.cover_url, addedAt: new Date().toISOString() });
+                localStorage.setItem('gamevault_completed', JSON.stringify(detailed));
+            } catch { }
+            setIsCompletedGame(true);
+        }
+        window.dispatchEvent(new Event('completed-updated'));
     };
 
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -170,6 +248,22 @@ export const GameDetail: React.FC = () => {
                             className="w-full"
                         >
                             {wishlistLoading ? 'Loading...' : isInWishlist ? '✓ In Wishlist' : '⭐ Add to Wishlist'}
+                        </Button>
+
+                        <Button
+                            onClick={handlePlayingToggle}
+                            variant={isPlayingNow ? 'secondary' : 'primary'}
+                            className="w-full"
+                        >
+                            {isPlayingNow ? '✓ Playing Now' : '🎯 Mark as Playing'}
+                        </Button>
+
+                        <Button
+                            onClick={handleCompletedToggle}
+                            variant={isCompletedGame ? 'secondary' : 'primary'}
+                            className="w-full"
+                        >
+                            {isCompletedGame ? '✓ Completed' : '✅ Mark as Completed'}
                         </Button>
 
                         {game.trailer_url && (
