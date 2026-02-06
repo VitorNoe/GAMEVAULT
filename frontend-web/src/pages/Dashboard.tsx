@@ -2,18 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { useUserStats } from '../hooks/useUserStats';
 import { gameService } from '../services/gameService';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 import { ROUTES } from '../utils/constants';
 import { Game } from '../types/game.types';
-
-interface DashboardStats {
-    totalGames: number;
-    gamesPlaying: number;
-    gamesCompleted: number;
-    gamesWishlist: number;
-}
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -32,13 +26,9 @@ const itemVariants = {
 
 export const Dashboard: React.FC = () => {
     const { user } = useAuth();
-    const [stats, setStats] = useState<DashboardStats>({
-        totalGames: 0,
-        gamesPlaying: 0,
-        gamesCompleted: 0,
-        gamesWishlist: 0,
-    });
+    const { stats: userStats, loading: statsLoading } = useUserStats();
     const [recentGames, setRecentGames] = useState<Game[]>([]);
+    const [catalogTotal, setCatalogTotal] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -47,13 +37,7 @@ export const Dashboard: React.FC = () => {
                 setLoading(true);
                 const response = await gameService.getAllGames({ page: 1, limit: 6 });
                 setRecentGames(response.data?.games || []);
-
-                setStats({
-                    totalGames: response.data?.pagination.total || 0,
-                    gamesPlaying: 0,
-                    gamesCompleted: 0,
-                    gamesWishlist: 0,
-                });
+                setCatalogTotal(response.data?.pagination.total || 0);
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
             } finally {
@@ -64,13 +48,18 @@ export const Dashboard: React.FC = () => {
         loadDashboardData();
     }, []);
 
-    if (loading) return <Loading />;
+    if (loading || statsLoading) return <Loading />;
 
     const statCards = [
-        { icon: '📚', value: stats.totalGames, label: 'Total Games', color: 'from-purple-500 to-pink-500' },
-        { icon: '🎯', value: stats.gamesPlaying, label: 'Currently Playing', color: 'from-blue-500 to-cyan-500' },
-        { icon: '✅', value: stats.gamesCompleted, label: 'Completed', color: 'from-green-500 to-emerald-500' },
-        { icon: '⭐', value: stats.gamesWishlist, label: 'Wishlist', color: 'from-yellow-500 to-orange-500' },
+        { 
+            icon: '📚', 
+            value: userStats.collection || catalogTotal, 
+            label: (userStats.collection !== undefined && userStats.collection !== null && userStats.collection > 0) ? 'My Collection' : 'Games in Catalog', 
+            color: 'from-purple-500 to-pink-500' 
+        },
+        { icon: '🎯', value: userStats.playing, label: 'Currently Playing', color: 'from-blue-500 to-cyan-500' },
+        { icon: '✅', value: userStats.completed, label: 'Completed', color: 'from-green-500 to-emerald-500' },
+        { icon: '⭐', value: userStats.wishlist, label: 'Wishlist', color: 'from-yellow-500 to-orange-500' },
     ];
 
     return (
