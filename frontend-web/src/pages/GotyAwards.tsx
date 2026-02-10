@@ -28,7 +28,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2025,
         title: 'Clair Obscur: Expedition 33',
-        cover: 'https://placehold.co/300x400/1a1a2e/a78bfa?text=Clair+Obscur',
+        cover: 'https://gaming-cdn.com/images/products/17015/616x353/clair-obscur-expedition-33-pc-steam-cover.jpg?v=1750336145',
         developer: 'Sandfall Interactive',
         description: 'A stunning turn-based RPG set in a painterly world where art comes to life. Players embark on Expedition 33, a desperate mission to destroy the Paintress before she can erase more of humanity.',
         metacritic: 88,
@@ -37,7 +37,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2024,
         title: 'Astro Bot',
-        cover: 'https://placehold.co/300x400/1a1a2e/60a5fa?text=Astro+Bot',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/4/4f/Astro_Bot_cover_art.jpg',
         developer: 'Team Asobi',
         description: 'A delightful 3D platformer that showcases the PS5\'s capabilities with inventive gameplay, charming characters, and masterful level design that pays homage to PlayStation\'s legacy.',
         metacritic: 94,
@@ -46,7 +46,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2023,
         title: "Baldur's Gate 3",
-        cover: 'https://placehold.co/300x400/1a1a2e/f59e0b?text=Baldurs+Gate+3',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/6/68/Baldur%27s_Gate_3_cover_art.jpg',
         developer: 'Larian Studios',
         description: 'An epic RPG masterpiece based on D&D 5th Edition. Features unprecedented player choice, deep narrative branching, and tactical turn-based combat in a richly detailed fantasy world.',
         metacritic: 96,
@@ -55,7 +55,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2022,
         title: 'Elden Ring',
-        cover: 'https://placehold.co/300x400/1a1a2e/eab308?text=Elden+Ring',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg',
         developer: 'FromSoftware',
         description: 'A groundbreaking open-world action RPG created by Hidetaka Miyazaki and George R.R. Martin. Explores the Lands Between with challenging combat and deep lore in a vast, interconnected world.',
         metacritic: 96,
@@ -64,7 +64,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2021,
         title: 'It Takes Two',
-        cover: 'https://placehold.co/300x400/1a1a2e/ec4899?text=It+Takes+Two',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/b/bb/It_Takes_Two_cover_art.jpg',
         developer: 'Hazelight Studios',
         description: 'A genre-bending co-op adventure about a couple turned into dolls by their daughter\'s wish. Each level introduces completely unique gameplay mechanics in a heartwarming journey.',
         metacritic: 88,
@@ -73,7 +73,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2020,
         title: 'The Last of Us Part II',
-        cover: 'https://placehold.co/300x400/1a1a2e/22c55e?text=TLOU+Part+II',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/4/4f/TLOU_P2_Box_Art_2.png',
         developer: 'Naughty Dog',
         description: 'A harrowing tale of vengeance and redemption. Ellie sets out to find justice after a devastating event, pushing the boundaries of interactive storytelling with brutal, emotional gameplay.',
         metacritic: 93,
@@ -82,7 +82,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2019,
         title: 'Sekiro: Shadows Die Twice',
-        cover: 'https://placehold.co/300x400/1a1a2e/ef4444?text=Sekiro',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/6/6e/Sekiro_art.jpg',
         developer: 'FromSoftware',
         description: 'A fierce action-adventure set in Sengoku Japan. Play as the "one-armed wolf" shinobi in a world of swordplay, stealth, and resurrection mechanics that redefine the action genre.',
         metacritic: 90,
@@ -91,7 +91,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2018,
         title: 'God of War',
-        cover: 'https://placehold.co/300x400/1a1a2e/3b82f6?text=God+of+War',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/a/a7/God_of_War_4_cover.jpg',
         developer: 'Santa Monica Studio',
         description: 'A bold reimagining of the series following Kratos and his son Atreus in Norse mythology. Features a single-shot camera, visceral combat, and an emotionally resonant father-son story.',
         metacritic: 94,
@@ -100,7 +100,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2017,
         title: 'The Legend of Zelda: Breath of the Wild',
-        cover: 'https://placehold.co/300x400/1a1a2e/22d3ee?text=Zelda+BotW',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg',
         developer: 'Nintendo EPD',
         description: 'A revolutionary open-world action-adventure that redefined the Zelda franchise. Explore the vast kingdom of Hyrule with unprecedented freedom in physics-based puzzle solving and exploration.',
         metacritic: 97,
@@ -109,7 +109,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2016,
         title: 'Overwatch',
-        cover: 'https://placehold.co/300x400/1a1a2e/f97316?text=Overwatch',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/5/51/Overwatch_cover_art.jpg',
         developer: 'Blizzard Entertainment',
         description: 'A team-based multiplayer FPS featuring a diverse cast of heroes with unique abilities. Defined a generation of competitive gaming with its accessible yet deep gameplay.',
         metacritic: 91,
@@ -118,7 +118,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2015,
         title: 'The Witcher 3: Wild Hunt',
-        cover: 'https://placehold.co/300x400/1a1a2e/a855f7?text=Witcher+3',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Witcher_3_cover_art.jpg',
         developer: 'CD Projekt Red',
         description: 'An epic open-world RPG following Geralt of Rivia in his search for his adopted daughter. Features rich storytelling, morally complex choices, and a breathtaking open world.',
         metacritic: 93,
@@ -127,7 +127,7 @@ const GOTY_WINNERS: GotyWinner[] = [
     {
         year: 2014,
         title: 'Dragon Age: Inquisition',
-        cover: 'https://placehold.co/300x400/1a1a2e/06b6d4?text=Dragon+Age',
+        cover: 'https://upload.wikimedia.org/wikipedia/en/9/91/Dragon_Age_Inquisition_BoxArt.jpg',
         developer: 'BioWare',
         description: 'An epic RPG where you lead the Inquisition to restore order across Thedas. Features deep character customization, tactical combat, and meaningful choices that shape the world.',
         metacritic: 85,

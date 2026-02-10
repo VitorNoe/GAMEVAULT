@@ -1,165 +1,204 @@
-import 'package:flutter/material.dart';
-import '../models/game.dart';
-import '../services/user_service.dart';
+import 'package:flutter/foundation.dart';
 
-/// User data provider (collection, wishlist, stats)
+import '../models/collection_item.dart';
+import '../services/user_service.dart';
+import '../services/api_service.dart';
+
 class UserDataProvider extends ChangeNotifier {
   final UserService _userService = UserService();
 
-  List<Game> _collection = [];
-  List<Game> _wishlist = [];
-  UserStats? _stats;
-  bool _isLoadingCollection = false;
-  bool _isLoadingWishlist = false;
-  bool _isLoadingStats = false;
+  // ── State ──
+  List<CollectionItem> _collection = [];
+  List<CollectionItem> _wishlist = [];
+  CollectionStats _stats = CollectionStats();
+  UserStats _userStats = UserStats();
+  bool _isLoading = false;
   String? _error;
 
-  List<Game> get collection => _collection;
-  List<Game> get wishlist => _wishlist;
-  UserStats? get stats => _stats;
-  bool get isLoadingCollection => _isLoadingCollection;
-  bool get isLoadingWishlist => _isLoadingWishlist;
-  bool get isLoadingStats => _isLoadingStats;
+  // ── Getters ──
+  List<CollectionItem> get collection => _collection;
+  List<CollectionItem> get wishlist => _wishlist;
+  CollectionStats get stats => _stats;
+  UserStats get userStats => _userStats;
+  bool get isLoading => _isLoading;
   String? get error => _error;
 
-  /// Fetch user's collection
-  Future<void> fetchCollection({bool refresh = false}) async {
-    if (_isLoadingCollection) return;
-
-    _isLoadingCollection = true;
+  /// Fetch user collection.
+  Future<void> fetchCollection({String? status}) async {
+    _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await _userService.getCollection();
-      _collection = result.games;
+      _collection = await _userService.getCollection(status: status, limit: 100);
+    } on ApiException catch (e) {
+      _error = e.message;
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoadingCollection = false;
+      _error = 'Failed to load collection.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Fetch wishlist items.
+  Future<void> fetchWishlist() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _wishlist = await _userService.getCollection(status: 'wishlist', limit: 100);
+    } on ApiException catch (e) {
+      _error = e.message;
+    } catch (e) {
+      _error = 'Failed to load wishlist.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Fetch collection stats.
+  Future<void> fetchStats() async {
+    try {
+      _stats = await _userService.getCollectionStats();
       notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to fetch stats: $e');
     }
   }
 
-  /// Add game to collection
-  Future<bool> addToCollection(int gameId) async {
+  /// Fetch user overview stats.
+  Future<void> fetchUserStats() async {
     try {
-      final success = await _userService.addToCollection(gameId);
-      if (success) {
-        await fetchCollection(refresh: true);
-        await fetchStats();
-      }
-      return success;
+      _userStats = await _userService.getUserStats();
+      notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      debugPrint('Failed to fetch user stats: $e');
+    }
+  }
+
+  /// Add game to collection.
+  Future<bool> addToCollection({
+    required int gameId,
+    String status = 'not_started',
+    String format = 'digital',
+  }) async {
+    try {
+      await _userService.addToCollection(
+        gameId: gameId,
+        status: status,
+        format: format,
+      );
+      await fetchCollection();
+      await fetchStats();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'Failed to add game to collection.';
       notifyListeners();
       return false;
     }
   }
 
-  /// Remove game from collection
-  Future<bool> removeFromCollection(int gameId) async {
-    try {
-      final success = await _userService.removeFromCollection(gameId);
-      if (success) {
-        _collection.removeWhere((game) => game.id == gameId);
-        await fetchStats();
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// Fetch user's wishlist
-  Future<void> fetchWishlist({bool refresh = false}) async {
-    if (_isLoadingWishlist) return;
-
-    _isLoadingWishlist = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final result = await _userService.getWishlist();
-      _wishlist = result.games;
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoadingWishlist = false;
-      notifyListeners();
-    }
-  }
-
-  /// Add game to wishlist
+  /// Add game to wishlist.
   Future<bool> addToWishlist(int gameId) async {
     try {
-      final success = await _userService.addToWishlist(gameId);
-      if (success) {
-        await fetchWishlist(refresh: true);
-        await fetchStats();
-      }
-      return success;
+      await _userService.addToCollection(
+        gameId: gameId,
+        status: 'wishlist',
+      );
+      await fetchWishlist();
+      await fetchStats();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return false;
     } catch (e) {
-      _error = e.toString();
+      _error = 'Failed to add game to wishlist.';
       notifyListeners();
       return false;
     }
   }
 
-  /// Remove game from wishlist
-  Future<bool> removeFromWishlist(int gameId) async {
+  /// Update collection item.
+  Future<bool> updateCollectionItem({
+    required int gameId,
+    String? status,
+    String? format,
+    int? hoursPlayed,
+    String? personalNotes,
+    int? rating,
+  }) async {
     try {
-      final success = await _userService.removeFromWishlist(gameId);
-      if (success) {
-        _wishlist.removeWhere((game) => game.id == gameId);
-        await fetchStats();
-        notifyListeners();
-      }
-      return success;
+      await _userService.updateCollectionItem(
+        gameId: gameId,
+        status: status,
+        format: format,
+        hoursPlayed: hoursPlayed,
+        personalNotes: personalNotes,
+        rating: rating,
+      );
+      await fetchCollection();
+      await fetchStats();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return false;
     } catch (e) {
-      _error = e.toString();
+      _error = 'Failed to update game.';
       notifyListeners();
       return false;
     }
   }
 
-  /// Fetch user stats
-  Future<void> fetchStats() async {
-    _isLoadingStats = true;
-    notifyListeners();
-
+  /// Remove game from collection.
+  Future<bool> removeFromCollection(int gameId) async {
     try {
-      _stats = await _userService.getUserStats();
-    } catch (e) {
-      // Ignore stats errors
-    } finally {
-      _isLoadingStats = false;
+      await _userService.removeFromCollection(gameId);
+      _collection.removeWhere((item) => item.gameId == gameId);
+      _wishlist.removeWhere((item) => item.gameId == gameId);
+      await fetchStats();
       notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'Failed to remove game.';
+      notifyListeners();
+      return false;
     }
   }
 
-  /// Check if game is in collection
+  /// Check if a game is in the collection.
   bool isInCollection(int gameId) {
-    return _collection.any((game) => game.id == gameId);
+    return _collection.any((item) => item.gameId == gameId && item.status != 'wishlist');
   }
 
-  /// Check if game is in wishlist
+  /// Check if a game is in the wishlist.
   bool isInWishlist(int gameId) {
-    return _wishlist.any((game) => game.id == gameId);
+    return _wishlist.any((item) => item.gameId == gameId);
   }
 
-  /// Clear all data (on logout)
+  /// Clear all user data (on logout).
   void clearData() {
-    _collection = [];
-    _wishlist = [];
-    _stats = null;
+    _collection.clear();
+    _wishlist.clear();
+    _stats = CollectionStats();
+    _userStats = UserStats();
+    _error = null;
     notifyListeners();
   }
 
-  /// Clear error
+  /// Clear error.
   void clearError() {
     _error = null;
     notifyListeners();

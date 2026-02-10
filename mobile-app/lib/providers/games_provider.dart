@@ -1,88 +1,107 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 import '../models/game.dart';
 import '../services/game_service.dart';
+import '../services/api_service.dart';
 
-/// Games state provider
 class GamesProvider extends ChangeNotifier {
   final GameService _gameService = GameService();
 
+  // ── State ──
   List<Game> _games = [];
   List<Game> _searchResults = [];
   Game? _selectedGame;
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   bool _isSearching = false;
   String? _error;
+
   int _currentPage = 1;
   int _totalPages = 1;
-  int _total = 0;
+  int _totalGames = 0;
+  String? _currentSearch;
+  String? _currentReleaseStatus;
 
+  // ── Getters ──
   List<Game> get games => _games;
   List<Game> get searchResults => _searchResults;
   Game? get selectedGame => _selectedGame;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   bool get isSearching => _isSearching;
   String? get error => _error;
-  int get currentPage => _currentPage;
-  int get totalPages => _totalPages;
-  int get total => _total;
   bool get hasMore => _currentPage < _totalPages;
+  int get totalGames => _totalGames;
+  int get currentPage => _currentPage;
 
-  /// Fetch games list
+  /// Fetch games list (first page).
   Future<void> fetchGames({
-    bool refresh = false,
     String? search,
     String? releaseStatus,
-    String? availabilityStatus,
-    int? year,
+    String? sort,
+    bool refresh = false,
   }) async {
-    if (refresh) {
-      _currentPage = 1;
-      _games = [];
-    }
+    if (_isLoading && !refresh) return;
 
     _isLoading = true;
     _error = null;
+    _currentSearch = search;
+    _currentReleaseStatus = releaseStatus;
+    if (refresh) {
+      _games.clear();
+    }
     notifyListeners();
 
     try {
       final result = await _gameService.getAllGames(
-        page: _currentPage,
+        page: 1,
         search: search,
         releaseStatus: releaseStatus,
-        availabilityStatus: availabilityStatus,
-        year: year,
+        sort: sort,
       );
-
-      if (refresh) {
-        _games = result.games;
-      } else {
-        _games = [..._games, ...result.games];
-      }
-
-      _total = result.total;
-      _totalPages = result.totalPages;
+      _games = result.games;
       _currentPage = result.page;
+      _totalPages = result.totalPages;
+      _totalGames = result.total;
+    } on ApiException catch (e) {
+      _error = e.message;
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _error = 'Failed to load games. Please try again.';
     }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
-  /// Load more games
+  /// Load next page.
   Future<void> loadMore() async {
-    if (!hasMore || _isLoading) return;
-    _currentPage++;
-    await fetchGames();
+    if (_isLoadingMore || !hasMore) return;
+
+    _isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final result = await _gameService.getAllGames(
+        page: _currentPage + 1,
+        search: _currentSearch,
+        releaseStatus: _currentReleaseStatus,
+      );
+      _games.addAll(result.games);
+      _currentPage = result.page;
+      _totalPages = result.totalPages;
+      _totalGames = result.total;
+    } catch (e) {
+      debugPrint('Failed to load more games: $e');
+    }
+
+    _isLoadingMore = false;
+    notifyListeners();
   }
 
-  /// Search games
+  /// Search games by text query.
   Future<void> searchGames(String query) async {
-    if (query.isEmpty) {
-      _searchResults = [];
-      _isSearching = false;
-      notifyListeners();
+    if (query.trim().isEmpty) {
+      clearSearch();
       return;
     }
 
@@ -91,17 +110,19 @@ class GamesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _gameService.searchGames(query);
+      final result = await _gameService.searchGames(query: query);
       _searchResults = result.games;
+    } on ApiException catch (e) {
+      _error = e.message;
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isSearching = false;
-      notifyListeners();
+      _error = 'Search failed. Please try again.';
     }
+
+    _isSearching = false;
+    notifyListeners();
   }
 
-  /// Get game by ID
+  /// Get single game details.
   Future<void> getGameById(int id) async {
     _isLoading = true;
     _error = null;
@@ -109,28 +130,30 @@ class GamesProvider extends ChangeNotifier {
 
     try {
       _selectedGame = await _gameService.getGameById(id);
+    } on ApiException catch (e) {
+      _error = e.message;
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _error = 'Failed to load game details.';
     }
+
+    _isLoading = false;
+    notifyListeners();
   }
 
-  /// Clear selected game
+  /// Clear search results.
+  void clearSearch() {
+    _searchResults.clear();
+    _isSearching = false;
+    notifyListeners();
+  }
+
+  /// Clear selected game.
   void clearSelectedGame() {
     _selectedGame = null;
     notifyListeners();
   }
 
-  /// Clear search results
-  void clearSearch() {
-    _searchResults = [];
-    _isSearching = false;
-    notifyListeners();
-  }
-
-  /// Clear error
+  /// Clear error.
   void clearError() {
     _error = null;
     notifyListeners();
