@@ -10,34 +10,34 @@ import 'routes/routes.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set preferred orientations
+  // Lock orientation to portrait
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
+  // Status bar and navigation bar styling
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: AppTheme.backgroundColor,
+      systemNavigationBarColor: AppTheme.surfaceColor,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
 
-  // Error handling em modo debug
+  // Debug error handler
   if (kDebugMode) {
     FlutterError.onError = (details) {
       FlutterError.presentError(details);
       debugPrint('Flutter Error: ${details.exceptionAsString()}');
     };
+    DebugConfig.printDebugInfo();
   }
 
   runApp(const GameVaultApp());
 }
 
-/// Main application widget
 class GameVaultApp extends StatelessWidget {
   const GameVaultApp({super.key});
 
