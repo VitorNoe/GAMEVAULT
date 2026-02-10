@@ -1,6 +1,6 @@
 # 🚀 Template Codespace: Apache + PHP + MariaDB + phpMyAdmin
 
-> Ambiente de desenvolvimento completo e configurável para PHP com Apache, MySQL/MariaDB e phpMyAdmin
+> Complete and configurable development environment for PHP with Apache, MySQL/MariaDB and phpMyAdmin
 
 [![GitHub Codespaces](https://img.shields.io/badge/Codespaces-Ready-brightgreen?logo=github)](https://github.com/codespaces)
 # Codespace Template — Apache + PHP + MariaDB + phpMyAdmin
