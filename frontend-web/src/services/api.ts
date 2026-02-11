@@ -10,9 +10,13 @@ class ApiService {
 
     this.api = axios.create({
       baseURL: baseURL,
+      timeout: 30000, // 30 segundos de timeout
       headers: {
         'Content-Type': 'application/json',
       },
+      // Otimizações
+      maxRedirects: 5,
+      validateStatus: (status) => status >= 200 && status < 500, // Aceitar mais status codes
     });
 
     // Request interceptor - add auth token

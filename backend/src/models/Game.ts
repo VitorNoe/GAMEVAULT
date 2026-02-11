@@ -29,16 +29,11 @@ export interface GameAttributes {
   was_rereleased?: boolean;
   rawg_id?: number;
   metacritic_score?: number;
-  tags?: string;
-  developer_name?: string;
-  publisher_name?: string;
-  genres?: string;
-  platforms?: string;
   created_at?: Date;
   updated_at?: Date;
 }
 
-interface GameCreationAttributes extends Optional<GameAttributes, 'id' | 'description' | 'synopsis' | 'release_year' | 'release_date' | 'cover_url' | 'banner_url' | 'trailer_url' | 'developer_id' | 'publisher_id' | 'discontinuation_date' | 'official_abandonment_date' | 'rerelease_date' | 'abandonment_reason' | 'development_percentage' | 'age_rating' | 'average_rating' | 'total_reviews' | 'is_early_access' | 'was_rereleased' | 'rawg_id' | 'metacritic_score' | 'tags' | 'developer_name' | 'publisher_name' | 'genres' | 'platforms' | 'created_at' | 'updated_at'> { }
+interface GameCreationAttributes extends Optional<GameAttributes, 'id' | 'description' | 'synopsis' | 'release_year' | 'release_date' | 'cover_url' | 'banner_url' | 'trailer_url' | 'developer_id' | 'publisher_id' | 'discontinuation_date' | 'official_abandonment_date' | 'rerelease_date' | 'abandonment_reason' | 'development_percentage' | 'age_rating' | 'average_rating' | 'total_reviews' | 'is_early_access' | 'was_rereleased' | 'rawg_id' | 'metacritic_score' | 'created_at' | 'updated_at'> { }
 
 class Game extends Model<GameAttributes, GameCreationAttributes> implements GameAttributes {
   public id!: number;
@@ -67,11 +62,6 @@ class Game extends Model<GameAttributes, GameCreationAttributes> implements Game
   public was_rereleased?: boolean;
   public rawg_id?: number;
   public metacritic_score?: number;
-  public tags?: string;
-  public developer_name?: string;
-  public publisher_name?: string;
-  public genres?: string;
-  public platforms?: string;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -187,26 +177,6 @@ Game.init(
     },
     metacritic_score: {
       type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    tags: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    developer_name: {
-      type: DataTypes.STRING(200),
-      allowNull: true
-    },
-    publisher_name: {
-      type: DataTypes.STRING(200),
-      allowNull: true
-    },
-    genres: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    platforms: {
-      type: DataTypes.TEXT,
       allowNull: true
     },
     created_at: {
