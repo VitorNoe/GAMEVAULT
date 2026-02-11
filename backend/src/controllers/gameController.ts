@@ -28,8 +28,7 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
         where[Op.or as any] = [
           { title: { [Op.iLike]: `%${sanitizedSearch}%` } },
           { description: { [Op.iLike]: `%${sanitizedSearch}%` } },
-          { developer_name: { [Op.iLike]: `%${sanitizedSearch}%` } },
-          { publisher_name: { [Op.iLike]: `%${sanitizedSearch}%` } }
+          { synopsis: { [Op.iLike]: `%${sanitizedSearch}%` } }
         ];
       }
     }
@@ -49,17 +48,8 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
       }
     }
 
-    if (tag) {
-      where.tags = { [Op.iLike]: `%${tag}%` };
-    }
-
-    if (platform) {
-      where.platforms = { [Op.iLike]: `%${platform}%` };
-    }
-
-    if (genre) {
-      where.genres = { [Op.iLike]: `%${genre}%` };
-    }
+    // Note: Tag, platform, and genre filtering require joins with respective tables
+    // Removed direct column filtering as these are stored in relationship tables
 
     // Determine sort order
     let order: any = [['created_at', 'DESC']];
