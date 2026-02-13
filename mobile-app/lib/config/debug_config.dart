@@ -1,15 +1,18 @@
 import 'dart:io' show Platform;
 
+import 'app_config.dart';
+
 class DebugConfig {
   DebugConfig._();
 
+  /// Returns the API URL for debugging.
+  /// Uses the Codespace public URL by default so the emulator can reach
+  /// the backend running in GitHub Codespaces.
   static String getApiUrl({String? customIp, int port = 3001}) {
+    // If a custom IP is provided, use it directly
     if (customIp != null) return 'http://$customIp:$port/api';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:$port/api';
-      if (Platform.isIOS) return 'http://localhost:$port/api';
-    } catch (_) {}
-    return 'http://localhost:$port/api';
+    // Default: use the Codespace URL configured in AppConfig
+    return AppConfig.apiBaseUrl;
   }
 
   // ignore: avoid_print

@@ -15,4 +15,12 @@
         <!-- Adicione seu IP local aqui se usar dispositivo físico -->
         <!-- <domain includeSubdomains="true">192.168.1.X</domain> -->
     </domain-config>
+
+    <!-- GitHub Codespaces domain (HTTPS, used by emulator to reach backend) -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">app.github.dev</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>

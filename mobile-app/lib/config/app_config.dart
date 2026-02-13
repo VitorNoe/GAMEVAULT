@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 class AppConfig {
   AppConfig._();
 
@@ -7,19 +5,18 @@ class AppConfig {
   static const String appVersion = '1.0.0';
   static const bool isDebug = true;
 
-  /// Returns the API base URL based on the platform.
-  /// Android emulators use 10.0.2.2 to reach the host machine's localhost.
+  /// Codespace public URL for the backend API.
+  /// This URL is accessible from any device (including Android emulators)
+  /// without needing 10.0.2.2 or localhost workarounds.
+  static const String codespaceApiUrl =
+      'https://organic-waddle-v6pqv4rj459g2wpj7-3001.app.github.dev/api';
+
+  /// Returns the API base URL.
+  /// In debug mode, uses the Codespace public URL so the Android emulator
+  /// can reach the backend running in GitHub Codespaces.
   static String get apiBaseUrl {
     if (isDebug) {
-      try {
-        if (Platform.isAndroid) {
-          return 'http://10.0.2.2:3001/api';
-        }
-        if (Platform.isIOS) {
-          return 'http://localhost:3001/api';
-        }
-      } catch (_) {}
-      return 'http://localhost:3001/api';
+      return codespaceApiUrl;
     }
     return productionApiUrl;
   }
