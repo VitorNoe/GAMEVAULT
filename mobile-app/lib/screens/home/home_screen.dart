@@ -325,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _quickAction(
             'Browse',
             Icons.explore_outlined,
-            () {},
+            () => Navigator.pushNamed(context, '/games'),
           ),
           if (auth.isAuthenticated) ...[
             _quickAction(
@@ -336,7 +336,12 @@ class _HomeScreenState extends State<HomeScreen> {
             _quickAction(
               'Playing',
               Icons.play_circle_outline,
-              () => Navigator.pushNamed(context, '/main'),
+              () => Navigator.pushNamed(context, '/playing-now'),
+            ),
+            _quickAction(
+              'Completed',
+              Icons.check_circle_outline,
+              () => Navigator.pushNamed(context, '/completed'),
             ),
           ],
           _quickAction(

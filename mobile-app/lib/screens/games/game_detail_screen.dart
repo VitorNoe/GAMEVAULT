@@ -377,39 +377,75 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
   Widget _buildActionButtons(Game game) {
     final auth = context.watch<AuthProvider>();
     final userData = context.watch<UserDataProvider>();
+    final isAuthenticated = auth.isAuthenticated;
+    final inWishlist = isAuthenticated && userData.isInWishlist(game.id);
+    final inPlaying = isAuthenticated && userData.isPlaying(game.id);
+    final inCompleted = isAuthenticated && userData.isCompleted(game.id);
+    final inCollection = isAuthenticated && userData.isInCollection(game.id);
+    final currentStatus = isAuthenticated ? userData.getGameStatus(game.id) : null;
 
     return Column(
       children: [
+        // Current status indicator
+        if (currentStatus != null) ...[
+          GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            borderColor: AppTheme.statusColor(currentStatus).withValues(alpha: 0.4),
+            child: Row(
+              children: [
+                Icon(
+                  AppTheme.statusIcon(currentStatus),
+                  color: AppTheme.statusColor(currentStatus),
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'In your collection as: ${AppTheme.statusLabel(currentStatus)}',
+                  style: TextStyle(
+                    color: AppTheme.statusColor(currentStatus),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => _showAddToCollectionSheet(game),
+                  child: const Icon(Icons.edit, color: AppTheme.textMuted, size: 18),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Main action buttons row
         Row(
           children: [
             Expanded(
               child: PrimaryButton(
-                text: 'Add to Collection',
-                icon: Icons.add,
+                text: inCollection ? 'Update Status' : 'Add to Collection',
+                icon: inCollection ? Icons.edit : Icons.add,
                 height: 46,
                 onPressed: () => _showAddToCollectionSheet(game),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: SecondaryButton(
-                text: auth.isAuthenticated && userData.isInWishlist(game.id)
-                    ? 'In Wishlist'
-                    : 'Wishlist',
-                icon: auth.isAuthenticated && userData.isInWishlist(game.id)
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                borderColor: AppTheme.accentPink.withValues(alpha: 0.5),
-                textColor: AppTheme.accentPink,
+              child: _WishlistButton(
+                isInWishlist: inWishlist,
                 onPressed: () async {
-                  if (!auth.isAuthenticated) {
+                  if (!isAuthenticated) {
                     Navigator.pushNamed(context, '/login');
                     return;
                   }
-                  final success = await userData.addToWishlist(game.id);
+                  final success = await userData.toggleWishlist(game.id);
                   if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Added to wishlist!')),
+                      SnackBar(
+                        content: Text(
+                          inWishlist ? 'Removed from wishlist' : 'Added to wishlist!',
+                        ),
+                      ),
                     );
                   }
                 },
@@ -417,6 +453,57 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 10),
+
+        // Quick status buttons
+        Row(
+          children: [
+            Expanded(
+              child: _QuickStatusButton(
+                text: 'Playing',
+                icon: Icons.play_circle_outline,
+                activeIcon: Icons.play_circle,
+                isActive: inPlaying,
+                activeColor: AppTheme.accentCyan,
+                onPressed: () async {
+                  if (!isAuthenticated) {
+                    Navigator.pushNamed(context, '/login');
+                    return;
+                  }
+                  final success = await userData.setAsPlaying(game.id);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Marked as Playing Now!')),
+                    );
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _QuickStatusButton(
+                text: 'Completed',
+                icon: Icons.check_circle_outline,
+                activeIcon: Icons.check_circle,
+                isActive: inCompleted,
+                activeColor: AppTheme.successColor,
+                onPressed: () async {
+                  if (!isAuthenticated) {
+                    Navigator.pushNamed(context, '/login');
+                    return;
+                  }
+                  final success = await userData.setAsCompleted(game.id);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Marked as Completed!')),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+
         if (game.trailerUrl != null && game.trailerUrl!.isNotEmpty) ...[
           const SizedBox(height: 10),
           SecondaryButton(
@@ -560,6 +647,121 @@ class _CollectionBottomSheet extends StatelessWidget {
             );
           }),
         ],
+      ),
+    );
+  }
+}
+
+/// Wishlist toggle button with animated state.
+class _WishlistButton extends StatelessWidget {
+  final bool isInWishlist;
+  final VoidCallback onPressed;
+
+  const _WishlistButton({
+    required this.isInWishlist,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 46,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(
+            color: isInWishlist
+                ? AppTheme.accentPink
+                : AppTheme.accentPink.withValues(alpha: 0.5),
+          ),
+          backgroundColor: isInWishlist
+              ? AppTheme.accentPink.withValues(alpha: 0.15)
+              : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isInWishlist ? Icons.favorite : Icons.favorite_border,
+              size: 20,
+              color: AppTheme.accentPink,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isInWishlist ? 'In Wishlist' : 'Wishlist',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.accentPink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Quick status toggle button.
+class _QuickStatusButton extends StatelessWidget {
+  final String text;
+  final IconData icon;
+  final IconData activeIcon;
+  final bool isActive;
+  final Color activeColor;
+  final VoidCallback onPressed;
+
+  const _QuickStatusButton({
+    required this.text,
+    required this.icon,
+    required this.activeIcon,
+    required this.isActive,
+    required this.activeColor,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 42,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(
+            color: isActive
+                ? activeColor
+                : AppTheme.borderColor,
+          ),
+          backgroundColor: isActive
+              ? activeColor.withValues(alpha: 0.15)
+              : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isActive ? activeIcon : icon,
+              size: 18,
+              color: isActive ? activeColor : AppTheme.textMuted,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? activeColor : AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

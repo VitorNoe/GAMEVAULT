@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_data_provider.dart';
+import '../../services/user_service.dart';
 import '../../widgets/common/glass_container.dart';
 import '../../widgets/common/error_display.dart';
 
@@ -123,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-                      onTap: () {},
+                      onTap: () => Navigator.pushNamed(context, '/collection'),
                     ),
                     _divider(),
                     _menuItem(
@@ -139,6 +140,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       onTap: () => Navigator.pushNamed(context, '/wishlist'),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.play_circle_outline,
+                      label: 'Playing Now',
+                      trailing: Consumer<UserDataProvider>(
+                        builder: (context, userData, _) => Text(
+                          '${userData.stats.playing}',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/playing-now'),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.check_circle_outline,
+                      label: 'Completed Games',
+                      trailing: Consumer<UserDataProvider>(
+                        builder: (context, userData, _) => Text(
+                          '${userData.stats.completed}',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/completed'),
                     ),
                     _divider(),
                     _menuItem(
@@ -183,33 +214,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Consumer<UserDataProvider>(
       builder: (context, userData, _) {
         final stats = userData.stats;
-        return Row(
+        return Column(
           children: [
-            Expanded(
-              child: StatCard(
-                icon: Icons.videogame_asset,
-                value: stats.total.toString(),
-                label: 'Games',
-                iconColor: AppTheme.primaryColor,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.videogame_asset,
+                    value: stats.total.toString(),
+                    label: 'Games',
+                    iconColor: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.check_circle,
+                    value: stats.completed.toString(),
+                    label: 'Completed',
+                    iconColor: AppTheme.successColor,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: StatCard(
-                icon: Icons.check_circle,
-                value: stats.completed.toString(),
-                label: 'Completed',
-                iconColor: AppTheme.successColor,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: StatCard(
-                icon: Icons.play_circle,
-                value: stats.playing.toString(),
-                label: 'Playing',
-                iconColor: AppTheme.accentCyan,
-              ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.play_circle,
+                    value: stats.playing.toString(),
+                    label: 'Playing',
+                    iconColor: AppTheme.accentCyan,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.favorite,
+                    value: stats.wishlist.toString(),
+                    label: 'Wishlist',
+                    iconColor: AppTheme.accentPink,
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -357,10 +405,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  // TODO: call update profile API
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Profile updated!')),
-                  );
+                  try {
+                    final userService = UserService();
+                    final updatedUser = await userService.updateProfile(
+                      name: nameController.text.trim(),
+                      bio: bioController.text.trim(),
+                    );
+                    if (mounted) {
+                      await context.read<AuthProvider>().refreshUser();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Profile updated!')),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to update profile: $e')),
+                      );
+                    }
+                  }
                 },
                 child: const Text('Save Changes'),
               ),
