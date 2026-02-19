@@ -4,9 +4,11 @@ import '../config/theme.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/collection/collection_screen.dart';
+import '../screens/completed/completed_games_screen.dart';
 import '../screens/games/game_detail_screen.dart';
 import '../screens/games/games_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/playing/playing_now_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/wishlist/wishlist_screen.dart';
 
@@ -21,6 +23,8 @@ class AppRoutes {
   static const String gameDetail = '/game-detail';
   static const String collection = '/collection';
   static const String wishlist = '/wishlist';
+  static const String playingNow = '/playing-now';
+  static const String completed = '/completed';
   static const String profile = '/profile';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -53,6 +57,12 @@ class AppRoutes {
 
       case '/wishlist':
         return _slideRoute(const WishlistScreen(), settings);
+
+      case '/playing-now':
+        return _slideRoute(const PlayingNowScreen(), settings);
+
+      case '/completed':
+        return _slideRoute(const CompletedGamesScreen(), settings);
 
       case '/profile':
         return _slideRoute(const ProfileScreen(), settings);
@@ -131,6 +141,13 @@ class _MainNavigationState extends State<MainNavigation> {
     CollectionScreen(),
     ProfileScreen(),
   ];
+
+  /// Public method to switch tabs from child widgets.
+  void _switchToTab(int index) {
+    if (index >= 0 && index < _screens.length) {
+      setState(() => _currentIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

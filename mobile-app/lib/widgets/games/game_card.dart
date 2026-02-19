@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 
 import '../../config/theme.dart';
 import '../../models/game.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_data_provider.dart';
 import '../common/badges.dart';
 
 /// Game card for grid display (cover art + info).
 class GameCard extends StatelessWidget {
   final Game game;
   final VoidCallback? onTap;
+  final bool showCollectionStatus;
 
   const GameCard({
     super.key,
     required this.game,
     this.onTap,
+    this.showCollectionStatus = true,
   });
 
   @override
@@ -46,6 +51,13 @@ class GameCard extends StatelessWidget {
                         score: game.metacriticScore!,
                         size: 30,
                       ),
+                    ),
+                  // Collection status badge
+                  if (showCollectionStatus)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: _CollectionStatusOverlay(gameId: game.id),
                     ),
                   // Year badge
                   if (game.releaseYear != null)
@@ -255,6 +267,49 @@ class GameListTile extends StatelessWidget {
             if (trailing != null) trailing!,
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Small overlay badge that shows the game's collection status.
+class _CollectionStatusOverlay extends StatelessWidget {
+  final int gameId;
+
+  const _CollectionStatusOverlay({required this.gameId});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    if (!auth.isAuthenticated) return const SizedBox.shrink();
+
+    final userData = context.watch<UserDataProvider>();
+    final status = userData.getGameStatus(gameId);
+    if (status == null) return const SizedBox.shrink();
+
+    final color = AppTheme.statusColor(status);
+    final icon = AppTheme.statusIcon(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: Colors.white),
+          const SizedBox(width: 3),
+          Text(
+            AppTheme.statusLabel(status),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -16,10 +16,19 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     _loadWishlist();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _loadWishlist() {
@@ -93,11 +102,57 @@ class _WishlistScreenState extends State<WishlistScreen> {
               );
             }
 
-            return ListView.builder(
+            final filtered = _searchQuery.isEmpty
+                ? userData.wishlist
+                : userData.wishlist.where((item) {
+                    final title = item.game?.title.toLowerCase() ?? '';
+                    return title.contains(_searchQuery.toLowerCase());
+                  }).toList();
+
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Search wishlist...',
+                      hintStyle: const TextStyle(color: AppTheme.textMuted),
+                      prefixIcon: const Icon(Icons.search, color: AppTheme.textMuted),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: AppTheme.textMuted),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: AppTheme.cardColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
+                ),
+                Expanded(
+                  child: filtered.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No games match "$_searchQuery"',
+                            style: const TextStyle(color: AppTheme.textMuted),
+                          ),
+                        )
+                      : ListView.builder(
               padding: const EdgeInsets.all(20),
-              itemCount: userData.wishlist.length,
+              itemCount: filtered.length,
               itemBuilder: (context, index) {
-                final item = userData.wishlist[index];
+                final item = filtered[index];
                 final game = item.game;
                 if (game == null) return const SizedBox.shrink();
 
@@ -146,6 +201,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   ),
                 );
               },
+            ),
+                ),
+              ],
             );
           },
         ),
