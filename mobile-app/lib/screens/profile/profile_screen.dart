@@ -335,6 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = auth.user!;
     final nameController = TextEditingController(text: user.name);
     final bioController = TextEditingController(text: user.bio ?? '');
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     showModalBottomSheet(
       context: context,
@@ -407,22 +408,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(ctx);
                   try {
                     final userService = UserService();
-                    final updatedUser = await userService.updateProfile(
+                    await userService.updateProfile(
                       name: nameController.text.trim(),
                       bio: bioController.text.trim(),
                     );
-                    if (mounted) {
-                      await context.read<AuthProvider>().refreshUser();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Profile updated!')),
-                      );
-                    }
+                    await auth.refreshUser();
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(content: Text('Profile updated!')),
+                    );
                   } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to update profile: $e')),
-                      );
-                    }
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text('Failed to update profile: $e')),
+                    );
                   }
                 },
                 child: const Text('Save Changes'),

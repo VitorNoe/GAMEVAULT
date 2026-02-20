@@ -115,16 +115,19 @@ class GameCard extends StatelessWidget {
 
   Widget _buildCover() {
     if (game.coverUrl != null && game.coverUrl!.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: game.coverUrl!,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          color: AppTheme.surfaceColor,
-          child: const Center(
-            child: Icon(Icons.gamepad, color: AppTheme.textMuted, size: 32),
+      return RepaintBoundary(
+        child: CachedNetworkImage(
+          imageUrl: game.coverUrl!,
+          fit: BoxFit.cover,
+          fadeInDuration: const Duration(milliseconds: 200),
+          placeholder: (context, url) => Container(
+            color: AppTheme.surfaceColor,
+            child: const Center(
+              child: Icon(Icons.gamepad_outlined, color: AppTheme.textMuted, size: 32),
+            ),
           ),
+          errorWidget: (context, url, error) => _coverPlaceholder(),
         ),
-        errorWidget: (context, url, error) => _coverPlaceholder(),
       );
     }
     return _coverPlaceholder();
@@ -137,7 +140,7 @@ class GameCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.gamepad, color: AppTheme.textMuted, size: 36),
+            const Icon(Icons.gamepad_outlined, color: AppTheme.textMuted, size: 36),
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -195,23 +198,26 @@ class GameListTile extends StatelessWidget {
                 width: 56,
                 height: 72,
                 child: game.coverUrl != null && game.coverUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: game.coverUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: AppTheme.surfaceColor,
-                          child: const Icon(Icons.gamepad,
-                              color: AppTheme.textMuted, size: 20),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: AppTheme.surfaceColor,
-                          child: const Icon(Icons.gamepad,
-                              color: AppTheme.textMuted, size: 20),
+                    ? RepaintBoundary(
+                        child: CachedNetworkImage(
+                          imageUrl: game.coverUrl!,
+                          fit: BoxFit.cover,
+                          fadeInDuration: const Duration(milliseconds: 200),
+                          placeholder: (context, url) => Container(
+                            color: AppTheme.surfaceColor,
+                            child: const Icon(Icons.gamepad_outlined,
+                                color: AppTheme.textMuted, size: 20),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: AppTheme.surfaceColor,
+                            child: const Icon(Icons.gamepad_outlined,
+                                color: AppTheme.textMuted, size: 20),
+                          ),
                         ),
                       )
                     : Container(
                         color: AppTheme.surfaceColor,
-                        child: const Icon(Icons.gamepad,
+                        child: const Icon(Icons.gamepad_outlined,
                             color: AppTheme.textMuted, size: 20),
                       ),
               ),
@@ -291,20 +297,21 @@ class _CollectionStatusOverlay extends StatelessWidget {
     final icon = AppTheme.statusIcon(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.85),
+        color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: Colors.white),
-          const SizedBox(width: 3),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
           Text(
             AppTheme.statusLabel(status),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: color,
               fontSize: 9,
               fontWeight: FontWeight.w600,
             ),
