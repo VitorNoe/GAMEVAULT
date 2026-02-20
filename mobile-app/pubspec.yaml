@@ -39,13 +39,13 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets (opcional - adicione imagens aqui quando disponíveis)
+  # Assets (optional - add images here when available)
   # assets:
   #   - assets/images/
   #   - assets/icons/
 
-  # Fontes - Usando google_fonts em vez de fontes locais
-  # Para adicionar fontes locais, baixe do Google Fonts e descomente:
+  # Fonts - Using google_fonts instead of local fonts
+  # To add local fonts, download from Google Fonts and uncomment:
   # fonts:
   #   - family: Poppins
   #     fonts:
