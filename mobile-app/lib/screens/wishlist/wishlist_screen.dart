@@ -83,11 +83,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
         onRefresh: () async => _loadWishlist(),
         child: Consumer<UserDataProvider>(
           builder: (context, userData, _) {
-            if (userData.isLoading && userData.wishlist.isEmpty) {
+            if (userData.isLoadingWishlist && userData.wishlist.isEmpty) {
               return const LoadingIndicator(message: 'Loading wishlist...');
             }
 
-            if (userData.error != null && userData.wishlist.isEmpty) {
+            if (userData.error != null && userData.wishlist.isEmpty && !userData.isLoadingWishlist) {
               return ErrorDisplay(
                 message: userData.error!,
                 onRetry: _loadWishlist,
@@ -212,6 +212,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   }
 
   void _showMoveToCollection(int gameId) {
+    final userData = context.read<UserDataProvider>();
     final statuses = [
       ('playing', 'Playing Now', Icons.play_circle_outline, AppTheme.accentCyan),
       ('completed', 'Completed', Icons.check_circle_outline, AppTheme.successColor),
@@ -261,12 +262,13 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 ),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  final userData = context.read<UserDataProvider>();
-                  await userData.updateCollectionItem(
+                  final success = await userData.updateCollectionItem(
                     gameId: gameId,
                     status: s.$1,
                   );
-                  await userData.fetchWishlist();
+                  if (success) {
+                    await userData.fetchWishlist();
+                  }
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Moved to "${s.$2}"')),

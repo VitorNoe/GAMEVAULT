@@ -101,22 +101,25 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     children: [
                       // Cover image
                       if (game.bannerUrl != null || game.coverUrl != null)
-                        CachedNetworkImage(
-                          imageUrl: game.bannerUrl ?? game.coverUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: AppTheme.surfaceColor,
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: AppTheme.surfaceColor,
-                            child: const Icon(Icons.gamepad,
-                                color: AppTheme.textMuted, size: 48),
+                        RepaintBoundary(
+                          child: CachedNetworkImage(
+                            imageUrl: game.bannerUrl ?? game.coverUrl!,
+                            fit: BoxFit.cover,
+                            fadeInDuration: const Duration(milliseconds: 200),
+                            placeholder: (context, url) => Container(
+                              color: AppTheme.surfaceColor,
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppTheme.surfaceColor,
+                              child: const Icon(Icons.gamepad_outlined,
+                                  color: AppTheme.textMuted, size: 48),
+                            ),
                           ),
                         )
                       else
                         Container(
                           color: AppTheme.surfaceColor,
-                          child: const Icon(Icons.gamepad,
+                          child: const Icon(Icons.gamepad_outlined,
                               color: AppTheme.textMuted, size: 48),
                         ),
                       // Gradient overlay
@@ -578,6 +581,9 @@ class _CollectionBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userData = context.read<UserDataProvider>();
+    final currentStatus = userData.getGameStatus(gameId);
+
     final statuses = [
       ('playing', 'Playing Now', Icons.play_circle_outline, AppTheme.accentCyan),
       ('completed', 'Completed', Icons.check_circle_outline, AppTheme.successColor),
@@ -604,9 +610,9 @@ class _CollectionBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Add to Collection',
-            style: TextStyle(
+          Text(
+            currentStatus != null ? 'Update Status' : 'Add to Collection',
+            style: const TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -619,12 +625,61 @@ class _CollectionBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ...statuses.map((s) {
+            final isCurrentStatus = currentStatus == s.$1;
             return ListTile(
-              leading: Icon(s.$3, color: s.$4),
+              leading: Icon(
+                isCurrentStatus ? Icons.check_circle : s.$3,
+                color: s.$4,
+              ),
               title: Text(
                 s.$2,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.textPrimary,
+                  fontWeight: isCurrentStatus ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+              trailing: isCurrentStatus
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: s.$4.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Current',
+                        style: TextStyle(color: s.$4, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    )
+                  : null,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              onTap: isCurrentStatus
+                  ? null
+                  : () async {
+                      Navigator.pop(context);
+                      final success = await userData.addToCollection(
+                        gameId: gameId,
+                        status: s.$1,
+                      );
+                      if (success && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Set as "${s.$2}"')),
+                        );
+                      }
+                    },
+            );
+          }),
+
+          // Remove from collection option
+          if (currentStatus != null) ...[
+            const Divider(color: AppTheme.borderColor),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
+              title: const Text(
+                'Remove from Collection',
+                style: TextStyle(
+                  color: AppTheme.errorColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -633,19 +688,15 @@ class _CollectionBottomSheet extends StatelessWidget {
               ),
               onTap: () async {
                 Navigator.pop(context);
-                final userData = context.read<UserDataProvider>();
-                final success = await userData.addToCollection(
-                  gameId: gameId,
-                  status: s.$1,
-                );
+                final success = await userData.removeFromCollection(gameId);
                 if (success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Added as "${s.$2}"')),
+                    const SnackBar(content: Text('Removed from collection')),
                   );
                 }
               },
-            );
-          }),
+            ),
+          ],
         ],
       ),
     );

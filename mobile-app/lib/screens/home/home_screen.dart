@@ -161,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Center(
                         child: TextButton(
                           onPressed: () {
-                            // Switch to games tab
+                            Navigator.pushNamed(context, '/games');
                           },
                           child: const Text('View all games →'),
                         ),

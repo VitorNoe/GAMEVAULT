@@ -60,8 +60,8 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-/// Search input field.
-class SearchField extends StatelessWidget {
+/// Reactive search input field with clear button.
+class SearchField extends StatefulWidget {
   final TextEditingController? controller;
   final String hint;
   final void Function(String)? onChanged;
@@ -80,22 +80,52 @@ class SearchField extends StatelessWidget {
   });
 
   @override
+  State<SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<SearchField> {
+  late TextEditingController _controller;
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+    _hasText = _controller.text.isNotEmpty;
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    if (widget.controller == null) _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final hasText = _controller.text.isNotEmpty;
+    if (hasText != _hasText) {
+      setState(() => _hasText = hasText);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller,
-      autofocus: autofocus,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
+      controller: _controller,
+      autofocus: widget.autofocus,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
       style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: widget.hint,
         prefixIcon: const Icon(Icons.search, color: AppTheme.textMuted, size: 22),
-        suffixIcon: controller != null && controller!.text.isNotEmpty
+        suffixIcon: _hasText
             ? IconButton(
                 icon: const Icon(Icons.clear, color: AppTheme.textMuted, size: 20),
                 onPressed: () {
-                  controller?.clear();
-                  onClear?.call();
+                  _controller.clear();
+                  widget.onClear?.call();
                 },
               )
             : null,
