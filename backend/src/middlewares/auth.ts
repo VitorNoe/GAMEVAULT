@@ -86,6 +86,53 @@ export const authenticate = async (
 };
 
 /**
+ * Require email verification middleware
+ * Must be used AFTER authenticate middleware.
+ * Rejects requests from users whose email is not verified.
+ */
+export const requireVerified = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required.'
+      });
+      return;
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'User not found.'
+      });
+      return;
+    }
+
+    if (!user.email_verified) {
+      res.status(403).json({
+        success: false,
+        message: 'Email verification required. Please verify your email address.',
+        code: 'EMAIL_NOT_VERIFIED'
+      });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error('requireVerified error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Authorization error.'
+    });
+  }
+};
+
+/**
  * Admin authorization middleware
  * Checks if authenticated user is an admin
  */
@@ -102,6 +149,23 @@ export const authorizeAdmin = (
     return;
   }
   next();
+};
+
+/**
+ * Role-based authorization middleware factory
+ * Checks if authenticated user has one of the allowed roles
+ */
+export const authorizeRoles = (...allowedRoles: string[]) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.user || !allowedRoles.includes(req.user.type)) {
+      res.status(403).json({
+        success: false,
+        message: `Access denied. Required role: ${allowedRoles.join(' or ')}.`
+      });
+      return;
+    }
+    next();
+  };
 };
 
 /**

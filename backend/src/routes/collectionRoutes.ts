@@ -8,7 +8,7 @@ import {
     getGameCollectionStatus,
     getCollectionStats
 } from '../controllers/collectionController';
-import { authenticate, optionalAuth } from '../middlewares/auth';
+import { authenticate, optionalAuth, requireVerified } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
@@ -18,21 +18,21 @@ const router = Router();
  * @desc Get collection statistics
  * @access Private
  */
-router.get('/stats', generalLimiter, authenticate, getCollectionStats);
+router.get('/stats', generalLimiter, authenticate, requireVerified, getCollectionStats);
 
 /**
  * @route GET /api/collection/status/:gameId
  * @desc Get collection status for a specific game
  * @access Private (optional auth returns null if not authenticated)
  */
-router.get('/status/:gameId', generalLimiter, authenticate, getGameCollectionStatus);
+router.get('/status/:gameId', generalLimiter, authenticate, requireVerified, getGameCollectionStatus);
 
 /**
  * @route GET /api/collection
  * @desc Get user's collection
  * @access Private
  */
-router.get('/', generalLimiter, authenticate, getCollection);
+router.get('/', generalLimiter, authenticate, requireVerified, getCollection);
 
 /**
  * @route POST /api/collection
@@ -43,6 +43,7 @@ router.post(
     '/',
     createLimiter,
     authenticate,
+    requireVerified,
     [
         body('game_id').isInt().withMessage('Valid game_id is required'),
         body('status')
@@ -66,6 +67,7 @@ router.put(
     '/:gameId',
     createLimiter,
     authenticate,
+    requireVerified,
     [
         body('status')
             .optional()
@@ -84,6 +86,6 @@ router.put(
  * @desc Remove game from collection
  * @access Private
  */
-router.delete('/:gameId', generalLimiter, authenticate, removeFromCollection);
+router.delete('/:gameId', generalLimiter, authenticate, requireVerified, removeFromCollection);
 
 export default router;

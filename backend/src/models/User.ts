@@ -11,12 +11,17 @@ export interface UserAttributes {
   avatar_url?: string;
   bio?: string;
   type: 'regular' | 'admin';
+  email_verified: boolean;
+  email_verification_token?: string | null;
+  password_reset_token?: string | null;
+  password_reset_expires?: Date | null;
+  last_login?: Date | null;
   created_at?: Date;
   updated_at?: Date;
 }
 
 // Attributes for user creation (id is optional since it's auto-generated)
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'avatar_url' | 'bio' | 'created_at' | 'updated_at'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'avatar_url' | 'bio' | 'email_verified' | 'email_verification_token' | 'password_reset_token' | 'password_reset_expires' | 'last_login' | 'created_at' | 'updated_at'> {}
 
 // User model class
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -27,6 +32,11 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public avatar_url?: string;
   public bio?: string;
   public type!: 'regular' | 'admin';
+  public email_verified!: boolean;
+  public email_verification_token?: string | null;
+  public password_reset_token?: string | null;
+  public password_reset_expires?: Date | null;
+  public last_login?: Date | null;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 
@@ -39,6 +49,12 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public static async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);
+  }
+
+  // Check if password reset token is expired
+  public isResetTokenExpired(): boolean {
+    if (!this.password_reset_expires) return true;
+    return new Date() > new Date(this.password_reset_expires);
   }
 }
 
@@ -78,6 +94,27 @@ User.init(
       defaultValue: 'regular',
       allowNull: false,
       field: 'user_type'
+    },
+    email_verified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    email_verification_token: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    password_reset_token: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    password_reset_expires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    last_login: {
+      type: DataTypes.DATE,
+      allowNull: true
     },
     created_at: {
       type: DataTypes.DATE,
