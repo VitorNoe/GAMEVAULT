@@ -87,6 +87,12 @@ export function setupAssociations(): void {
   Game.belongsToMany(Platform, { through: GamePlatform, foreignKey: 'game_id', otherKey: 'platform_id', as: 'platforms' });
   Platform.belongsToMany(Game, { through: GamePlatform, foreignKey: 'platform_id', otherKey: 'game_id', as: 'games' });
 
+  // Direct associations on junction table for eager loading from GamePlatform
+  GamePlatform.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });
+  GamePlatform.belongsTo(Platform, { foreignKey: 'platform_id', as: 'platform' });
+  Game.hasMany(GamePlatform, { foreignKey: 'game_id', as: 'gamePlatforms' });
+  Platform.hasMany(GamePlatform, { foreignKey: 'platform_id', as: 'gamePlatforms' });
+
   // --- Game ↔ Genre (N:N via GameGenre) ---
   Game.belongsToMany(Genre, { through: GameGenre, foreignKey: 'game_id', otherKey: 'genre_id', as: 'genres' });
   Genre.belongsToMany(Game, { through: GameGenre, foreignKey: 'genre_id', otherKey: 'game_id', as: 'games' });

@@ -11,6 +11,11 @@ import {
   getAbandonwareGames,
   getGotyGames
 } from '../controllers/gameController';
+import {
+  getGamePlatforms,
+  setGamePlatforms,
+  removeGamePlatform,
+} from '../controllers/platformController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
@@ -126,5 +131,41 @@ router.put(
  * @access Private/Admin
  */
 router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deleteGame);
+
+// ─── Game-Platform relationship routes ───
+
+/**
+ * @route GET /api/games/:id/platforms
+ * @desc Get platforms for a game with release dates and exclusivity
+ * @access Public
+ */
+router.get('/:id/platforms', generalLimiter, optionalAuth, getGamePlatforms);
+
+/**
+ * @route POST /api/games/:id/platforms
+ * @desc Set/replace all platform associations for a game
+ * @body { platforms: [{ platform_id, platform_release_date?, exclusivity? }] }
+ * @access Private/Admin
+ */
+router.post(
+  '/:id/platforms',
+  createLimiter,
+  authenticate,
+  authorizeAdmin,
+  setGamePlatforms
+);
+
+/**
+ * @route DELETE /api/games/:id/platforms/:platformId
+ * @desc Remove a single platform association from a game
+ * @access Private/Admin
+ */
+router.delete(
+  '/:id/platforms/:platformId',
+  generalLimiter,
+  authenticate,
+  authorizeAdmin,
+  removeGamePlatform
+);
 
 export default router;

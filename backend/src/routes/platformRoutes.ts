@@ -5,7 +5,8 @@ import {
   getPlatformById,
   createPlatform,
   updatePlatform,
-  deletePlatform
+  deletePlatform,
+  getPlatformGames,
 } from '../controllers/platformController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
@@ -14,17 +15,24 @@ const router = Router();
 
 /**
  * @route GET /api/platforms
- * @desc Get all platforms
+ * @desc Get all platforms (supports ?all=true for dropdowns)
  * @access Public
  */
 router.get('/', generalLimiter, optionalAuth, getAllPlatforms);
 
 /**
  * @route GET /api/platforms/:id
- * @desc Get platform by ID
+ * @desc Get platform by ID (includes game_count)
  * @access Public
  */
 router.get('/:id', generalLimiter, optionalAuth, getPlatformById);
+
+/**
+ * @route GET /api/platforms/:id/games
+ * @desc Get games for a platform with platform-specific release info
+ * @access Public
+ */
+router.get('/:id/games', generalLimiter, optionalAuth, getPlatformGames);
 
 /**
  * @route POST /api/platforms
@@ -83,7 +91,7 @@ router.put(
 
 /**
  * @route DELETE /api/platforms/:id
- * @desc Delete platform
+ * @desc Delete platform (fails if games are associated)
  * @access Private/Admin
  */
 router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deletePlatform);

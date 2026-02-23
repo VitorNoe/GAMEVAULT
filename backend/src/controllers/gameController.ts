@@ -444,6 +444,18 @@ export const createGame = async (req: Request, res: Response): Promise<void> => 
       age_rating, rawg_id, metacritic_score,
     });
 
+    // Handle platform associations if provided
+    const { platforms } = req.body;
+    if (Array.isArray(platforms) && platforms.length > 0) {
+      const records = platforms.map((p: any) => ({
+        game_id: game.id,
+        platform_id: parseInt(p.platform_id),
+        platform_release_date: p.platform_release_date || null,
+        exclusivity: p.exclusivity || 'none',
+      }));
+      await GamePlatform.bulkCreate(records);
+    }
+
     catalogCache.invalidatePrefix('catalog:');
 
     res.status(201).json({ success: true, message: 'Game created successfully.', data: { game } });
@@ -481,6 +493,21 @@ export const updateGame = async (req: Request, res: Response): Promise<void> => 
     ];
     updateObjectFields(game, req.body, updateFields);
     await game.save();
+
+    // Handle platform associations if provided
+    const { platforms } = req.body;
+    if (Array.isArray(platforms)) {
+      await GamePlatform.destroy({ where: { game_id: id } });
+      if (platforms.length > 0) {
+        const records = platforms.map((p: any) => ({
+          game_id: id,
+          platform_id: parseInt(p.platform_id),
+          platform_release_date: p.platform_release_date || null,
+          exclusivity: p.exclusivity || 'none',
+        }));
+        await GamePlatform.bulkCreate(records);
+      }
+    }
 
     catalogCache.invalidatePrefix('catalog:');
     catalogCache.del(`game:${id}`);
