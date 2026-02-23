@@ -1,285 +1,480 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../config/theme.dart';
-import '../../providers/providers.dart';
-import '../../widgets/widgets.dart';
 
-/// Profile screen
-class ProfileScreen extends StatelessWidget {
+import '../../config/theme.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/user_data_provider.dart';
+import '../../services/user_service.dart';
+import '../../widgets/common/glass_container.dart';
+import '../../widgets/common/error_display.dart';
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final auth = context.read<AuthProvider>();
+    if (auth.isAuthenticated) {
+      context.read<UserDataProvider>().fetchUserStats();
+      context.read<UserDataProvider>().fetchStats();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
+    if (!auth.isAuthenticated) {
+      return Scaffold(
+        body: EmptyState(
+          title: 'Sign in to view your profile',
+          subtitle: 'Manage your account and see your gaming stats.',
+          icon: Icons.person_outline,
+          actionLabel: 'Sign In',
+          onAction: () => Navigator.pushNamed(context, '/login'),
+        ),
+      );
+    }
+
+    final user = auth.user!;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          if (!auth.isAuthenticated) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.person_outline,
-                    size: 80,
-                    color: AppTheme.textMuted,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Not logged in',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Sign in to access your profile',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 24),
-                  PrimaryButton(
-                    text: 'Sign In',
-                    isFullWidth: false,
-                    onPressed: () => Navigator.pushNamed(context, '/login'),
-                  ),
-                ],
-              ),
-            );
-          }
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
 
-          final user = auth.user!;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Avatar
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppTheme.primaryColor,
+              // Avatar
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.accentGradient,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Center(
                   child: Text(
-                    user.name.substring(0, 1).toUpperCase(),
+                    user.initials,
                     style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+              ),
+              const SizedBox(height: 16),
 
-                // Name
-                Text(
-                  user.name,
-                  style: Theme.of(context).textTheme.headlineMedium,
+              // Name
+              Text(
+                user.name,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 4),
-
-                // Email
+              ),
+              const SizedBox(height: 4),
+              Text(
+                user.email,
+                style: const TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 14,
+                ),
+              ),
+              if (user.bio != null && user.bio!.isNotEmpty) ...[
+                const SizedBox(height: 8),
                 Text(
-                  user.email,
+                  user.bio!,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 8),
+              ],
+              const SizedBox(height: 24),
 
-                // Admin badge
-                if (user.isAdmin)
-                  const StatusBadge(
-                    text: 'Admin',
-                    backgroundColor: AppTheme.warningColor,
-                  ),
-                const SizedBox(height: 24),
+              // Stats
+              _buildStatsGrid(),
+              const SizedBox(height: 24),
 
-                // Stats
-                Consumer<UserDataProvider>(
-                  builder: (context, userData, _) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _StatCard(
-                          icon: Icons.games,
-                          label: 'Collection',
-                          value: userData.collection.length.toString(),
-                        ),
-                        _StatCard(
-                          icon: Icons.favorite,
-                          label: 'Wishlist',
-                          value: userData.wishlist.length.toString(),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Menu items
-                _MenuItem(
-                  icon: Icons.library_books,
-                  title: 'My Collection',
-                  onTap: () => Navigator.pushNamed(context, '/collection'),
-                ),
-                _MenuItem(
-                  icon: Icons.favorite_border,
-                  title: 'Wishlist',
-                  onTap: () => Navigator.pushNamed(context, '/wishlist'),
-                ),
-                const Divider(color: AppTheme.surfaceColor),
-                _MenuItem(
-                  icon: Icons.settings_outlined,
-                  title: 'Settings',
-                  onTap: () {
-                    // TODO: Settings screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon')),
-                    );
-                  },
-                ),
-                _MenuItem(
-                  icon: Icons.help_outline,
-                  title: 'Help & Support',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon')),
-                    );
-                  },
-                ),
-                const Divider(color: AppTheme.surfaceColor),
-                _MenuItem(
-                  icon: Icons.logout,
-                  title: 'Sign Out',
-                  isDestructive: true,
-                  onTap: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        backgroundColor: AppTheme.cardColor,
-                        title: const Text('Sign Out'),
-                        content:
-                            const Text('Are you sure you want to sign out?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+              // Menu items
+              GlassContainer(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _menuItem(
+                      icon: Icons.library_books_outlined,
+                      label: 'My Collection',
+                      trailing: Consumer<UserDataProvider>(
+                        builder: (context, userData, _) => Text(
+                          '${userData.stats.total}',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 14,
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text(
-                              'Sign Out',
-                              style: TextStyle(color: AppTheme.errorColor),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    );
-
-                    if (confirm == true && context.mounted) {
-                      await auth.logout();
-                      context.read<UserDataProvider>().clearData();
-                      if (context.mounted) {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/',
-                          (route) => false,
-                        );
-                      }
-                    }
-                  },
+                      onTap: () => Navigator.pushNamed(context, '/collection'),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.favorite_border,
+                      label: 'Wishlist',
+                      trailing: Consumer<UserDataProvider>(
+                        builder: (context, userData, _) => Text(
+                          '${userData.stats.wishlist}',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/wishlist'),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.play_circle_outline,
+                      label: 'Playing Now',
+                      trailing: Consumer<UserDataProvider>(
+                        builder: (context, userData, _) => Text(
+                          '${userData.stats.playing}',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/playing-now'),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.check_circle_outline,
+                      label: 'Completed Games',
+                      trailing: Consumer<UserDataProvider>(
+                        builder: (context, userData, _) => Text(
+                          '${userData.stats.completed}',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/completed'),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.edit_outlined,
+                      label: 'Edit Profile',
+                      onTap: () => _showEditProfileSheet(),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
+              ),
+              const SizedBox(height: 16),
 
-                // App version
-                const Text(
-                  'GameVault v1.0.0',
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 12,
+              GlassContainer(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _menuItem(
+                      icon: Icons.info_outline,
+                      label: 'About GameVault',
+                      onTap: () => _showAboutDialog(),
+                    ),
+                    _divider(),
+                    _menuItem(
+                      icon: Icons.logout,
+                      label: 'Sign Out',
+                      color: AppTheme.errorColor,
+                      onTap: () => _confirmLogout(),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    return Consumer<UserDataProvider>(
+      builder: (context, userData, _) {
+        final stats = userData.stats;
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.videogame_asset,
+                    value: stats.total.toString(),
+                    label: 'Games',
+                    iconColor: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.check_circle,
+                    value: stats.completed.toString(),
+                    label: 'Completed',
+                    iconColor: AppTheme.successColor,
                   ),
                 ),
               ],
             ),
-          );
-        },
-      ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.play_circle,
+                    value: stats.playing.toString(),
+                    label: 'Playing',
+                    iconColor: AppTheme.accentCyan,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: StatCard(
+                    icon: Icons.favorite,
+                    value: stats.wishlist.toString(),
+                    label: 'Wishlist',
+                    iconColor: AppTheme.accentPink,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
-}
 
-/// Stat card widget
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
+  Widget _menuItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Widget? trailing,
+    Color? color,
+  }) {
+    final itemColor = color ?? AppTheme.textPrimary;
+    return ListTile(
+      leading: Icon(icon, color: itemColor, size: 22),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: itemColor,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      child: Column(
-        children: [
-          Icon(icon, color: AppTheme.primaryColor, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineSmall,
+      trailing: trailing ??
+          const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 20),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+    );
+  }
+
+  Widget _divider() {
+    return Divider(
+      height: 1,
+      indent: 54,
+      color: AppTheme.borderColor.withValues(alpha: 0.3),
+    );
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
           ),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 12,
-            ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final auth = context.read<AuthProvider>();
+              final userData = context.read<UserDataProvider>();
+              userData.clearData();
+              await auth.logout();
+              if (mounted) {
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/login', (_) => false);
+              }
+            },
+            child: const Text('Sign Out',
+                style: TextStyle(color: AppTheme.errorColor)),
           ),
         ],
       ),
     );
   }
-}
 
-/// Menu item widget
-class _MenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final bool isDestructive;
+  void _showEditProfileSheet() {
+    final auth = context.read<AuthProvider>();
+    final user = auth.user!;
+    final nameController = TextEditingController(text: user.name);
+    final bioController = TextEditingController(text: user.bio ?? '');
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? AppTheme.errorColor : AppTheme.textSecondary,
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.surfaceColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDestructive ? AppTheme.errorColor : AppTheme.textPrimary,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          16,
+          20,
+          MediaQuery.of(ctx).viewInsets.bottom + 32,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textMuted.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Edit Profile',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: nameController,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                prefixIcon: Icon(Icons.person_outline,
+                    color: AppTheme.textMuted, size: 20),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: bioController,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Bio',
+                hintText: 'Tell us about yourself...',
+                prefixIcon: Padding(
+                  padding: EdgeInsets.only(bottom: 48),
+                  child: Icon(Icons.edit_note,
+                      color: AppTheme.textMuted, size: 20),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final userService = UserService();
+                    await userService.updateProfile(
+                      name: nameController.text.trim(),
+                      bio: bioController.text.trim(),
+                    );
+                    await auth.refreshUser();
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(content: Text('Profile updated!')),
+                    );
+                  } catch (e) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text('Failed to update profile: $e')),
+                    );
+                  }
+                },
+                child: const Text('Save Changes'),
+              ),
+            ),
+          ],
         ),
       ),
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppTheme.textMuted,
+    );
+  }
+
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: Row(
+          children: [
+            const Icon(Icons.gamepad, color: AppTheme.primaryColor),
+            const SizedBox(width: 10),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  AppTheme.accentGradient.createShader(bounds),
+              child: const Text(
+                'GameVault',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Version 1.0.0',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Game Management & Preservation Platform',
+              style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
       ),
-      onTap: onTap,
     );
   }
 }

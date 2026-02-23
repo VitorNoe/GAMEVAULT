@@ -1,84 +1,37 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 
-/// Status badge widget
+/// Collection status badge.
 class StatusBadge extends StatelessWidget {
-  final String text;
-  final Color? backgroundColor;
-  final Color? textColor;
-  final IconData? icon;
+  final String status;
+  final double fontSize;
 
   const StatusBadge({
     super.key,
-    required this.text,
-    this.backgroundColor,
-    this.textColor,
-    this.icon,
+    required this.status,
+    this.fontSize = 11,
   });
-
-  factory StatusBadge.released() {
-    return const StatusBadge(
-      text: 'Released',
-      backgroundColor: AppTheme.successColor,
-    );
-  }
-
-  factory StatusBadge.earlyAccess() {
-    return const StatusBadge(
-      text: 'Early Access',
-      backgroundColor: AppTheme.warningColor,
-    );
-  }
-
-  factory StatusBadge.comingSoon() {
-    return const StatusBadge(
-      text: 'Coming Soon',
-      backgroundColor: AppTheme.accentColor,
-    );
-  }
-
-  factory StatusBadge.available() {
-    return const StatusBadge(
-      text: 'Available',
-      backgroundColor: AppTheme.successColor,
-    );
-  }
-
-  factory StatusBadge.abandonware() {
-    return const StatusBadge(
-      text: 'Abandonware',
-      backgroundColor: AppTheme.errorColor,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+    final color = AppTheme.statusColor(status);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (backgroundColor ?? AppTheme.primaryColor).withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: backgroundColor ?? AppTheme.primaryColor,
-          width: 1,
-        ),
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(
-              icon,
-              size: 12,
-              color: textColor ?? backgroundColor ?? AppTheme.textPrimary,
-            ),
-            const SizedBox(width: 4),
-          ],
+          Icon(AppTheme.statusIcon(status), size: 12, color: color),
+          const SizedBox(width: 4),
           Text(
-            text,
+            AppTheme.statusLabel(status),
             style: TextStyle(
-              color: textColor ?? backgroundColor ?? AppTheme.textPrimary,
-              fontSize: 11,
+              color: color,
+              fontSize: fontSize,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -88,81 +41,158 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-/// Rating badge with stars
+/// Star rating badge.
 class RatingBadge extends StatelessWidget {
   final double rating;
-  final bool showStars;
+  final double size;
 
   const RatingBadge({
     super.key,
     required this.rating,
-    this.showStars = true,
+    this.size = 14,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.star, color: AppTheme.warningColor, size: size),
+        const SizedBox(width: 3),
+        Text(
+          rating.toStringAsFixed(1),
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: size - 2,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Metacritic score badge.
+class MetacriticBadge extends StatelessWidget {
+  final int score;
+  final double size;
+
+  const MetacriticBadge({
+    super.key,
+    required this.score,
+    this.size = 28,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppTheme.metacriticColor(score);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        score.toString(),
+        style: TextStyle(
+          color: color,
+          fontSize: size * 0.4,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+/// Release status badge (e.g., "Coming Soon", "Early Access").
+class ReleaseStatusBadge extends StatelessWidget {
+  final String status;
+
+  const ReleaseStatusBadge({super.key, required this.status});
+
+  Color get _color {
+    switch (status) {
+      case 'released':
+        return AppTheme.successColor;
+      case 'early_access':
+        return AppTheme.warningColor;
+      case 'coming_soon':
+        return AppTheme.accentCyan;
+      case 'in_development':
+        return AppTheme.accentBlue;
+      case 'cancelled':
+        return AppTheme.errorColor;
+      default:
+        return AppTheme.textMuted;
+    }
+  }
+
+  String get _label {
+    switch (status) {
+      case 'released':
+        return 'Released';
+      case 'early_access':
+        return 'Early Access';
+      case 'open_beta':
+        return 'Open Beta';
+      case 'closed_beta':
+        return 'Closed Beta';
+      case 'alpha':
+        return 'Alpha';
+      case 'coming_soon':
+        return 'Coming Soon';
+      case 'in_development':
+        return 'In Development';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(8),
+        color: _color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showStars)
-            const Icon(
-              Icons.star,
-              size: 14,
-              color: AppTheme.warningColor,
-            ),
-          if (showStars) const SizedBox(width: 4),
-          Text(
-            rating.toStringAsFixed(1),
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+      child: Text(
+        _label,
+        style: TextStyle(
+          color: _color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 }
 
-/// Metacritic score badge
-class MetacriticBadge extends StatelessWidget {
-  final int score;
+/// Year badge.
+class YearBadge extends StatelessWidget {
+  final int year;
 
-  const MetacriticBadge({
-    super.key,
-    required this.score,
-  });
-
-  Color get _backgroundColor {
-    if (score >= 75) return const Color(0xFF66CC33);
-    if (score >= 50) return const Color(0xFFFFCC33);
-    return const Color(0xFFFF0000);
-  }
+  const YearBadge({super.key, required this.year});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 32,
-      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: _backgroundColor,
+        color: AppTheme.backgroundColor.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Center(
-        child: Text(
-          score.toString(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
+      child: Text(
+        year.toString(),
+        style: const TextStyle(
+          color: AppTheme.textSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

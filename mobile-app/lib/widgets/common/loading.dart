@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 
-/// Loading indicator widget
+/// Centered loading spinner.
 class LoadingIndicator extends StatelessWidget {
   final String? message;
   final double size;
 
-  const LoadingIndicator({
-    super.key,
-    this.message,
-    this.size = 40,
-  });
+  const LoadingIndicator({super.key, this.message, this.size = 40});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
             width: size,
             height: size,
             child: const CircularProgressIndicator(
               strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+              color: AppTheme.primaryColor,
             ),
           ),
           if (message != null) ...[
@@ -42,17 +38,15 @@ class LoadingIndicator extends StatelessWidget {
   }
 }
 
-/// Full screen loading overlay
+/// Full-screen loading overlay.
 class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
   final Widget child;
-  final String? message;
 
   const LoadingOverlay({
     super.key,
     required this.isLoading,
     required this.child,
-    this.message,
   });
 
   @override
@@ -63,31 +57,33 @@ class LoadingOverlay extends StatelessWidget {
         if (isLoading)
           Container(
             color: Colors.black54,
-            child: LoadingIndicator(message: message),
+            child: const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
+            ),
           ),
       ],
     );
   }
 }
 
-/// Shimmer loading placeholder
-class ShimmerLoading extends StatefulWidget {
-  final double width;
-  final double height;
-  final double borderRadius;
+/// Shimmer loading placeholder for cards.
+class ShimmerCard extends StatefulWidget {
+  final double? height;
+  final double? width;
+  final BorderRadius? borderRadius;
 
-  const ShimmerLoading({
+  const ShimmerCard({
     super.key,
-    this.width = double.infinity,
-    required this.height,
-    this.borderRadius = 8,
+    this.height,
+    this.width,
+    this.borderRadius,
   });
 
   @override
-  State<ShimmerLoading> createState() => _ShimmerLoadingState();
+  State<ShimmerCard> createState() => _ShimmerCardState();
 }
 
-class _ShimmerLoadingState extends State<ShimmerLoading>
+class _ShimmerCardState extends State<ShimmerCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -99,7 +95,9 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat();
-    _animation = Tween<double>(begin: -2, end: 2).animate(_controller);
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
   }
 
   @override
@@ -112,22 +110,54 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animation,
-      builder: (context, _) {
+      builder: (context, child) {
         return Container(
-          width: widget.width,
           height: widget.height,
+          width: widget.width,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
             gradient: LinearGradient(
-              begin: Alignment(_animation.value, 0),
-              end: Alignment(_animation.value + 1, 0),
+              begin: Alignment(_animation.value - 1, 0),
+              end: Alignment(_animation.value, 0),
               colors: const [
-                Color(0xFF1A1A2E),
-                Color(0xFF2A2A4E),
-                Color(0xFF1A1A2E),
+                AppTheme.cardColor,
+                AppTheme.cardColorLight,
+                AppTheme.cardColor,
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+/// Loading grid placeholder for game lists.
+class LoadingGrid extends StatelessWidget {
+  final int itemCount;
+  final int crossAxisCount;
+
+  const LoadingGrid({
+    super.key,
+    this.itemCount = 6,
+    this.crossAxisCount = 2,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: 0.65,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        return const ShimmerCard(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         );
       },
     );

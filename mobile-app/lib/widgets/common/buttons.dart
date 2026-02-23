@@ -1,168 +1,186 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 
-/// Primary button with gradient background
+/// Primary gradient button.
 class PrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
-  final bool isFullWidth;
+  final bool fullWidth;
   final IconData? icon;
+  final double? height;
 
   const PrimaryButton({
     super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
-    this.isFullWidth = true,
+    this.fullWidth = true,
     this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: isFullWidth ? double.infinity : null,
-      decoration: BoxDecoration(
-        gradient: onPressed != null ? AppTheme.primaryGradient : null,
-        color: onPressed == null ? Colors.grey.shade700 : null,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 20),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    text,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-}
-
-/// Secondary outlined button
-class SecondaryButton extends StatelessWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final bool isLoading;
-  final bool isFullWidth;
-  final IconData? icon;
-
-  const SecondaryButton({
-    super.key,
-    required this.text,
-    this.onPressed,
-    this.isLoading = false,
-    this.isFullWidth = true,
-    this.icon,
+    this.height,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: isFullWidth ? double.infinity : null,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppTheme.primaryColor,
-          side: const BorderSide(color: AppTheme.primaryColor),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+      width: fullWidth ? double.infinity : null,
+      height: height ?? 52,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: onPressed != null && !isLoading
+              ? AppTheme.primaryGradient
+              : null,
+          color: onPressed == null || isLoading
+              ? AppTheme.cardColor
+              : null,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 20),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    text,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+        child: ElevatedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppTheme.textPrimary,
                   ),
-                ],
-              ),
+                )
+              : Row(
+                  mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: 20),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
 }
 
-/// Icon button with circle background
-class CircleIconButton extends StatelessWidget {
-  final IconData icon;
+/// Secondary outlined button.
+class SecondaryButton extends StatelessWidget {
+  final String text;
   final VoidCallback? onPressed;
-  final Color? backgroundColor;
-  final Color? iconColor;
-  final double size;
+  final bool fullWidth;
+  final IconData? icon;
+  final Color? borderColor;
+  final Color? textColor;
 
-  const CircleIconButton({
+  const SecondaryButton({
     super.key,
-    required this.icon,
+    required this.text,
     this.onPressed,
-    this.backgroundColor,
-    this.iconColor,
-    this.size = 40,
+    this.fullWidth = true,
+    this.icon,
+    this.borderColor,
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    return SizedBox(
+      width: fullWidth ? double.infinity : null,
+      height: 52,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: borderColor ?? AppTheme.borderColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 20, color: textColor ?? AppTheme.primaryColor),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: textColor ?? AppTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Small action button (icon + label).
+class ActionChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Color? color;
+  final bool isActive;
+
+  const ActionChip({
+    super.key,
+    required this.label,
+    required this.icon,
+    this.onTap,
+    this.color,
+    this.isActive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final chipColor = color ?? AppTheme.primaryColor;
     return Material(
-      color: backgroundColor ?? AppTheme.surfaceColor,
-      borderRadius: BorderRadius.circular(size / 2),
+      color: isActive ? chipColor.withValues(alpha: 0.15) : AppTheme.cardColor,
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(size / 2),
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Icon(
-            icon,
-            color: iconColor ?? AppTheme.textPrimary,
-            size: size * 0.5,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isActive ? chipColor.withValues(alpha: 0.5) : AppTheme.borderColor,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: isActive ? chipColor : AppTheme.textMuted),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive ? chipColor : AppTheme.textSecondary,
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -1,73 +1,91 @@
 import 'package:flutter/material.dart';
-import '../screens/screens.dart';
 
-/// App routes configuration
+import '../config/theme.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/register_screen.dart';
+import '../screens/collection/collection_screen.dart';
+import '../screens/completed/completed_games_screen.dart';
+import '../screens/games/game_detail_screen.dart';
+import '../screens/games/games_screen.dart';
+import '../screens/home/home_screen.dart';
+import '../screens/playing/playing_now_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/wishlist/wishlist_screen.dart';
+
 class AppRoutes {
   AppRoutes._();
 
   static const String home = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String main = '/main';
   static const String games = '/games';
-  static const String gameDetail = '/game';
+  static const String gameDetail = '/game-detail';
   static const String collection = '/collection';
   static const String wishlist = '/wishlist';
+  static const String playingNow = '/playing-now';
+  static const String completed = '/completed';
   static const String profile = '/profile';
 
-  /// Generate route based on settings
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case home:
-        return _fadeRoute(const MainNavigation());
+      case '/':
+      case '/main':
+        return MaterialPageRoute(
+          builder: (_) => const MainNavigation(),
+          settings: settings,
+        );
 
-      case login:
-        return _slideRoute(const LoginScreen());
+      case '/login':
+        return _fadeRoute(const LoginScreen(), settings);
 
-      case register:
-        return _slideRoute(const RegisterScreen());
+      case '/register':
+        return _fadeRoute(const RegisterScreen(), settings);
 
-      case games:
-        return _fadeRoute(const GamesScreen());
+      case '/games':
+        return _slideRoute(const GamesScreen(), settings);
 
-      case collection:
-        return _slideRoute(const CollectionScreen());
+      case '/game-detail':
+        final gameId = settings.arguments as int;
+        return _slideRoute(
+          GameDetailScreen(gameId: gameId),
+          settings,
+        );
 
-      case wishlist:
-        return _slideRoute(const WishlistScreen());
+      case '/collection':
+        return _slideRoute(const CollectionScreen(), settings);
 
-      case profile:
-        return _slideRoute(const ProfileScreen());
+      case '/wishlist':
+        return _slideRoute(const WishlistScreen(), settings);
+
+      case '/playing-now':
+        return _slideRoute(const PlayingNowScreen(), settings);
+
+      case '/completed':
+        return _slideRoute(const CompletedGamesScreen(), settings);
+
+      case '/profile':
+        return _slideRoute(const ProfileScreen(), settings);
 
       default:
-        // Handle game detail route: /game/123
-        if (settings.name?.startsWith('/game/') == true) {
-          final idStr = settings.name!.substring('/game/'.length);
-          final id = int.tryParse(idStr);
-          if (id != null) {
-            return _slideRoute(GameDetailScreen(gameId: id));
-          }
-        }
-
-        // 404 - Not found
-        return _fadeRoute(
-          Scaffold(
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
             body: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
+                  const Icon(Icons.error_outline,
+                      size: 48, color: AppTheme.textMuted),
                   const SizedBox(height: 16),
                   Text(
-                    'Page not found',
-                    style: Theme.of(context).textTheme.headlineSmall ??
-                        const TextStyle(fontSize: 20),
+                    'Page not found: ${settings.name}',
+                    style: const TextStyle(color: AppTheme.textSecondary),
                   ),
-                  const SizedBox(height: 8),
-                  Text('Route: ${settings.name}'),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('Go Home'),
+                  ),
                 ],
               ),
             ),
@@ -76,37 +94,37 @@ class AppRoutes {
     }
   }
 
-  /// Fade transition route
-  static Route<T> _fadeRoute<T>(Widget page) {
-    return PageRouteBuilder<T>(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+  static PageRouteBuilder _fadeRoute(Widget page, RouteSettings settings) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (_, __, ___) => page,
+      transitionsBuilder: (_, animation, __, child) {
         return FadeTransition(opacity: animation, child: child);
-      },
-      transitionDuration: const Duration(milliseconds: 200),
-    );
-  }
-
-  /// Slide transition route
-  static Route<T> _slideRoute<T>(Widget page) {
-    return PageRouteBuilder<T>(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        const curve = Curves.easeInOut;
-        var tween = Tween(begin: begin, end: end).chain(
-          CurveTween(curve: curve),
-        );
-        var offsetAnimation = animation.drive(tween);
-        return SlideTransition(position: offsetAnimation, child: child);
       },
       transitionDuration: const Duration(milliseconds: 250),
     );
   }
+
+  static PageRouteBuilder _slideRoute(Widget page, RouteSettings settings) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (_, __, ___) => page,
+      transitionsBuilder: (_, animation, __, child) {
+        final tween = Tween<Offset>(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutCubic));
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 300),
+    );
+  }
 }
 
-/// Main navigation with bottom navigation bar
+/// Main navigation with bottom tab bar.
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -117,12 +135,19 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
+  final _screens = const [
     HomeScreen(),
     GamesScreen(),
     CollectionScreen(),
     ProfileScreen(),
   ];
+
+  /// Public method to switch tabs from child widgets.
+  void _switchToTab(int index) {
+    if (index >= 0 && index < _screens.length) {
+      setState(() => _currentIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,35 +156,38 @@ class _MainNavigationState extends State<MainNavigation> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(color: AppTheme.borderColor, width: 0.5),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.games_outlined),
-            activeIcon: Icon(Icons.games),
-            label: 'Games',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_outlined),
-            activeIcon: Icon(Icons.library_books),
-            label: 'Collection',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.gamepad_outlined),
+              activeIcon: Icon(Icons.gamepad),
+              label: 'Games',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.library_books_outlined),
+              activeIcon: Icon(Icons.library_books),
+              label: 'Collection',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

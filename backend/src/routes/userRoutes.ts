@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { getAllUsers, getUserById, updateProfile, deleteUser, getUserStats } from '../controllers/userController';
-import { authenticate, authorizeAdmin } from '../middlewares/auth';
+import { authenticate, authorizeAdmin, requireVerified } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
@@ -11,14 +11,14 @@ const router = Router();
  * @desc Get current user statistics (collection, wishlist, etc.)
  * @access Private
  */
-router.get('/me/stats', generalLimiter, authenticate, getUserStats);
+router.get('/me/stats', generalLimiter, authenticate, requireVerified, getUserStats);
 
 /**
  * @route GET /api/users
  * @desc Get all users
  * @access Private/Admin
  */
-router.get('/', generalLimiter, authenticate, authorizeAdmin, getAllUsers);
+router.get('/', generalLimiter, authenticate, requireVerified, authorizeAdmin, getAllUsers);
 
 /**
  * @route PUT /api/users/me
@@ -29,6 +29,7 @@ router.put(
   '/me',
   createLimiter,
   authenticate,
+  requireVerified,
   [
     body('name')
       .optional()
@@ -51,13 +52,13 @@ router.put(
  * @desc Get user by ID
  * @access Private
  */
-router.get('/:id', generalLimiter, authenticate, getUserById);
+router.get('/:id', generalLimiter, authenticate, requireVerified, getUserById);
 
 /**
  * @route DELETE /api/users/:id
  * @desc Delete user
  * @access Private/Admin
  */
-router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deleteUser);
+router.delete('/:id', generalLimiter, authenticate, requireVerified, authorizeAdmin, deleteUser);
 
 export default router;

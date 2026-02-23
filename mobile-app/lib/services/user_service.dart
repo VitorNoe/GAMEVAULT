@@ -1,174 +1,124 @@
-import '../models/game.dart';
-import '../config/app_config.dart';
+import '../models/collection_item.dart';
+import '../models/user.dart';
 import 'api_service.dart';
 
-/// User service for user-related operations
 class UserService {
   final ApiService _api = ApiService();
 
-  /// Get user's collection
-  Future<PaginatedCollection> getCollection({
+  // ── Collection ──
+
+  /// Get user's collection with optional status filter.
+  Future<List<CollectionItem>> getCollection({
+    String? status,
     int page = 1,
-    int limit = AppConfig.defaultPageSize,
+    int limit = 50,
   }) async {
-    final response = await _api.get(
-      '/users/collection',
-      queryParams: {
-        'page': page,
-        'limit': limit,
-      },
-    );
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    if (status != null && status.isNotEmpty) params['status'] = status;
 
-    final games = (response['data']['collection'] as List)
-        .map((json) => Game.fromJson(json['game'] ?? json))
+    final response = await _api.get('/collection', auth: true, queryParams: params);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    final itemsJson = data['items'] as List<dynamic>? ?? [];
+
+    return itemsJson
+        .map((item) => CollectionItem.fromJson(item as Map<String, dynamic>))
         .toList();
-
-    return PaginatedCollection(
-      games: games,
-      total: response['data']['pagination']?['total'] ?? games.length,
-      page: response['data']['pagination']?['page'] ?? page,
-      totalPages: response['data']['pagination']?['totalPages'] ?? 1,
-    );
   }
 
-  /// Add game to collection
-  Future<bool> addToCollection(int gameId, {String? status}) async {
+  /// Get collection stats.
+  Future<CollectionStats> getCollectionStats() async {
+    final response = await _api.get('/collection/stats', auth: true);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    return CollectionStats.fromJson(data);
+  }
+
+  /// Check if a game is in the user's collection.
+  Future<CollectionItem?> getCollectionStatus(int gameId) async {
     try {
-      await _api.post(
-        '/users/collection',
-        body: {
-          'game_id': gameId,
-          'status': status ?? 'owned',
-        },
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Remove game from collection
-  Future<bool> removeFromCollection(int gameId) async {
-    try {
-      await _api.delete('/users/collection/$gameId');
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Get user's wishlist
-  Future<PaginatedWishlist> getWishlist({
-    int page = 1,
-    int limit = AppConfig.defaultPageSize,
-  }) async {
-    final response = await _api.get(
-      '/users/wishlist',
-      queryParams: {
-        'page': page,
-        'limit': limit,
-      },
-    );
-
-    final games = (response['data']['wishlist'] as List)
-        .map((json) => Game.fromJson(json['game'] ?? json))
-        .toList();
-
-    return PaginatedWishlist(
-      games: games,
-      total: response['data']['pagination']?['total'] ?? games.length,
-      page: response['data']['pagination']?['page'] ?? page,
-      totalPages: response['data']['pagination']?['totalPages'] ?? 1,
-    );
-  }
-
-  /// Add game to wishlist
-  Future<bool> addToWishlist(int gameId) async {
-    try {
-      await _api.post(
-        '/users/wishlist',
-        body: {
-          'game_id': gameId,
-        },
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Remove game from wishlist
-  Future<bool> removeFromWishlist(int gameId) async {
-    try {
-      await _api.delete('/users/wishlist/$gameId');
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Get user stats
-  Future<UserStats?> getUserStats() async {
-    try {
-      final response = await _api.get('/users/stats');
-      return UserStats.fromJson(response['data']);
-    } catch (e) {
+      final response = await _api.get('/collection/status/$gameId', auth: true);
+      final data = response['data'] as Map<String, dynamic>?;
+      if (data != null && data['item'] != null) {
+        return CollectionItem.fromJson(data['item'] as Map<String, dynamic>);
+      }
       return null;
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return null;
+      rethrow;
     }
   }
-}
 
-/// Paginated collection result
-class PaginatedCollection {
-  final List<Game> games;
-  final int total;
-  final int page;
-  final int totalPages;
+  /// Add a game to the collection.
+  Future<CollectionItem> addToCollection({
+    required int gameId,
+    String status = 'not_started',
+    String format = 'digital',
+    int? platformId,
+  }) async {
+    final body = <String, dynamic>{
+      'game_id': gameId,
+      'status': status,
+      'format': format,
+    };
+    if (platformId != null) body['platform_id'] = platformId;
 
-  PaginatedCollection({
-    required this.games,
-    required this.total,
-    required this.page,
-    required this.totalPages,
-  });
+    final response = await _api.post('/collection', auth: true, body: body);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    return CollectionItem.fromJson(data['item'] as Map<String, dynamic>? ?? data);
+  }
 
-  bool get hasMore => page < totalPages;
-}
+  /// Update a collection item.
+  Future<CollectionItem> updateCollectionItem({
+    required int gameId,
+    String? status,
+    String? format,
+    int? hoursPlayed,
+    String? personalNotes,
+    int? rating,
+  }) async {
+    final body = <String, dynamic>{};
+    if (status != null) body['status'] = status;
+    if (format != null) body['format'] = format;
+    if (hoursPlayed != null) body['hours_played'] = hoursPlayed;
+    if (personalNotes != null) body['personal_notes'] = personalNotes;
+    if (rating != null) body['rating'] = rating;
 
-/// Paginated wishlist result
-class PaginatedWishlist {
-  final List<Game> games;
-  final int total;
-  final int page;
-  final int totalPages;
+    final response = await _api.put('/collection/$gameId', auth: true, body: body);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    return CollectionItem.fromJson(data['item'] as Map<String, dynamic>? ?? data);
+  }
 
-  PaginatedWishlist({
-    required this.games,
-    required this.total,
-    required this.page,
-    required this.totalPages,
-  });
+  /// Remove a game from the collection.
+  Future<void> removeFromCollection(int gameId) async {
+    await _api.delete('/collection/$gameId', auth: true);
+  }
 
-  bool get hasMore => page < totalPages;
-}
+  // ── User stats ──
 
-/// User stats model
-class UserStats {
-  final int totalGames;
-  final int wishlistCount;
-  final int completedGames;
+  /// Get authenticated user's overview stats.
+  Future<UserStats> getUserStats() async {
+    final response = await _api.get('/users/me/stats', auth: true);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    return UserStats.fromJson(data);
+  }
 
-  UserStats({
-    required this.totalGames,
-    required this.wishlistCount,
-    required this.completedGames,
-  });
+  // ── Profile ──
 
-  factory UserStats.fromJson(Map<String, dynamic> json) {
-    return UserStats(
-      totalGames: json['total_games'] ?? 0,
-      wishlistCount: json['wishlist_count'] ?? 0,
-      completedGames: json['completed_games'] ?? 0,
-    );
+  /// Update user profile.
+  Future<User> updateProfile({
+    String? name,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (bio != null) body['bio'] = bio;
+    if (avatarUrl != null) body['avatar_url'] = avatarUrl;
+
+    final response = await _api.put('/users/me', auth: true, body: body);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    return User.fromJson(data['user'] as Map<String, dynamic>? ?? data);
   }
 }

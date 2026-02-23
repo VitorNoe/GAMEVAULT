@@ -50,6 +50,19 @@ export interface Platform {
   type: 'console' | 'handheld' | 'pc' | 'mobile';
   generation?: number;
   release_year?: number;
+  discontinuation_year?: number;
   logo_url?: string;
   primary_color?: string;
+  game_count?: number;
+}
+
+export interface GamePlatform extends Platform {
+  platform_release_date?: string | null;
+  exclusivity: 'permanent' | 'temporary' | 'none';
+}
+
+export interface GamePlatformInput {
+  platform_id: number;
+  platform_release_date?: string | null;
+  exclusivity?: 'permanent' | 'temporary' | 'none';
 }

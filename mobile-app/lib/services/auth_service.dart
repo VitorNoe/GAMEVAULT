@@ -1,141 +1,93 @@
+import 'dart:convert';
+
 import '../models/user.dart';
 import 'api_service.dart';
 
-/// Authentication service
+class AuthResult {
+  final User user;
+  final String token;
+
+  AuthResult({required this.user, required this.token});
+}
+
 class AuthService {
   final ApiService _api = ApiService();
 
-  /// Login with email and password
+  /// Login with email and password.
   Future<AuthResult> login({
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _api.post(
-        '/auth/login',
-        body: {
-          'email': email,
-          'password': password,
-        },
-        requiresAuth: false,
-      );
+    final response = await _api.post(
+      '/auth/login',
+      body: {'email': email, 'password': password},
+    );
 
-      if (response['success'] == true && response['data'] != null) {
-        final token = response['data']['token'] as String;
-        final userData = response['data']['user'];
-        final user = User.fromJson(userData);
+    final data = response['data'] as Map<String, dynamic>;
+    final user = User.fromJson(data['user'] as Map<String, dynamic>);
+    final token = data['token'] as String;
 
-        await _api.saveToken(token);
+    await _api.saveToken(token);
+    await _api.saveUserData(jsonEncode(user.toJson()));
 
-        return AuthResult(
-          success: true,
-          user: user,
-          token: token,
-        );
-      }
-
-      return AuthResult(
-        success: false,
-        message: response['message'] ?? 'Login failed',
-      );
-    } catch (e) {
-      return AuthResult(
-        success: false,
-        message: e.toString(),
-      );
-    }
+    return AuthResult(user: user, token: token);
   }
 
-  /// Register a new user
+  /// Register a new account.
   Future<AuthResult> register({
     required String name,
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _api.post(
-        '/auth/register',
-        body: {
-          'name': name,
-          'email': email,
-          'password': password,
-        },
-        requiresAuth: false,
-      );
+    final response = await _api.post(
+      '/auth/register',
+      body: {'name': name, 'email': email, 'password': password},
+    );
 
-      if (response['success'] == true && response['data'] != null) {
-        final token = response['data']['token'] as String;
-        final userData = response['data']['user'];
-        final user = User.fromJson(userData);
+    final data = response['data'] as Map<String, dynamic>;
+    final user = User.fromJson(data['user'] as Map<String, dynamic>);
+    final token = data['token'] as String;
 
-        await _api.saveToken(token);
+    await _api.saveToken(token);
+    await _api.saveUserData(jsonEncode(user.toJson()));
 
-        return AuthResult(
-          success: true,
-          user: user,
-          token: token,
-        );
-      }
-
-      return AuthResult(
-        success: false,
-        message: response['message'] ?? 'Registration failed',
-      );
-    } catch (e) {
-      return AuthResult(
-        success: false,
-        message: e.toString(),
-      );
-    }
+    return AuthResult(user: user, token: token);
   }
 
-  /// Get current user
-  Future<User?> getCurrentUser() async {
-    try {
-      final token = await _api.getToken();
-      if (token == null) return null;
-
-      final response = await _api.get('/auth/me');
-
-      if (response['success'] == true && response['data'] != null) {
-        return User.fromJson(response['data']['user']);
-      }
-
-      return null;
-    } catch (e) {
-      return null;
-    }
+  /// Get current authenticated user profile.
+  Future<User> getCurrentUser() async {
+    final response = await _api.get('/auth/me', auth: true);
+    final data = response['data'] as Map<String, dynamic>;
+    return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
-  /// Logout
+  /// Logout and clear stored credentials.
   Future<void> logout() async {
     try {
       await _api.post('/auth/logout');
     } catch (_) {
-      // Ignore errors on logout
-    } finally {
-      await _api.deleteToken();
+      // Even if API call fails, clear local data
     }
+    await _api.deleteToken();
+    await _api.deleteUserData();
   }
 
-  /// Check if user is logged in
+  /// Check if user has a stored auth token.
   Future<bool> isLoggedIn() async {
     final token = await _api.getToken();
-    return token != null;
+    return token != null && token.isNotEmpty;
   }
-}
 
-/// Auth result model
-class AuthResult {
-  final bool success;
-  final User? user;
-  final String? token;
-  final String? message;
-
-  AuthResult({
-    required this.success,
-    this.user,
-    this.token,
-    this.message,
-  });
+  /// Try to restore user from stored data.
+  Future<User?> restoreUser() async {
+    final userData = await _api.getUserData();
+    if (userData != null) {
+      try {
+        return User.fromJson(jsonDecode(userData) as Map<String, dynamic>);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
 }

@@ -1,4 +1,8 @@
-# GameVault - Backend and Database Setup Summary
+cd /workspaces/GAMEVAULT/frontend-web
+npm install
+npm startcd /workspaces/GAMEVAULT/frontend-web
+npm install
+npm start# GameVault - Backend and Database Setup Summary
 
 ## ✅ Setup Complete!
 

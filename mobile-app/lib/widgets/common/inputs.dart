@@ -1,90 +1,73 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 
-/// Custom text input field
+/// Custom styled text field matching the dark theme.
 class CustomTextField extends StatelessWidget {
-  final TextEditingController? controller;
   final String? label;
   final String? hint;
-  final String? errorText;
+  final TextEditingController? controller;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  final void Function(String)? onSubmitted;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
-  final bool enabled;
-  final int? maxLines;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final String? Function(String?)? validator;
+  final int maxLines;
+  final bool autofocus;
+  final FocusNode? focusNode;
 
   const CustomTextField({
     super.key,
-    this.controller,
     this.label,
     this.hint,
-    this.errorText,
+    this.controller,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
-    this.prefixIcon,
-    this.suffixIcon,
-    this.enabled = true,
-    this.maxLines = 1,
+    this.validator,
     this.onChanged,
     this.onSubmitted,
-    this.validator,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.maxLines = 1,
+    this.autofocus = false,
+    this.focusNode,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label != null) ...[
-          Text(
-            label!,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          enabled: enabled,
-          maxLines: maxLines,
-          onChanged: onChanged,
-          onFieldSubmitted: onSubmitted,
-          validator: validator,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 16,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            errorText: errorText,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
-          ),
-        ),
-      ],
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      validator: validator,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      maxLines: maxLines,
+      autofocus: autofocus,
+      focusNode: focusNode,
+      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
+      ),
     );
   }
 }
 
-/// Search input field
-class SearchField extends StatelessWidget {
+/// Reactive search input field with clear button.
+class SearchField extends StatefulWidget {
   final TextEditingController? controller;
   final String hint;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
+  final void Function(String)? onChanged;
+  final void Function(String)? onSubmitted;
   final VoidCallback? onClear;
+  final bool autofocus;
 
   const SearchField({
     super.key,
@@ -93,42 +76,73 @@ class SearchField extends StatelessWidget {
     this.onChanged,
     this.onSubmitted,
     this.onClear,
+    this.autofocus = false,
   });
+
+  @override
+  State<SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<SearchField> {
+  late TextEditingController _controller;
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+    _hasText = _controller.text.isNotEmpty;
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    if (widget.controller == null) _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final hasText = _controller.text.isNotEmpty;
+    if (hasText != _hasText) {
+      setState(() => _hasText = hasText);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      style: const TextStyle(
-        color: AppTheme.textPrimary,
-        fontSize: 16,
-      ),
+      controller: _controller,
+      autofocus: widget.autofocus,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
       decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: const Icon(
-          Icons.search,
-          color: AppTheme.textMuted,
-        ),
-        suffixIcon: controller?.text.isNotEmpty == true
+        hintText: widget.hint,
+        prefixIcon: const Icon(Icons.search, color: AppTheme.textMuted, size: 22),
+        suffixIcon: _hasText
             ? IconButton(
-                icon: const Icon(Icons.clear, color: AppTheme.textMuted),
+                icon: const Icon(Icons.clear, color: AppTheme.textMuted, size: 20),
                 onPressed: () {
-                  controller?.clear();
-                  onClear?.call();
+                  _controller.clear();
+                  widget.onClear?.call();
                 },
               )
             : null,
         filled: true,
-        fillColor: AppTheme.surfaceColor,
+        fillColor: AppTheme.cardColor,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: AppTheme.borderColor),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
         ),
       ),
     );
