@@ -68,6 +68,10 @@ const startServer = async (): Promise<void> => {
     const { startReleaseJobs } = await import('./jobs/releaseStatusJobs');
     startReleaseJobs();
 
+    // Start RAWG periodic sync job
+    const { startRawgSyncJob } = await import('./jobs/rawgSyncJob');
+    startRawgSyncJob();
+
     // Start server
     app.listen(PORT, () => {
       console.log(`🎮 GameVault API running on http://localhost:${PORT}`);
