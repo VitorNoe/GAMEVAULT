@@ -6,6 +6,7 @@ import platformRoutes from './platformRoutes';
 import collectionRoutes from './collectionRoutes';
 import rawgRoutes from './rawgRoutes';
 import reviewRoutes from './reviewRoutes';
+import wishlistRoutes from './wishlistRoutes';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/platforms', platformRoutes);
 router.use('/collection', collectionRoutes);
 router.use('/external/rawg', rawgRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/wishlist', wishlistRoutes);
 
 export default router;

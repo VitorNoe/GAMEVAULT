@@ -14,11 +14,12 @@ export interface UserCollectionAttributes {
     price_paid?: number;
     hours_played: number;
     personal_notes?: string;
+    rating?: number;
     created_at?: Date;
     updated_at?: Date;
 }
 
-interface UserCollectionCreationAttributes extends Optional<UserCollectionAttributes, 'id' | 'format' | 'status' | 'acquisition_date' | 'price_paid' | 'hours_played' | 'personal_notes' | 'created_at' | 'updated_at'> { }
+interface UserCollectionCreationAttributes extends Optional<UserCollectionAttributes, 'id' | 'format' | 'status' | 'acquisition_date' | 'price_paid' | 'hours_played' | 'personal_notes' | 'rating' | 'created_at' | 'updated_at'> { }
 
 class UserCollection extends Model<UserCollectionAttributes, UserCollectionCreationAttributes> implements UserCollectionAttributes {
     public id!: number;
@@ -31,6 +32,7 @@ class UserCollection extends Model<UserCollectionAttributes, UserCollectionCreat
     public price_paid?: number;
     public hours_played!: number;
     public personal_notes?: string;
+    public rating?: number;
     public readonly created_at!: Date;
     public readonly updated_at!: Date;
 }
@@ -92,6 +94,14 @@ UserCollection.init(
         personal_notes: {
             type: DataTypes.TEXT,
             allowNull: true
+        },
+        rating: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            validate: {
+                min: 1,
+                max: 10,
+            },
         },
         created_at: {
             type: DataTypes.DATE,
