@@ -8,7 +8,11 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src/**/*.ts",
-    "test": "jest"
+    "test": "jest",
+    "migrate": "ts-node src/scripts/migrate.ts",
+    "migrate:rollback": "ts-node src/scripts/migrate.ts rollback",
+    "seed": "ts-node src/scripts/seed.ts",
+    "db:setup": "npm run migrate && npm run seed"
   },
   "keywords": [
     "gamevault",

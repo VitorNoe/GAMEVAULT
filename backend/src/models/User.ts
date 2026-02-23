@@ -15,13 +15,16 @@ export interface UserAttributes {
   email_verification_token?: string | null;
   password_reset_token?: string | null;
   password_reset_expires?: Date | null;
+  notification_push: boolean;
+  notification_email: boolean;
+  notification_in_app: boolean;
   last_login?: Date | null;
   created_at?: Date;
   updated_at?: Date;
 }
 
 // Attributes for user creation (id is optional since it's auto-generated)
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'avatar_url' | 'bio' | 'email_verified' | 'email_verification_token' | 'password_reset_token' | 'password_reset_expires' | 'last_login' | 'created_at' | 'updated_at'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'avatar_url' | 'bio' | 'email_verified' | 'email_verification_token' | 'password_reset_token' | 'password_reset_expires' | 'notification_push' | 'notification_email' | 'notification_in_app' | 'last_login' | 'created_at' | 'updated_at'> {}
 
 // User model class
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -36,6 +39,9 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public email_verification_token?: string | null;
   public password_reset_token?: string | null;
   public password_reset_expires?: Date | null;
+  public notification_push!: boolean;
+  public notification_email!: boolean;
+  public notification_in_app!: boolean;
   public last_login?: Date | null;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -111,6 +117,21 @@ User.init(
     password_reset_expires: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    notification_push: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
+    },
+    notification_email: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
+    },
+    notification_in_app: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true
     },
     last_login: {
       type: DataTypes.DATE,
