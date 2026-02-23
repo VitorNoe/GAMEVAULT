@@ -16,6 +16,13 @@ import {
   setGamePlatforms,
   removeGamePlatform,
 } from '../controllers/platformController';
+import {
+  changeGameStatus,
+  getGameStatusHistory,
+  getGameCountdown,
+  getUpcomingWithCountdowns,
+  getReleaseTimeline,
+} from '../controllers/releaseStatusController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
 
@@ -48,6 +55,22 @@ router.get('/abandonware', generalLimiter, optionalAuth, getAbandonwareGames);
  * @access Public
  */
 router.get('/goty', generalLimiter, optionalAuth, getGotyGames);
+
+// ─── Release Status & Countdown routes ───
+
+/**
+ * @route GET /api/games/upcoming-countdown
+ * @desc Get all upcoming games with countdown info
+ * @access Public
+ */
+router.get('/upcoming-countdown', generalLimiter, optionalAuth, getUpcomingWithCountdowns);
+
+/**
+ * @route GET /api/games/release-timeline
+ * @desc Get global status change timeline (optional ?type=release|availability)
+ * @access Public
+ */
+router.get('/release-timeline', generalLimiter, optionalAuth, getReleaseTimeline);
 
 /**
  * @route GET /api/games
@@ -131,6 +154,29 @@ router.put(
  * @access Private/Admin
  */
 router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deleteGame);
+
+// ─── Release Status per-game routes ───
+
+/**
+ * @route GET /api/games/:id/status-history
+ * @desc Get status change history for a game (paginated)
+ * @access Public
+ */
+router.get('/:id/status-history', generalLimiter, optionalAuth, getGameStatusHistory);
+
+/**
+ * @route GET /api/games/:id/countdown
+ * @desc Get countdown info for a game's release
+ * @access Public
+ */
+router.get('/:id/countdown', generalLimiter, optionalAuth, getGameCountdown);
+
+/**
+ * @route PUT /api/games/:id/status
+ * @desc Change release/availability status for a game (admin)
+ * @access Private/Admin
+ */
+router.put('/:id/status', createLimiter, authenticate, authorizeAdmin, changeGameStatus);
 
 // ─── Game-Platform relationship routes ───
 
