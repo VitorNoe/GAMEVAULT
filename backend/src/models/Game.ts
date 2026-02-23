@@ -112,11 +112,19 @@ Game.init(
     },
     developer_id: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
+      references: {
+        model: 'developers',
+        key: 'id',
+      },
     },
     publisher_id: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
+      references: {
+        model: 'publishers',
+        key: 'id',
+      },
     },
     release_status: {
       type: DataTypes.ENUM('released', 'early_access', 'open_beta', 'closed_beta', 'alpha', 'coming_soon', 'in_development', 'cancelled'),
@@ -149,7 +157,7 @@ Game.init(
       allowNull: true
     },
     age_rating: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(20),
       allowNull: true
     },
     average_rating: {
@@ -193,7 +201,19 @@ Game.init(
     tableName: 'games',
     timestamps: true,
     createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    updatedAt: 'updated_at',
+    indexes: [
+      { fields: ['slug'], unique: true },
+      { fields: ['title'] },
+      { fields: ['developer_id'] },
+      { fields: ['publisher_id'] },
+      { fields: ['release_status'] },
+      { fields: ['availability_status'] },
+      { fields: ['release_year'] },
+      { fields: ['release_date'] },
+      { fields: ['average_rating'] },
+      { fields: ['rawg_id'] },
+    ],
   }
 );
 

@@ -93,7 +93,12 @@ Platform.init(
     tableName: 'platforms',
     timestamps: true,
     createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    updatedAt: 'updated_at',
+    indexes: [
+      { fields: ['slug'], unique: true },
+      { fields: ['platform_type'] },
+      { fields: ['generation'] },
+    ],
   }
 );
 
