@@ -158,6 +158,8 @@ export function setupAssociations(): void {
   // --- Game → GameStatusHistory ---
   Game.hasMany(GameStatusHistory, { foreignKey: 'game_id', as: 'statusHistory' });
   GameStatusHistory.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });
+  GameStatusHistory.belongsTo(User, { foreignKey: 'changed_by', as: 'changedByUser' });
+  User.hasMany(GameStatusHistory, { foreignKey: 'changed_by', as: 'statusChanges' });
 }
 
 // Initialize associations immediately

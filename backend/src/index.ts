@@ -64,6 +64,10 @@ const startServer = async (): Promise<void> => {
     // Use database/seed.sql for initial setup instead
     console.log('✅ Database models (sync disabled - using SQL scripts)');
 
+    // Start periodic release status jobs
+    const { startReleaseJobs } = await import('./jobs/releaseStatusJobs');
+    startReleaseJobs();
+
     // Start server
     app.listen(PORT, () => {
       console.log(`🎮 GameVault API running on http://localhost:${PORT}`);

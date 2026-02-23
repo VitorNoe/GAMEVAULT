@@ -7,6 +7,7 @@ export type AvailabilityStatus = 'available' | 'out_of_catalog' | 'expired_licen
 export interface GameStatusHistoryAttributes {
   id: number;
   game_id: number;
+  changed_by?: number;
   previous_release_status?: ReleaseStatus;
   new_release_status?: ReleaseStatus;
   previous_availability_status?: AvailabilityStatus;
@@ -15,11 +16,12 @@ export interface GameStatusHistoryAttributes {
   changed_at?: Date;
 }
 
-interface GameStatusHistoryCreationAttributes extends Optional<GameStatusHistoryAttributes, 'id' | 'previous_release_status' | 'new_release_status' | 'previous_availability_status' | 'new_availability_status' | 'change_reason' | 'changed_at'> {}
+interface GameStatusHistoryCreationAttributes extends Optional<GameStatusHistoryAttributes, 'id' | 'changed_by' | 'previous_release_status' | 'new_release_status' | 'previous_availability_status' | 'new_availability_status' | 'change_reason' | 'changed_at'> {}
 
 class GameStatusHistory extends Model<GameStatusHistoryAttributes, GameStatusHistoryCreationAttributes> implements GameStatusHistoryAttributes {
   public id!: number;
   public game_id!: number;
+  public changed_by?: number;
   public previous_release_status?: ReleaseStatus;
   public new_release_status?: ReleaseStatus;
   public previous_availability_status?: AvailabilityStatus;
@@ -40,6 +42,14 @@ GameStatusHistory.init(
       allowNull: false,
       references: {
         model: 'games',
+        key: 'id',
+      },
+    },
+    changed_by: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
         key: 'id',
       },
     },
@@ -76,6 +86,7 @@ GameStatusHistory.init(
     indexes: [
       { fields: ['game_id'] },
       { fields: ['changed_at'] },
+      { fields: ['changed_by'] },
     ],
   }
 );
