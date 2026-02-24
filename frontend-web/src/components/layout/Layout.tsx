@@ -31,9 +31,9 @@ const LIBRARY_ITEMS: NavItemType[] = [
 ];
 
 const DISCOVER_ITEMS: NavItemType[] = [
-  { label: 'GOTY Awards', icon: '🏆', path: '/awards', requiresAuth: false },
+  { label: 'Hall of Fame', icon: '🏆', path: '/awards', requiresAuth: false },
   { label: 'Upcoming Releases', icon: '📅', path: '/upcoming', requiresAuth: false },
-  { label: 'Abandonware', icon: '📦', path: '/abandonware', requiresAuth: false },
+  { label: 'Abandonware Museum', icon: '🏛️', path: '/abandonware', requiresAuth: false },
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {

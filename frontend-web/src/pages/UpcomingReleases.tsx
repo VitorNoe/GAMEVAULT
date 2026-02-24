@@ -1,386 +1,471 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { gameService, UpcomingGameWithCountdown } from '../services/gameService';
+import { wishlistService } from '../services/wishlistService';
+import { useAuth } from '../hooks/useAuth';
+import { Pagination } from '../components/common/Pagination';
+import { RELEASE_STATUS_LABELS } from '../utils/constants';
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.05 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
 };
 
-interface UpcomingGame {
-    title: string;
-    releaseDate: string;
-    releasePeriod: string;
-    platforms: string[];
-    description: string;
-    cover: string;
-    hype: 'maximum' | 'high' | 'medium';
-    month: string;
-}
-
-const UPCOMING_GAMES: UpcomingGame[] = [
-    // February 2026
-    {
-        title: 'Nioh 3',
-        releaseDate: 'February 6, 2026',
-        releasePeriod: 'February 2026',
-        platforms: ['PC', 'PS5'],
-        description: 'Set in 1800s Kyoto, a new malevolent phenomenon called the "Crucible" has corrupted the land, transforming historic temples into macabre landscapes. Intense soulslike combat returns with new mechanics.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/6/63/Nioh_3_cover_art.jpg',
-        hype: 'high',
-        month: 'February',
-    },
-    {
-        title: 'Dragon Quest VII Reimagined',
-        releaseDate: 'February 5, 2026',
-        releasePeriod: 'February 2026',
-        platforms: ['PS5', 'Xbox Series X|S', 'Switch', 'Switch 2', 'PC'],
-        description: 'A complete reimagining of the classic JRPG with visual and quality-of-life improvements, promising hundreds of hours of exploration across fragmented worlds.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Dragon_Quest_VII_3DS_box_art.jpg',
-        hype: 'high',
-        month: 'February',
-    },
-    {
-        title: 'Mewgenics',
-        releaseDate: 'February 10, 2026',
-        releasePeriod: 'February 2026',
-        platforms: ['PC'],
-        description: 'From the creator of The Binding of Isaac, a quirky cat-breeding simulation with roguelike elements. Breed, collect, and mutate cats in a bizarre and hilarious world.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/9/93/Mewgenics_cover.png',
-        hype: 'medium',
-        month: 'February',
-    },
-    {
-        title: 'My Hero Academia: All\'s Justice',
-        releaseDate: 'February 5, 2026',
-        releasePeriod: 'February 2026',
-        platforms: ['PC', 'PS5', 'Xbox Series X|S'],
-        description: 'An action-packed fighting game based on the popular anime series. Play as your favorite heroes and villains in epic battles with manga-faithful special moves.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/1/1c/My_Hero_Academia_You%27re_Next_Key_Visual.png',
-        hype: 'medium',
-        month: 'February',
-    },
-    {
-        title: 'Final Fantasy VII Part 3',
-        releaseDate: 'February 27, 2026',
-        releasePeriod: 'February 2026',
-        platforms: ['PS5', 'PC'],
-        description: 'The epic conclusion to the Final Fantasy VII Remake trilogy. Cloud and friends face their ultimate destiny in this climactic chapter of the beloved saga.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/3/3e/Final_Fantasy_VII_Rebirth_cover_art.png',
-        hype: 'maximum',
-        month: 'February',
-    },
-    {
-        title: 'Resident Evil: Requiem',
-        releaseDate: 'February 2026 (TBA)',
-        releasePeriod: 'February 2026',
-        platforms: ['PS5', 'Xbox Series X|S', 'PC'],
-        description: 'The next terrifying chapter in the Resident Evil franchise. Details remain shrouded in mystery, but promises to deliver a fresh take on survival horror.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/2/21/Resident_Evil_Village_cover_art.png',
-        hype: 'high',
-        month: 'February',
-    },
-    {
-        title: 'High On Life 2',
-        releaseDate: 'February 2026 (TBA)',
-        releasePeriod: 'February 2026',
-        platforms: ['PC', 'Xbox Series X|S'],
-        description: 'The sequel to the irreverent comedy shooter. More talking guns, more alien bounties, and even more absurd humor from Squanch Games.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/0/09/High_On_Life_cover_art.png',
-        hype: 'medium',
-        month: 'February',
-    },
-    // March 2026
-    {
-        title: "Assassin's Creed Shadows",
-        releaseDate: 'March 20, 2026',
-        releasePeriod: 'March 2026',
-        platforms: ['PC', 'PS5', 'Xbox Series X|S'],
-        description: 'Set in feudal Japan, players explore themes of betrayal, mystery, and political intrigue. Play as both a shinobi and a samurai in an interconnected open world.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/3/35/Assassin%27s_Creed_Shadows_cover_art.jpg',
-        hype: 'high',
-        month: 'March',
-    },
-    {
-        title: 'Monster Hunter Stories 3',
-        releaseDate: 'March 2026 (TBA)',
-        releasePeriod: 'March 2026',
-        platforms: ['Switch 2', 'PS5', 'PC'],
-        description: 'The next chapter in the Monster Hunter RPG spin-off. Bond with monsters, explore new lands, and uncover a grand story in this turn-based adventure.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/b/b4/Monster_Hunter_Stories_2_Wings_of_Ruin_cover_art.jpg',
-        hype: 'medium',
-        month: 'March',
-    },
-    {
-        title: 'Crimson Desert',
-        releaseDate: 'March 2026 (TBA)',
-        releasePeriod: 'March 2026',
-        platforms: ['PC', 'PS5', 'Xbox Series X|S'],
-        description: 'An open-world action-adventure from Pearl Abyss. Follow the story of mercenaries in a vast, beautifully realized fantasy world with intense real-time combat.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/e/e2/Crimson_Desert_cover_art.jpg',
-        hype: 'high',
-        month: 'March',
-    },
-    {
-        title: '007 First Light',
-        releaseDate: 'March 2026 (TBA)',
-        releasePeriod: 'March 2026',
-        platforms: ['PC', 'PS5', 'Xbox Series X|S'],
-        description: 'A brand-new James Bond origin story from IO Interactive, creators of Hitman. Experience Bond\'s first mission as a 00 agent in an immersive stealth-action thriller.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/f/f1/Hitman_3_cover.jpg',
-        hype: 'high',
-        month: 'March',
-    },
-    {
-        title: 'Split Fiction',
-        releaseDate: 'March 2026 (TBA)',
-        releasePeriod: 'March 2026',
-        platforms: ['PC', 'PS5', 'Xbox Series X|S'],
-        description: 'The latest co-op adventure from Hazelight Studios (creators of It Takes Two). Two writers get trapped inside their own stories and must work together to escape.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/d/d6/Split_Fiction_cover_art.jpg',
-        hype: 'high',
-        month: 'March',
-    },
-    // Later 2026
-    {
-        title: 'DOOM: The Dark Ages',
-        releaseDate: 'May 15, 2026',
-        releasePeriod: 'May 2026',
-        platforms: ['PC', 'PS5', 'Xbox Series X|S'],
-        description: 'A medieval prequel to DOOM Eternal. The Doom Slayer battles demonic hordes in a dark fantasy setting with brutal melee combat, massive boss fights, and gothic castles.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/f/f5/Doom_The_Dark_Ages_cover_art.jpg',
-        hype: 'maximum',
-        month: 'May',
-    },
-    {
-        title: 'Ghost of Yōtei',
-        releaseDate: '2026 (TBA)',
-        releasePeriod: '2026',
-        platforms: ['PS5'],
-        description: 'The spiritual successor to Ghost of Tsushima. Set at the base of Mount Yōtei in 1603 Japan, follow a new protagonist in Sucker Punch\'s stunning open-world samurai epic.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/b/b6/Ghost_of_Tsushima.jpg',
-        hype: 'maximum',
-        month: 'TBA',
-    },
-    {
-        title: 'GTA VI',
-        releaseDate: 'November 19, 2026',
-        releasePeriod: 'November 2026',
-        platforms: ['PS5', 'Xbox Series X|S'],
-        description: 'The most anticipated game of the decade. Return to Vice City in a modern-day setting with dual protagonists. Rockstar Games\' magnum opus promises to redefine open-world gaming.',
-        cover: 'https://upload.wikimedia.org/wikipedia/en/2/2b/Grand_Theft_Auto_VI_cover_art.jpg',
-        hype: 'maximum',
-        month: 'November',
-    },
-];
-
-const getHypeBadge = (hype: string): string => {
-    switch (hype) {
-        case 'maximum': return '🔥 Maximum Hype';
-        case 'high': return '⚡ High Hype';
-        case 'medium': return '✨ Notable';
-        default: return '';
-    }
+const getCountdownColor = (days: number): string => {
+    if (days <= 7) return 'text-red-400';
+    if (days <= 30) return 'text-orange-400';
+    if (days <= 90) return 'text-yellow-400';
+    return 'text-blue-400';
 };
 
-const getHypeBadgeBg = (hype: string): string => {
-    switch (hype) {
-        case 'maximum': return 'bg-red-500/20 text-red-400 border-red-500/30';
-        case 'high': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-        case 'medium': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-        default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-    }
+const getCountdownBg = (days: number): string => {
+    if (days <= 7) return 'from-red-500/20 to-red-600/20 border-red-500/30';
+    if (days <= 30) return 'from-orange-500/20 to-orange-600/20 border-orange-500/30';
+    if (days <= 90) return 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30';
+    return 'from-blue-500/20 to-blue-600/20 border-blue-500/30';
 };
+
+const getStatusBadge = (status: string) => {
+    const colors: Record<string, string> = {
+        coming_soon: 'bg-green-500/20 text-green-400 border-green-500/30',
+        in_development: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+        early_access: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+        open_beta: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+        closed_beta: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+        alpha: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
+    };
+    return colors[status] || 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+};
+
+type ViewMode = 'timeline' | 'grid';
 
 export const UpcomingReleases: React.FC = () => {
-    const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const { isAuthenticated } = useAuth();
+    const [games, setGames] = useState<UpcomingGameWithCountdown[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [viewMode, setViewMode] = useState<ViewMode>('timeline');
 
-    const filteredGames = UPCOMING_GAMES.filter((game) => {
-        const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesMonth = selectedMonth ? game.month === selectedMonth : true;
-        return matchesSearch && matchesMonth;
-    });
+    // Wishlist toast/state
+    const [wishlistAdding, setWishlistAdding] = useState<number | null>(null);
+    const [wishlistNotice, setWishlistNotice] = useState<string | null>(null);
 
-    const groupedByMonth = filteredGames.reduce((acc, game) => {
-        const key = game.releasePeriod;
+    const fetchGames = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await gameService.getUpcomingCountdown({ page, limit: 24 });
+            const data = response.data || response;
+            setGames((data as any).games || []);
+            setTotalPages((data as any).pagination?.totalPages || 1);
+            setTotal((data as any).pagination?.total || 0);
+        } catch (err: any) {
+            console.error('Failed to load upcoming releases:', err);
+            setError('Failed to load upcoming releases.');
+        } finally {
+            setLoading(false);
+        }
+    }, [page]);
+
+    useEffect(() => { fetchGames(); }, [fetchGames]);
+
+    // Group games by month for timeline
+    const gamesByMonth = games.reduce((acc, game) => {
+        const date = game.countdown?.release_date || game.release_date;
+        let key = 'TBA';
+        if (date) {
+            const d = new Date(date);
+            if (!isNaN(d.getTime())) {
+                key = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            }
+        }
         if (!acc[key]) acc[key] = [];
         acc[key].push(game);
         return acc;
-    }, {} as Record<string, UpcomingGame[]>);
+    }, {} as Record<string, UpcomingGameWithCountdown[]>);
 
-    const availableMonths = [...new Set(UPCOMING_GAMES.map(g => g.month))];
+    // Sort month keys chronologically
+    const sortedMonths = Object.keys(gamesByMonth).sort((a, b) => {
+        if (a === 'TBA') return 1;
+        if (b === 'TBA') return -1;
+        return new Date(a).getTime() - new Date(b).getTime();
+    });
+
+    // Handle add to wishlist with notification
+    const handleAddToWishlist = async (gameId: number, gameTitle: string) => {
+        if (!isAuthenticated) return;
+        setWishlistAdding(gameId);
+        try {
+            const check = await wishlistService.checkGame(gameId);
+            if (check.inWishlist) {
+                setWishlistNotice(`"${gameTitle}" is already on your wishlist!`);
+            } else {
+                await wishlistService.addToWishlist({ game_id: gameId, priority: 'high' });
+                setWishlistNotice(`"${gameTitle}" added to wishlist! You'll be notified on release.`);
+            }
+            setTimeout(() => setWishlistNotice(null), 3500);
+        } catch (err) {
+            console.error('Wishlist add failed:', err);
+            setWishlistNotice('Failed to add to wishlist.');
+            setTimeout(() => setWishlistNotice(null), 3000);
+        } finally {
+            setWishlistAdding(null);
+        }
+    };
+
+    // Stats
+    const comingSoon = games.filter(g => g.release_status === 'coming_soon').length;
+    const inDev = games.filter(g => g.release_status === 'in_development').length;
+    const within30days = games.filter(g => g.countdown && g.countdown.days_until_release <= 30 && g.countdown.days_until_release > 0).length;
 
     return (
-        <motion.div
-            className="space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
-            {/* Header */}
-            <motion.div variants={itemVariants}>
-                <h1 className="text-4xl font-extrabold gradient-text mb-2">📅 Upcoming Releases</h1>
-                <p className="text-gray-400 text-lg">
-                    The most anticipated games coming in 2026
-                </p>
-            </motion.div>
-
-            {/* Hype Stats */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">🎮</div>
-                    <p className="text-2xl font-bold text-primary-400">{UPCOMING_GAMES.length}</p>
-                    <p className="text-sm text-gray-400">Total Games</p>
-                </motion.div>
-                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">🔥</div>
-                    <p className="text-2xl font-bold text-red-400">{UPCOMING_GAMES.filter(g => g.hype === 'maximum').length}</p>
-                    <p className="text-sm text-gray-400">Maximum Hype</p>
-                </motion.div>
-                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">📅</div>
-                    <p className="text-2xl font-bold text-yellow-400">{availableMonths.length}</p>
-                    <p className="text-sm text-gray-400">Release Windows</p>
-                </motion.div>
-                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">🕹️</div>
-                    <p className="text-2xl font-bold text-cyan-400">
-                        {new Set(UPCOMING_GAMES.flatMap(g => g.platforms)).size}
-                    </p>
-                    <p className="text-sm text-gray-400">Platforms</p>
-                </motion.div>
-            </motion.div>
-
-            {/* Filters */}
-            <motion.div variants={itemVariants} className="space-y-4">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search upcoming games..."
-                    className="w-full px-4 py-3 bg-dark-300 border border-dark-100 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
-                <div className="flex gap-2 flex-wrap">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setSelectedMonth(null)}
-                        className={`filter-btn ${selectedMonth === null ? 'active' : ''}`}
+        <motion.div className="space-y-8" variants={containerVariants} initial="hidden" animate="visible">
+            {/* Toast notification */}
+            <AnimatePresence>
+                {wishlistNotice && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -40 }}
+                        className="fixed top-4 right-4 z-50 px-5 py-3 rounded-xl bg-green-500/90 backdrop-blur-sm text-white font-medium shadow-xl max-w-sm"
                     >
-                        All
+                        {wishlistNotice}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Header */}
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <h1 className="text-4xl font-extrabold gradient-text mb-2">📅 Upcoming Releases</h1>
+                    <p className="text-gray-400 text-lg">
+                        Track release dates, countdowns, and add upcoming games to your wishlist
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <motion.button
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                        onClick={() => setViewMode('timeline')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            viewMode === 'timeline' ? 'bg-primary-500 text-white' : 'text-gray-400 hover:text-white bg-dark-300'
+                        }`}
+                    >
+                        📋 Timeline
                     </motion.button>
-                    {availableMonths.map((month) => (
-                        <motion.button
-                            key={month}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedMonth(month)}
-                            className={`filter-btn ${selectedMonth === month ? 'active' : ''}`}
-                        >
-                            {month}
-                        </motion.button>
-                    ))}
+                    <motion.button
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                        onClick={() => setViewMode('grid')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            viewMode === 'grid' ? 'bg-primary-500 text-white' : 'text-gray-400 hover:text-white bg-dark-300'
+                        }`}
+                    >
+                        🔲 Grid
+                    </motion.button>
                 </div>
             </motion.div>
 
-            {/* Games by Month */}
-            {Object.entries(groupedByMonth).map(([period, games]) => (
-                <motion.div key={period} variants={itemVariants} className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold text-white">{period}</h2>
-                        <span className="px-3 py-1 bg-primary-500/20 text-primary-400 text-sm rounded-full font-medium">
-                            {games.length} {games.length === 1 ? 'game' : 'games'}
-                        </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {games.map((game) => (
-                            <motion.div
-                                key={game.title}
-                                className="game-card overflow-hidden"
-                                whileHover={{ y: -5, borderColor: 'rgba(167, 139, 250, 0.6)' }}
-                            >
-                                <div className="flex flex-col sm:flex-row">
-                                    {/* Cover */}
-                                    <div className="sm:w-40 h-48 sm:h-auto flex-shrink-0 bg-dark-300 overflow-hidden relative">
-                                        <img
-                                            src={game.cover}
-                                            alt={game.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute top-2 left-2">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold border ${getHypeBadgeBg(game.hype)}`}>
-                                                {getHypeBadge(game.hype)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Info */}
-                                    <div className="p-4 flex-1">
-                                        <h3 className="text-xl font-bold text-white mb-1">{game.title}</h3>
-                                        <p className="text-primary-400 text-sm font-medium mb-2">📅 {game.releaseDate}</p>
-                                        <p className="text-gray-400 text-sm mb-3 line-clamp-3">{game.description}</p>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {game.platforms.map((platform) => (
-                                                <span
-                                                    key={platform}
-                                                    className="px-2 py-0.5 bg-dark-300 text-gray-300 text-xs rounded"
-                                                >
-                                                    {platform}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+            {/* Stats */}
+            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
+                    <div className="text-3xl mb-2">🎮</div>
+                    <p className="text-2xl font-bold text-primary-400">{total}</p>
+                    <p className="text-sm text-gray-400">Upcoming Games</p>
                 </motion.div>
-            ))}
+                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
+                    <div className="text-3xl mb-2">🔜</div>
+                    <p className="text-2xl font-bold text-green-400">{comingSoon}</p>
+                    <p className="text-sm text-gray-400">Coming Soon</p>
+                </motion.div>
+                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
+                    <div className="text-3xl mb-2">🛠️</div>
+                    <p className="text-2xl font-bold text-blue-400">{inDev}</p>
+                    <p className="text-sm text-gray-400">In Development</p>
+                </motion.div>
+                <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
+                    <div className="text-3xl mb-2">⏰</div>
+                    <p className="text-2xl font-bold text-red-400">{within30days}</p>
+                    <p className="text-sm text-gray-400">Within 30 Days</p>
+                </motion.div>
+            </motion.div>
 
-            {filteredGames.length === 0 && (
-                <motion.div
-                    className="glass-card text-center py-16"
-                    variants={itemVariants}
-                >
-                    <div className="text-6xl mb-4">📅</div>
-                    <h3 className="text-2xl font-bold mb-2 text-white">No games found</h3>
-                    <p className="text-gray-400">Try adjusting your search or month filter</p>
+            {/* Loading */}
+            {loading && (
+                <div className="space-y-6">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="glass-card p-4 animate-pulse flex items-center gap-4">
+                            <div className="w-28 h-36 bg-white/5 rounded-lg flex-shrink-0" />
+                            <div className="flex-1 space-y-3">
+                                <div className="h-6 bg-white/5 rounded w-1/3" />
+                                <div className="h-4 bg-white/5 rounded w-1/4" />
+                                <div className="h-4 bg-white/5 rounded w-full" />
+                            </div>
+                            <div className="w-24 h-20 bg-white/5 rounded-lg flex-shrink-0" />
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Error */}
+            {error && !loading && (
+                <motion.div variants={itemVariants} className="glass-card text-center py-12">
+                    <div className="text-5xl mb-4">⚠️</div>
+                    <h3 className="text-xl font-bold text-white mb-2">{error}</h3>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                        onClick={fetchGames}
+                        className="mt-4 px-6 py-2 rounded-lg bg-primary-500 text-white font-medium"
+                    >
+                        Retry
+                    </motion.button>
                 </motion.div>
             )}
 
-            {/* Most Anticipated Highlight */}
+            {/* Content */}
+            {!loading && !error && games.length > 0 && (
+                <AnimatePresence mode="wait">
+                    {/* ===== TIMELINE VIEW ===== */}
+                    {viewMode === 'timeline' && (
+                        <motion.div key="timeline" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
+                            {sortedMonths.map((month) => (
+                                <motion.div key={month} variants={itemVariants} className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <h2 className="text-2xl font-bold text-white">{month}</h2>
+                                        <span className="px-3 py-1 bg-primary-500/20 text-primary-400 text-sm rounded-full font-medium">
+                                            {gamesByMonth[month].length} {gamesByMonth[month].length === 1 ? 'game' : 'games'}
+                                        </span>
+                                        <div className="flex-1 h-px bg-gradient-to-r from-primary-500/30 to-transparent" />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {gamesByMonth[month].map((game) => (
+                                            <motion.div
+                                                key={game.id}
+                                                className="glass-card p-0 overflow-hidden"
+                                                whileHover={{ y: -3, borderColor: 'rgba(167, 139, 250, 0.5)' }}
+                                            >
+                                                <div className="flex flex-col sm:flex-row">
+                                                    {/* Cover */}
+                                                    <Link to={`/games/${game.id}`} className="sm:w-36 h-44 sm:h-auto flex-shrink-0 bg-dark-300 overflow-hidden relative block">
+                                                        <img
+                                                            src={game.cover_url || `https://placehold.co/300x400/1a1a2e/a78bfa?text=${encodeURIComponent(game.title.substring(0, 15))}`}
+                                                            alt={game.title}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = `https://placehold.co/300x400/1a1a2e/a78bfa?text=${encodeURIComponent(game.title.substring(0, 15))}`;
+                                                            }}
+                                                        />
+                                                        <div className="absolute top-2 left-2">
+                                                            <span className={`px-2 py-1 rounded text-xs font-bold border ${getStatusBadge(game.release_status)}`}>
+                                                                {RELEASE_STATUS_LABELS[game.release_status] || game.release_status}
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+
+                                                    {/* Info */}
+                                                    <div className="p-4 flex-1 flex flex-col justify-between">
+                                                        <div>
+                                                            <Link to={`/games/${game.id}`}>
+                                                                <h3 className="text-xl font-bold text-white mb-1 hover:text-primary-400 transition-colors">
+                                                                    {game.title}
+                                                                </h3>
+                                                            </Link>
+                                                            {game.developer && (
+                                                                <p className="text-sm text-primary-400 font-medium mb-1">{game.developer.name}</p>
+                                                            )}
+                                                            <p className="text-sm text-gray-500 mb-2">
+                                                                📅 {game.release_date
+                                                                    ? new Date(game.release_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                                                                    : 'TBA'}
+                                                            </p>
+                                                            {game.description && (
+                                                                <p className="text-gray-400 text-sm line-clamp-2 mb-3">{game.description}</p>
+                                                            )}
+                                                            {game.platforms && game.platforms.length > 0 && (
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {game.platforms.map((p) => (
+                                                                        <span key={p.id} className="px-2 py-0.5 bg-dark-300 text-gray-300 text-xs rounded">
+                                                                            {p.name}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Countdown + Wishlist */}
+                                                    <div className="sm:w-44 p-4 flex flex-row sm:flex-col items-center justify-center gap-3 border-t sm:border-t-0 sm:border-l border-white/5">
+                                                        {game.countdown && !game.countdown.is_released && (
+                                                            <div className={`text-center px-3 py-2 rounded-xl bg-gradient-to-br ${getCountdownBg(game.countdown.days_until_release)} border`}>
+                                                                <p className={`text-2xl font-extrabold ${getCountdownColor(game.countdown.days_until_release)}`}>
+                                                                    {game.countdown.days_until_release}
+                                                                </p>
+                                                                <p className="text-xs text-gray-400">days left</p>
+                                                                <p className="text-xs text-gray-500 mt-0.5">{game.countdown.countdown_label}</p>
+                                                            </div>
+                                                        )}
+                                                        {game.countdown?.is_released && (
+                                                            <div className="text-center px-3 py-2 rounded-xl bg-green-500/20 border border-green-500/30">
+                                                                <p className="text-lg font-bold text-green-400">Out Now!</p>
+                                                            </div>
+                                                        )}
+                                                        {isAuthenticated && (
+                                                            <motion.button
+                                                                whileHover={{ scale: 1.05 }}
+                                                                whileTap={{ scale: 0.95 }}
+                                                                onClick={() => handleAddToWishlist(game.id, game.title)}
+                                                                disabled={wishlistAdding === game.id}
+                                                                className="px-3 py-2 rounded-lg bg-primary-500/20 text-primary-400 hover:bg-primary-500/30 text-xs font-medium transition-colors disabled:opacity-50 w-full text-center"
+                                                            >
+                                                                {wishlistAdding === game.id ? '...' : '💜 Wishlist'}
+                                                            </motion.button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+
+                    {/* ===== GRID VIEW ===== */}
+                    {viewMode === 'grid' && (
+                        <motion.div
+                            key="grid"
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                        >
+                            {games.map((game) => (
+                                <motion.div
+                                    key={game.id}
+                                    className="game-card group overflow-hidden"
+                                    variants={itemVariants}
+                                    whileHover={{ y: -5, borderColor: 'rgba(167, 139, 250, 0.6)' }}
+                                >
+                                    <Link to={`/games/${game.id}`}>
+                                        <div className="relative h-48 bg-dark-300 overflow-hidden mb-4 rounded-lg">
+                                            <img
+                                                src={game.cover_url || `https://placehold.co/300x400/1a1a2e/a78bfa?text=${encodeURIComponent(game.title.substring(0, 15))}`}
+                                                alt={game.title}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = `https://placehold.co/300x400/1a1a2e/a78bfa?text=${encodeURIComponent(game.title.substring(0, 15))}`;
+                                                }}
+                                            />
+                                            <div className="absolute top-2 left-2">
+                                                <span className={`px-2 py-1 rounded text-xs font-bold border ${getStatusBadge(game.release_status)}`}>
+                                                    {RELEASE_STATUS_LABELS[game.release_status] || game.release_status}
+                                                </span>
+                                            </div>
+                                            {game.countdown && !game.countdown.is_released && (
+                                                <div className="absolute bottom-2 right-2">
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${getCountdownColor(game.countdown.days_until_release)} bg-black/70 backdrop-blur-sm`}>
+                                                        ⏰ {game.countdown.days_until_release}d
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-dark-400 via-transparent to-transparent opacity-60" />
+                                        </div>
+                                    </Link>
+                                    <div>
+                                        <Link to={`/games/${game.id}`}>
+                                            <h3 className="font-bold text-lg mb-1 text-white group-hover:text-primary-400 transition-colors line-clamp-1">
+                                                {game.title}
+                                            </h3>
+                                        </Link>
+                                        {game.developer && (
+                                            <p className="text-sm text-primary-400 font-medium mb-1">{game.developer.name}</p>
+                                        )}
+                                        <p className="text-xs text-gray-500 mb-2">
+                                            📅 {game.release_date
+                                                ? new Date(game.release_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                                : 'TBA'}
+                                            {game.countdown && !game.countdown.is_released && (
+                                                <span className={`ml-2 ${getCountdownColor(game.countdown.days_until_release)}`}>
+                                                    ({game.countdown.countdown_label})
+                                                </span>
+                                            )}
+                                        </p>
+                                        {game.platforms && game.platforms.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mb-2">
+                                                {game.platforms.slice(0, 3).map((p) => (
+                                                    <span key={p.id} className="px-1.5 py-0.5 bg-dark-300 text-gray-300 text-xs rounded">
+                                                        {p.name}
+                                                    </span>
+                                                ))}
+                                                {game.platforms.length > 3 && (
+                                                    <span className="px-1.5 py-0.5 text-gray-500 text-xs">+{game.platforms.length - 3}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {isAuthenticated && (
+                                            <motion.button
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={(e) => { e.preventDefault(); handleAddToWishlist(game.id, game.title); }}
+                                                disabled={wishlistAdding === game.id}
+                                                className="w-full mt-2 px-3 py-1.5 rounded-lg bg-primary-500/20 text-primary-400 hover:bg-primary-500/30 text-xs font-medium transition-colors disabled:opacity-50"
+                                            >
+                                                {wishlistAdding === game.id ? '...' : '💜 Add to Wishlist'}
+                                            </motion.button>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            )}
+
+            {/* Empty */}
+            {!loading && !error && games.length === 0 && (
+                <motion.div className="glass-card text-center py-16" variants={itemVariants}>
+                    <div className="text-6xl mb-4">📅</div>
+                    <h3 className="text-2xl font-bold mb-2 text-white">No upcoming releases found</h3>
+                    <p className="text-gray-400">Check back later for new announcements</p>
+                </motion.div>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            )}
+
+            {/* Wishlist CTA */}
             <motion.div
                 variants={itemVariants}
                 className="glass-card p-8 relative overflow-hidden"
                 style={{
-                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%)',
-                    border: '2px solid rgba(168, 85, 247, 0.3)',
+                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%)',
+                    border: '2px solid rgba(168, 85, 247, 0.2)',
                 }}
             >
-                <div className="absolute -right-10 -bottom-10 text-[120px] opacity-10">🎮</div>
+                <div className="absolute -right-10 -bottom-10 text-[120px] opacity-10">🔔</div>
                 <div className="relative z-10">
-                    <span className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-sm font-bold mb-4 inline-block">
-                        🔥 Most Anticipated
-                    </span>
-                    <h3 className="text-3xl font-extrabold text-white mb-2">GTA VI</h3>
-                    <p className="text-gray-400 mb-4 max-w-2xl">
-                        The most anticipated game of the decade returns to Vice City on November 19, 2026.
-                        Rockstar Games promises to redefine open-world gaming with dual protagonists and a modern-day setting.
+                    <h3 className="text-2xl font-extrabold text-white mb-3">🔔 Never Miss a Release</h3>
+                    <p className="text-gray-400 leading-relaxed max-w-3xl">
+                        Add upcoming games to your wishlist and get notified when they launch.
+                        Track release dates, countdowns, and be the first to know when your most anticipated
+                        games become available.
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-primary-500/20 text-primary-400 rounded-lg text-sm">PS5</span>
-                        <span className="px-3 py-1 bg-primary-500/20 text-primary-400 rounded-lg text-sm">Xbox Series X|S</span>
-                        <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-sm">November 19, 2026</span>
-                    </div>
+                    {!isAuthenticated && (
+                        <Link
+                            to="/login"
+                            className="inline-block mt-4 px-6 py-2 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors"
+                        >
+                            Log in to enable notifications
+                        </Link>
+                    )}
                 </div>
             </motion.div>
         </motion.div>

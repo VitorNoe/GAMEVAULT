@@ -1,131 +1,142 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { gameService } from '../services/gameService';
+import { preservationService, PreservationSource, RereleaseRequest } from '../services/preservationService';
+import { useAuth } from '../hooks/useAuth';
+import { Pagination } from '../components/common/Pagination';
+import { Game } from '../types/game.types';
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.04 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
 };
 
 const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
 };
 
-interface AbandonwareGame {
-    title: string;
-    year?: number;
-    platform: string;
-    category: string;
-    genre: string;
-    description: string;
-    cover: string;
-}
-
-const ABANDONWARE_GAMES: AbandonwareGame[] = [
-    // PC DOS/Windows - Adventure & Action
-    { title: 'Prince of Persia', year: 1989, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Action / Adventure', description: 'A groundbreaking cinematic platformer where players navigate deadly traps and sword fights to rescue a princess within 60 minutes. Revolutionary rotoscoped animation.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/80/Prince_of_Persia_1989_cover.jpg' },
-    { title: 'Another World', year: 1991, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Action / Adventure', description: 'A visually stunning cinematic platformer created by Éric Chahi. A physicist is transported to an alien world and must survive using wits and determination.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/84/Another_World_-_20th_Anniversary_Edition.jpg' },
-    { title: 'Flashback', year: 1992, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Action / Adventure', description: 'A sci-fi cinematic platformer featuring rotoscoped animation. Agent Conrad Hart must recover his lost memories and uncover an alien conspiracy.', cover: 'https://upload.wikimedia.org/wikipedia/en/0/05/Flashback_cover.jpg' },
-    { title: 'Blackthorne', year: 1994, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Action / Adventure', description: 'A dark action platformer by Blizzard Entertainment. Kyle Blackthorne returns to his homeworld to free his people from the evil Sarlac using a shotgun and acrobatics.', cover: 'https://upload.wikimedia.org/wikipedia/en/b/b1/Blackthorne_Coverart.png' },
-    { title: 'Lemmings', year: 1991, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Puzzle', description: 'Guide hordes of mindlessly walking lemmings to safety by assigning them skills. One of the most iconic puzzle games ever, requiring creative problem-solving.', cover: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Lemmings-BoxScan.jpg' },
-    { title: 'The Incredible Machine', year: 1993, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Puzzle', description: 'A Rube Goldberg-style puzzle game where players construct elaborate machines from everyday objects to accomplish simple tasks in creative ways.', cover: 'https://upload.wikimedia.org/wikipedia/en/5/5b/The_Incredible_Machine_cover.jpg' },
-
-    // PC DOS/Windows - RPG
-    { title: 'Ultima Series', year: 1981, platform: 'PC (DOS)', category: 'pc-classic', genre: 'RPG', description: 'Richard Garriott\'s legendary RPG series that defined the genre. Explore the land of Britannia, follow the virtues, and become the Avatar in this groundbreaking franchise.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/87/Ultima_VII_The_Black_Gate_box_art.jpg' },
-    { title: "King's Quest Series", year: 1984, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Adventure / RPG', description: 'Sierra\'s flagship adventure game series featuring the royal family of Daventry. Pioneered the graphical adventure genre with puzzles, humor, and fairy-tale worlds.', cover: 'https://upload.wikimedia.org/wikipedia/en/3/3e/King%27s_Quest_-_Quest_for_the_Crown_cover_art.jpg' },
-    { title: 'Kyrandia Series', year: 1992, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Adventure / RPG', description: 'Westwood Studios\' fantasy adventure trilogy featuring beautiful hand-painted graphics and clever puzzles in the magical land of Kyrandia.', cover: 'https://upload.wikimedia.org/wikipedia/en/2/24/The_Legend_of_Kyrandia.jpg' },
-    { title: 'Alter Ego', year: 1986, platform: 'PC (DOS)', category: 'pc-classic', genre: 'RPG / Simulation', description: 'A unique life simulation RPG where you live an entire human life from birth to death. Make choices that shape your character\'s personality, career, and relationships.', cover: 'https://upload.wikimedia.org/wikipedia/en/d/d0/Alter_Ego_cover.png' },
-
-    // PC DOS/Windows - Strategy
-    { title: 'Civilization', year: 1991, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Strategy', description: 'Sid Meier\'s legendary 4X strategy game. Build a civilization from scratch and guide it through the ages from the Stone Age to the Space Age. One more turn...', cover: 'https://upload.wikimedia.org/wikipedia/en/0/05/Civilization_box_cover.jpg' },
-    { title: 'SimCity', year: 1989, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Strategy / Simulation', description: 'Will Wright\'s city-building masterpiece. Plan zones, manage budgets, and deal with disasters as you build the city of your dreams from the ground up.', cover: 'https://upload.wikimedia.org/wikipedia/en/3/36/SimCity_Classic_cover_art.jpg' },
-    { title: 'Warcraft: Orcs & Humans', year: 1994, platform: 'PC (DOS)', category: 'pc-classic', genre: 'RTS', description: 'Blizzard\'s first RTS that launched one of gaming\'s biggest franchises. Command human or orc armies in a medieval fantasy war across the kingdom of Azeroth.', cover: 'https://upload.wikimedia.org/wikipedia/en/1/1b/Warcraft_-_Orcs_%26_Humans_Coverart.png' },
-    { title: 'Command & Conquer', year: 1995, platform: 'PC (DOS)', category: 'pc-classic', genre: 'RTS', description: 'Westwood Studios\' groundbreaking RTS that defined the genre. GDI vs NOD in a near-future conflict over Tiberium, featuring FMV cutscenes and addictive gameplay.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/81/Command_%26_Conquer_1995_cover.jpg' },
-
-    // PC DOS/Windows - Arcade Classics
-    { title: 'Pac-Man', year: 1980, platform: 'Arcade / PC', category: 'pc-classic', genre: 'Arcade', description: 'The iconic maze-chase game that defined the golden age of arcades. Navigate Pac-Man through mazes, eating dots and avoiding ghosts in this timeless classic.', cover: 'https://upload.wikimedia.org/wikipedia/en/4/49/Pac-Man_art.png' },
-    { title: 'Arkanoid', year: 1986, platform: 'Arcade / PC', category: 'pc-classic', genre: 'Arcade / Breakout', description: 'The definitive brick-breaking game. Control the Vaus spacecraft and destroy blocks with a bouncing energy ball while collecting power-ups.', cover: 'https://upload.wikimedia.org/wikipedia/en/a/a5/Arkanoid.png' },
-    { title: 'Tetris', year: 1984, platform: 'PC / Multi', category: 'pc-classic', genre: 'Puzzle', description: 'Alexey Pajitnov\'s legendary puzzle game. Arrange falling tetrominoes to complete lines in one of the most played video games in history.', cover: 'https://upload.wikimedia.org/wikipedia/en/7/7c/Tetris_NES_cover_art.jpg' },
-    { title: 'Galaxian', year: 1979, platform: 'Arcade / PC', category: 'pc-classic', genre: 'Arcade / Shooter', description: 'A pioneering space shooter that improved upon Space Invaders with colorful sprites and diving enemy attack patterns. A true arcade legend.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/8a/Galaxian.png' },
-    { title: 'Frogger', year: 1981, platform: 'Arcade / PC', category: 'pc-classic', genre: 'Arcade', description: 'Help a frog cross a busy road and navigate a river full of hazards. Simple concept, addictive gameplay that has endured for decades.', cover: 'https://upload.wikimedia.org/wikipedia/en/c/cd/Frogger_game_arcade.png' },
-    { title: 'Xenon 2: Megablast', year: 1989, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Shoot \'em up', description: 'A vertical scrolling shooter with a pounding soundtrack by Bomb the Bass. Features impressive graphics, varied enemies, and an upgradeable weapon system.', cover: 'https://upload.wikimedia.org/wikipedia/en/a/a5/Xenon_2_Megablast_cover.jpg' },
-
-    // PC - Racing
-    { title: 'Test Drive Series', year: 1987, platform: 'PC (DOS)', category: 'pc-classic', genre: 'Racing', description: 'One of the first racing game franchises. Drive exotic supercars on treacherous mountain roads while evading police. Revolutionized the racing genre.', cover: 'https://upload.wikimedia.org/wikipedia/en/4/4e/Test_Drive_cover.jpg' },
-    { title: 'Need for Speed (1994)', year: 1994, platform: 'PC', category: 'pc-classic', genre: 'Racing', description: 'The original Need for Speed that launched EA\'s biggest racing franchise. Drive exotic cars on scenic roads with groundbreaking 3D graphics for the time.', cover: 'https://upload.wikimedia.org/wikipedia/en/1/12/NFS_SE.jpg' },
-
-    // PS2 - Action & Adventure
-    { title: 'Grand Theft Auto: San Andreas', year: 2004, platform: 'PS2', category: 'ps2', genre: 'Action / Open World', description: 'Expanded the open-world genre with a massive map including cities, deserts, and forests. Follow CJ\'s story across the state of San Andreas in one of gaming\'s greatest adventures.', cover: 'https://upload.wikimedia.org/wikipedia/en/c/c4/GTASABOX.jpg' },
-    { title: 'God of War (1 & 2)', year: 2005, platform: 'PS2', category: 'ps2', genre: 'Action / Adventure', description: 'Kratos rages against the gods of Olympus in this brutal, combo-driven action series. Greek mythology meets visceral gameplay with epic boss battles and cinematic spectacle.', cover: 'https://upload.wikimedia.org/wikipedia/en/4/42/GodofWarBox.jpg' },
-    { title: 'Devil May Cry (1, 2 & 3)', year: 2001, platform: 'PS2', category: 'ps2', genre: 'Action / Hack \'n\' Slash', description: 'Dante\'s stylish demon-hunting action defined the character action genre. DMC3 especially is considered one of the best action games ever made.', cover: 'https://upload.wikimedia.org/wikipedia/en/c/c9/DevilMayCryBox.jpg' },
-    { title: 'Shadow of the Colossus', year: 2005, platform: 'PS2', category: 'ps2', genre: 'Action / Adventure', description: 'A masterpiece of minimalist design. Defeat 16 towering colossi across a desolate landscape to save a girl. Often cited as one of gaming\'s greatest artistic achievements.', cover: 'https://upload.wikimedia.org/wikipedia/en/5/58/Shadow_of_the_Colossus.jpg' },
-    { title: 'Okami', year: 2006, platform: 'PS2', category: 'ps2', genre: 'Action / Adventure', description: 'Play as Amaterasu, the sun goddess in wolf form, using a celestial brush to restore life to a cursed Japan. Beautiful sumi-e art style and Zelda-like adventure.', cover: 'https://upload.wikimedia.org/wikipedia/en/b/b2/Okami.jpg' },
-    { title: 'Bully', year: 2006, platform: 'PS2', category: 'ps2', genre: 'Action / Adventure', description: 'Created by Rockstar, players control Jimmy Hopkins navigating the challenges of life at Bullworth Academy. A unique open-world experience in a school setting.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/82/Bully_frontcover.jpg' },
-    { title: 'Prince of Persia: The Sands of Time', year: 2003, platform: 'PS2', category: 'ps2', genre: 'Action / Adventure', description: 'A brilliant reinvention of the classic franchise with time-manipulation mechanics, fluid acrobatic combat, and a charming story of a prince and princess.', cover: 'https://upload.wikimedia.org/wikipedia/en/0/06/Sands_of_time_cover.jpg' },
-
-    // PS2 - RPG
-    { title: 'Final Fantasy X', year: 2001, platform: 'PS2', category: 'ps2', genre: 'JRPG', description: 'Tidus and Yuna\'s emotional journey in Spira. The first fully-voiced Final Fantasy with the innovative Conditional Turn-Based battle system and a heartbreaking story.', cover: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Ffx_ntsc-j_front.jpg' },
-    { title: 'Final Fantasy XII', year: 2006, platform: 'PS2', category: 'ps2', genre: 'JRPG', description: 'Set in the world of Ivalice, this entry introduced the Gambit system for AI control and real-time combat. A political epic with a vast open world to explore.', cover: 'https://upload.wikimedia.org/wikipedia/en/1/17/Final_Fantasy_XII_Box_Art.png' },
-    { title: 'Kingdom Hearts', year: 2002, platform: 'PS2', category: 'ps2', genre: 'Action RPG', description: 'The magical crossover between Disney and Final Fantasy. Sora, Donald, and Goofy traverse Disney worlds fighting the Heartless in this beloved action RPG.', cover: 'https://upload.wikimedia.org/wikipedia/en/8/85/Kingdom_Hearts.jpg' },
-
-    // PS2 - Horror
-    { title: 'Silent Hill 2', year: 2001, platform: 'PS2', category: 'ps2', genre: 'Survival Horror', description: 'A psychological horror masterpiece. James Sunderland journeys to Silent Hill after receiving a letter from his deceased wife. Atmospheric terror, iconic soundtrack, and groundbreaking plot twists.', cover: 'https://upload.wikimedia.org/wikipedia/en/f/fd/Silent_Hill_2.jpg' },
-    { title: 'Resident Evil 4', year: 2005, platform: 'PS2', category: 'ps2', genre: 'Survival Horror / Action', description: 'A revolutionary reimagining of the series with over-the-shoulder camera and intense action. Leon S. Kennedy rescues the president\'s daughter in rural Spain. Redefined the genre.', cover: 'https://upload.wikimedia.org/wikipedia/en/a/a0/Resident_Evil_4_-_North_American_cover.jpg' },
-
-    // PS2 - FPS
-    { title: 'Black', year: 2006, platform: 'PS2', category: 'ps2', genre: 'FPS', description: 'A cinematic FPS pushing PS2 hardware to its limits. Explosive, destructible environments and incredible graphics that surpassed many titles of its generation. Often ranked in top 100 FPS.', cover: 'https://upload.wikimedia.org/wikipedia/en/2/2e/BlackNA.jpg' },
-
-    // PS2 - Racing
-    { title: 'Need for Speed: Most Wanted (2005)', year: 2005, platform: 'PS2', category: 'ps2', genre: 'Racing', description: 'The definitive NFS experience. Open-world racing, intense police chases, and a memorable Blacklist of street racers to defeat. A fan-favorite that defined arcade racing.', cover: 'https://upload.wikimedia.org/wikipedia/en/6/60/Need_for_Speed_Most_Wanted_Box_Art.jpg' },
-    { title: 'Need for Speed: Underground (1 & 2)', year: 2003, platform: 'PS2', category: 'ps2', genre: 'Racing', description: 'The underground street racing games that brought tuner culture to gaming. Deep car customization, neon-lit city racing, and a pulsing soundtrack.', cover: 'https://upload.wikimedia.org/wikipedia/en/3/38/Nfsu-win-cover.jpg' },
-    { title: 'Burnout 3: Takedown', year: 2004, platform: 'PS2', category: 'ps2', genre: 'Racing', description: 'The ultimate arcade racer with spectacular crashes and takedown mechanics. Insanely fast races, multiple game modes, and the most satisfying crashes in gaming history.', cover: 'https://upload.wikimedia.org/wikipedia/en/0/0b/Burnout_3_-_Takedown_Coverart.png' },
-
-    // PS2 - Sports
-    { title: 'Pro Evolution Soccer (Winning Eleven)', year: 2001, platform: 'PS2', category: 'ps2', genre: 'Sports', description: 'Konami\'s legendary football simulation that dominated the PS2 era. Superior gameplay, Master League mode, and tight controls made it the definitive football game for a generation.', cover: 'https://upload.wikimedia.org/wikipedia/en/5/51/Pro_Evolution_Soccer_5_Coverart.png' },
-
-    // PS2 - Stealth
-    { title: 'Metal Gear Solid 3: Snake Eater', year: 2004, platform: 'PS2', category: 'ps2', genre: 'Stealth / Action', description: 'Brought a completely new approach to the series with emphasis on jungle survival. The origin story of Big Boss features camouflage mechanics, hunting, and one of gaming\'s greatest stories.', cover: 'https://upload.wikimedia.org/wikipedia/en/c/c5/Metal_Gear_Solid_3_cover_art.png' },
-];
-
-const CATEGORIES = [
-    { id: 'all', label: 'All Games', icon: '🎮' },
-    { id: 'pc-classic', label: 'PC Classics (DOS/Windows)', icon: '💻' },
-    { id: 'ps2', label: 'PS2 Classics', icon: '🕹️' },
-];
-
-const GENRES = [...new Set(ABANDONWARE_GAMES.map(g => g.genre))].sort();
+type Tab = 'catalog' | 'sources' | 'voting';
 
 export const Abandonware: React.FC = () => {
-    const [selectedCategory, setSelectedCategory] = useState('all');
-    const [selectedGenre, setSelectedGenre] = useState('all');
+    const { isAuthenticated } = useAuth();
+    const [activeTab, setActiveTab] = useState<Tab>('catalog');
+
+    // ----- Catalog state -----
+    const [games, setGames] = useState<Game[]>([]);
+    const [gamesLoading, setGamesLoading] = useState(true);
+    const [gamesError, setGamesError] = useState<string | null>(null);
+    const [gamesPage, setGamesPage] = useState(1);
+    const [gamesTotalPages, setGamesTotalPages] = useState(1);
+    const [gamesTotal, setGamesTotal] = useState(0);
+    const [searchInput, setSearchInput] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredGames = ABANDONWARE_GAMES.filter((game) => {
-        const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            game.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || game.category === selectedCategory;
-        const matchesGenre = selectedGenre === 'all' || game.genre === selectedGenre;
-        return matchesSearch && matchesCategory && matchesGenre;
-    });
+    // ----- Sources state -----
+    const [sources, setSources] = useState<PreservationSource[]>([]);
+    const [sourcesLoading, setSourcesLoading] = useState(false);
+    const [sourceTypeFilter, setSourceTypeFilter] = useState<string>('');
 
-    const pcCount = ABANDONWARE_GAMES.filter(g => g.category === 'pc-classic').length;
-    const ps2Count = ABANDONWARE_GAMES.filter(g => g.category === 'ps2').length;
+    // ----- Re-release voting state -----
+    const [rereleases, setRereleases] = useState<RereleaseRequest[]>([]);
+    const [rereleasesLoading, setRereleasesLoading] = useState(false);
+    const [votingFor, setVotingFor] = useState<number | null>(null);
+
+    // ===== Fetch abandonware catalog =====
+    const fetchGames = useCallback(async () => {
+        setGamesLoading(true);
+        setGamesError(null);
+        try {
+            const params: any = { page: gamesPage, limit: 20 };
+            if (searchQuery) params.search = searchQuery;
+            const response = await gameService.getAbandonwareGames(params);
+            const data = response.data || response;
+            setGames((data as any).games || []);
+            setGamesTotalPages((data as any).pagination?.totalPages || 1);
+            setGamesTotal((data as any).pagination?.total || 0);
+        } catch (err) {
+            console.error('Failed to load abandonware:', err);
+            setGamesError('Failed to load abandonware catalog.');
+        } finally {
+            setGamesLoading(false);
+        }
+    }, [gamesPage, searchQuery]);
+
+    useEffect(() => {
+        if (activeTab === 'catalog') fetchGames();
+    }, [fetchGames, activeTab]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => { setSearchQuery(searchInput); setGamesPage(1); }, 400);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
+
+    // ===== Fetch preservation sources =====
+    const fetchSources = useCallback(async () => {
+        setSourcesLoading(true);
+        try {
+            const params: any = {};
+            if (sourceTypeFilter) params.source_type = sourceTypeFilter;
+            const response = await preservationService.getSources(params);
+            const data = response.data || response;
+            setSources(Array.isArray(data) ? data : data.sources || []);
+        } catch (err) {
+            console.error('Failed to load preservation sources:', err);
+        } finally {
+            setSourcesLoading(false);
+        }
+    }, [sourceTypeFilter]);
+
+    useEffect(() => {
+        if (activeTab === 'sources') fetchSources();
+    }, [fetchSources, activeTab]);
+
+    // ===== Fetch rereleases =====
+    const fetchRereleases = useCallback(async () => {
+        setRereleasesLoading(true);
+        try {
+            const response = await preservationService.getMostVoted(30);
+            const data = response.data || response;
+            setRereleases(Array.isArray(data) ? data : data.requests || []);
+        } catch (err) {
+            console.error('Failed to load rereleases:', err);
+        } finally {
+            setRereleasesLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'voting') fetchRereleases();
+    }, [fetchRereleases, activeTab]);
+
+    // ===== Vote handler =====
+    const handleVote = async (gameId: number) => {
+        if (!isAuthenticated) return;
+        setVotingFor(gameId);
+        try {
+            await preservationService.vote(gameId);
+            fetchRereleases();
+        } catch (err) {
+            console.error('Vote failed:', err);
+        } finally {
+            setVotingFor(null);
+        }
+    };
+
+    const TABS: { id: Tab; label: string; icon: string }[] = [
+        { id: 'catalog', label: 'Abandonware Catalog', icon: '📦' },
+        { id: 'sources', label: 'Preservation Sources', icon: '🏛️' },
+        { id: 'voting', label: 'Re-release Voting', icon: '🗳️' },
+    ];
 
     return (
-        <motion.div
-            className="space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
+        <motion.div className="space-y-8" variants={containerVariants} initial="hidden" animate="visible">
             {/* Header */}
             <motion.div variants={itemVariants}>
-                <h1 className="text-4xl font-extrabold gradient-text mb-2">📦 Abandonware Collection</h1>
+                <h1 className="text-4xl font-extrabold gradient-text mb-2">🏛️ Abandonware Museum</h1>
                 <p className="text-gray-400 text-lg">
-                    Preserving classic games — from DOS-era gems to PS2 legends
+                    Preserving gaming history — explore abandoned classics, discover preservation efforts, and vote for re-releases
                 </p>
             </motion.div>
 
@@ -133,158 +144,394 @@ export const Abandonware: React.FC = () => {
             <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
                     <div className="text-3xl mb-2">📦</div>
-                    <p className="text-2xl font-bold text-primary-400">{ABANDONWARE_GAMES.length}</p>
-                    <p className="text-sm text-gray-400">Classic Games</p>
+                    <p className="text-2xl font-bold text-amber-400">{gamesTotal}</p>
+                    <p className="text-sm text-gray-400">Abandonware Titles</p>
                 </motion.div>
                 <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">💻</div>
-                    <p className="text-2xl font-bold text-blue-400">{pcCount}</p>
-                    <p className="text-sm text-gray-400">PC Classics</p>
+                    <div className="text-3xl mb-2">🏛️</div>
+                    <p className="text-2xl font-bold text-blue-400">{sources.length || '—'}</p>
+                    <p className="text-sm text-gray-400">Preservation Sources</p>
                 </motion.div>
                 <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">🕹️</div>
-                    <p className="text-2xl font-bold text-green-400">{ps2Count}</p>
-                    <p className="text-sm text-gray-400">PS2 Classics</p>
+                    <div className="text-3xl mb-2">🗳️</div>
+                    <p className="text-2xl font-bold text-green-400">{rereleases.length || '—'}</p>
+                    <p className="text-sm text-gray-400">Re-release Requests</p>
                 </motion.div>
                 <motion.div className="stat-card text-center" whileHover={{ y: -5 }}>
-                    <div className="text-3xl mb-2">🎭</div>
-                    <p className="text-2xl font-bold text-yellow-400">{GENRES.length}</p>
-                    <p className="text-sm text-gray-400">Genres</p>
+                    <div className="text-3xl mb-2">❤️</div>
+                    <p className="text-2xl font-bold text-red-400">
+                        {rereleases.reduce((sum, r) => sum + (r.total_votes || 0), 0) || '—'}
+                    </p>
+                    <p className="text-sm text-gray-400">Total Votes</p>
                 </motion.div>
             </motion.div>
 
-            {/* Filters */}
-            <motion.div variants={itemVariants} className="space-y-4">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search classic games..."
-                    className="w-full px-4 py-3 bg-dark-300 border border-dark-100 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
-
-                {/* Platform Filter */}
-                <div className="flex gap-2 flex-wrap">
-                    {CATEGORIES.map((cat) => (
-                        <motion.button
-                            key={cat.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedCategory(cat.id)}
-                            className={`filter-btn ${selectedCategory === cat.id ? 'active' : ''}`}
-                        >
-                            {cat.icon} {cat.label}
-                        </motion.button>
-                    ))}
-                </div>
-
-                {/* Genre Filter */}
-                <div className="flex gap-2 flex-wrap">
+            {/* Tabs */}
+            <motion.div variants={itemVariants} className="flex gap-2 flex-wrap border-b border-dark-100 pb-2">
+                {TABS.map((tab) => (
                     <motion.button
+                        key={tab.id}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setSelectedGenre('all')}
-                        className={`filter-btn text-xs ${selectedGenre === 'all' ? 'active' : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 rounded-t-lg text-sm font-semibold transition-all ${
+                            activeTab === tab.id
+                                ? 'bg-primary-500/20 text-primary-400 border-b-2 border-primary-500'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
                     >
-                        All Genres
+                        {tab.icon} {tab.label}
                     </motion.button>
-                    {GENRES.map((genre) => (
-                        <motion.button
-                            key={genre}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedGenre(genre)}
-                            className={`filter-btn text-xs ${selectedGenre === genre ? 'active' : ''}`}
-                        >
-                            {genre}
-                        </motion.button>
-                    ))}
-                </div>
+                ))}
             </motion.div>
 
-            {/* Games Grid */}
-            {filteredGames.length > 0 ? (
-                <motion.div
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                    variants={containerVariants}
-                >
-                    {filteredGames.map((game) => (
-                        <motion.div
-                            key={game.title}
-                            className="game-card group overflow-hidden"
-                            variants={itemVariants}
-                            whileHover={{ y: -5, borderColor: 'rgba(167, 139, 250, 0.6)' }}
-                        >
-                            {/* Cover */}
-                            <div className="relative h-48 bg-dark-300 overflow-hidden mb-4 rounded-lg">
-                                <img
-                                    src={game.cover}
-                                    alt={game.title}
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                />
-                                <div className="absolute top-2 left-2">
-                                    <span className="px-2 py-1 rounded text-xs font-bold bg-amber-500/80 backdrop-blur-sm text-black">
-                                        📦 {game.category === 'ps2' ? 'PS2 Classic' : 'PC Classic'}
-                                    </span>
-                                </div>
-                                {game.year && (
-                                    <div className="absolute top-2 right-2">
-                                        <span className="px-2 py-1 rounded text-xs font-bold bg-black/70 backdrop-blur-sm text-white">
-                                            {game.year}
-                                        </span>
+            <AnimatePresence mode="wait">
+                {/* ===== CATALOG TAB ===== */}
+                {activeTab === 'catalog' && (
+                    <motion.div key="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                        <input
+                            type="text"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            placeholder="Search abandonware games..."
+                            className="w-full px-4 py-3 bg-dark-300 border border-dark-100 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        />
+
+                        {gamesLoading && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                                    <div key={i} className="glass-card overflow-hidden animate-pulse">
+                                        <div className="h-48 bg-white/5" />
+                                        <div className="p-4 space-y-2">
+                                            <div className="h-5 bg-white/5 rounded w-3/4" />
+                                            <div className="h-3 bg-white/5 rounded w-1/2" />
+                                            <div className="h-3 bg-white/5 rounded w-full" />
+                                        </div>
                                     </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {gamesError && !gamesLoading && (
+                            <div className="glass-card text-center py-12">
+                                <div className="text-5xl mb-4">⚠️</div>
+                                <h3 className="text-xl font-bold text-white mb-2">{gamesError}</h3>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                    onClick={fetchGames}
+                                    className="mt-4 px-6 py-2 rounded-lg bg-primary-500 text-white font-medium"
+                                >
+                                    Retry
+                                </motion.button>
+                            </div>
+                        )}
+
+                        {!gamesLoading && !gamesError && games.length > 0 && (
+                            <motion.div
+                                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                                variants={containerVariants}
+                                initial="hidden" animate="visible"
+                            >
+                                {games.map((game) => (
+                                    <motion.div
+                                        key={game.id}
+                                        className="game-card group overflow-hidden"
+                                        variants={itemVariants}
+                                        whileHover={{ y: -5, borderColor: 'rgba(245, 158, 11, 0.6)' }}
+                                    >
+                                        <Link to={`/games/${game.id}`}>
+                                            <div className="relative h-48 bg-dark-300 overflow-hidden mb-4 rounded-lg">
+                                                <img
+                                                    src={game.cover_url || `https://placehold.co/300x400/1a1a2e/f59e0b?text=${encodeURIComponent(game.title.substring(0, 15))}`}
+                                                    alt={game.title}
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = `https://placehold.co/300x400/1a1a2e/f59e0b?text=${encodeURIComponent(game.title.substring(0, 15))}`;
+                                                    }}
+                                                />
+                                                <div className="absolute top-2 left-2">
+                                                    <span className="px-2 py-1 rounded text-xs font-bold bg-amber-500/80 backdrop-blur-sm text-black">
+                                                        📦 Abandonware
+                                                    </span>
+                                                </div>
+                                                {game.release_year && (
+                                                    <div className="absolute top-2 right-2">
+                                                        <span className="px-2 py-1 rounded text-xs font-bold bg-black/70 backdrop-blur-sm text-white">
+                                                            {game.release_year}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-400 via-transparent to-transparent opacity-60" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-lg mb-1 text-white group-hover:text-primary-400 transition-colors line-clamp-1">
+                                                    {game.title}
+                                                </h3>
+                                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded-lg capitalize">
+                                                        {game.availability_status?.replace(/_/g, ' ')}
+                                                    </span>
+                                                    {game.was_rereleased && (
+                                                        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-lg">
+                                                            ✅ Re-released
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {game.description && (
+                                                    <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed">
+                                                        {game.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </Link>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        )}
+
+                        {!gamesLoading && !gamesError && games.length === 0 && (
+                            <div className="glass-card text-center py-16">
+                                <div className="text-6xl mb-4">📦</div>
+                                <h3 className="text-2xl font-bold mb-2 text-white">No abandonware games found</h3>
+                                <p className="text-gray-400">Try adjusting your search</p>
+                            </div>
+                        )}
+
+                        {!gamesLoading && gamesTotalPages > 1 && (
+                            <Pagination currentPage={gamesPage} totalPages={gamesTotalPages} onPageChange={setGamesPage} />
+                        )}
+                    </motion.div>
+                )}
+
+                {/* ===== SOURCES TAB ===== */}
+                {activeTab === 'sources' && (
+                    <motion.div key="sources" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                        {/* Source type filter */}
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                { value: '', label: 'All Sources', icon: '📚' },
+                                { value: 'museum', label: 'Museums', icon: '🏛️' },
+                                { value: 'archive', label: 'Archives', icon: '📁' },
+                                { value: 'organization', label: 'Organizations', icon: '🏢' },
+                            ].map((opt) => (
+                                <motion.button
+                                    key={opt.value}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => setSourceTypeFilter(opt.value)}
+                                    className={`filter-btn ${sourceTypeFilter === opt.value ? 'active' : ''}`}
+                                >
+                                    {opt.icon} {opt.label}
+                                </motion.button>
+                            ))}
+                        </div>
+
+                        {sourcesLoading && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="glass-card p-6 animate-pulse space-y-3">
+                                        <div className="h-6 bg-white/5 rounded w-3/4" />
+                                        <div className="h-4 bg-white/5 rounded w-1/2" />
+                                        <div className="h-4 bg-white/5 rounded w-full" />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {!sourcesLoading && sources.length > 0 && (
+                            <motion.div
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                variants={containerVariants}
+                                initial="hidden" animate="visible"
+                            >
+                                {sources.map((source) => (
+                                    <motion.div
+                                        key={source.id}
+                                        className="glass-card p-6"
+                                        variants={itemVariants}
+                                        whileHover={{ y: -4, borderColor: 'rgba(59, 130, 246, 0.5)' }}
+                                    >
+                                        <div className="flex items-start gap-4 mb-3">
+                                            {source.logo_url ? (
+                                                <img
+                                                    src={source.logo_url}
+                                                    alt={source.name}
+                                                    className="w-12 h-12 rounded-lg object-cover bg-dark-300"
+                                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-2xl">
+                                                    {source.source_type === 'museum' ? '🏛️' : source.source_type === 'archive' ? '📁' : '🏢'}
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-bold text-white text-lg truncate">{source.name}</h3>
+                                                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-lg capitalize">
+                                                    {source.source_type}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {source.description && (
+                                            <p className="text-gray-400 text-sm mb-4 line-clamp-3 leading-relaxed">
+                                                {source.description}
+                                            </p>
+                                        )}
+                                        <a
+                                            href={source.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 text-sm text-primary-400 hover:text-primary-300 font-medium transition-colors"
+                                        >
+                                            🔗 Visit Website
+                                            <span className="text-xs text-gray-600">↗</span>
+                                        </a>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        )}
+
+                        {!sourcesLoading && sources.length === 0 && (
+                            <div className="glass-card text-center py-16">
+                                <div className="text-6xl mb-4">🏛️</div>
+                                <h3 className="text-2xl font-bold mb-2 text-white">No preservation sources found</h3>
+                                <p className="text-gray-400">Sources will appear as they are added by administrators</p>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* ===== VOTING TAB ===== */}
+                {activeTab === 'voting' && (
+                    <motion.div key="voting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                        <div className="glass-card p-4 bg-gradient-to-r from-green-500/5 to-emerald-500/5 border-green-500/20">
+                            <p className="text-gray-300 text-sm">
+                                🗳️ <strong className="text-green-400">Vote for games you want re-released!</strong>{' '}
+                                Help publishers know which abandonware titles deserve a modern comeback.
+                                {!isAuthenticated && (
+                                    <span className="text-yellow-400 ml-1">
+                                        <Link to="/login" className="underline hover:text-yellow-300">Log in</Link> to vote.
+                                    </span>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-dark-400 via-transparent to-transparent opacity-60" />
-                            </div>
+                            </p>
+                        </div>
 
-                            {/* Info */}
-                            <div>
-                                <h3 className="font-bold text-lg mb-1 text-white group-hover:text-primary-400 transition-colors line-clamp-1">
-                                    {game.title}
-                                </h3>
-                                <div className="flex flex-wrap gap-1.5 mb-2">
-                                    <span className="px-2 py-0.5 bg-primary-500/20 text-primary-400 text-xs rounded-lg">
-                                        {game.genre}
-                                    </span>
-                                    <span className="px-2 py-0.5 bg-dark-300 text-gray-400 text-xs rounded-lg">
-                                        {game.platform}
-                                    </span>
-                                </div>
-                                <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed">
-                                    {game.description}
-                                </p>
+                        {rereleasesLoading && (
+                            <div className="space-y-4">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="glass-card p-4 animate-pulse flex items-center gap-4">
+                                        <div className="w-16 h-16 bg-white/5 rounded-lg flex-shrink-0" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-5 bg-white/5 rounded w-1/3" />
+                                            <div className="h-3 bg-white/5 rounded w-1/4" />
+                                        </div>
+                                        <div className="w-20 h-10 bg-white/5 rounded" />
+                                    </div>
+                                ))}
                             </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
-            ) : (
-                <motion.div
-                    className="glass-card text-center py-16"
-                    variants={itemVariants}
-                >
-                    <div className="text-6xl mb-4">📦</div>
-                    <h3 className="text-2xl font-bold mb-2 text-white">No games found</h3>
-                    <p className="text-gray-400">Try adjusting your search, platform, or genre filter</p>
-                </motion.div>
-            )}
+                        )}
 
-            {/* Preservation Notice */}
+                        {!rereleasesLoading && rereleases.length > 0 && (
+                            <motion.div className="space-y-3" variants={containerVariants} initial="hidden" animate="visible">
+                                {rereleases.map((req, idx) => (
+                                    <motion.div
+                                        key={req.id}
+                                        variants={itemVariants}
+                                        className="glass-card p-4 flex items-center gap-4"
+                                        whileHover={{ borderColor: 'rgba(34, 197, 94, 0.4)' }}
+                                    >
+                                        {/* Rank */}
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-extrabold text-lg flex-shrink-0 ${
+                                            idx === 0 ? 'bg-yellow-500/20 text-yellow-400' :
+                                            idx === 1 ? 'bg-gray-400/20 text-gray-300' :
+                                            idx === 2 ? 'bg-amber-700/20 text-amber-600' :
+                                            'bg-dark-300 text-gray-500'
+                                        }`}>
+                                            #{idx + 1}
+                                        </div>
+
+                                        {/* Game info */}
+                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                            {req.Game?.cover_url && (
+                                                <img
+                                                    src={req.Game.cover_url}
+                                                    alt={req.Game?.title}
+                                                    className="w-12 h-16 rounded object-cover flex-shrink-0 bg-dark-300"
+                                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                />
+                                            )}
+                                            <div className="min-w-0">
+                                                <h4 className="font-bold text-white truncate">
+                                                    {req.Game ? (
+                                                        <Link to={`/games/${req.Game.id}`} className="hover:text-primary-400 transition-colors">
+                                                            {req.Game.title}
+                                                        </Link>
+                                                    ) : `Game #${req.game_id}`}
+                                                </h4>
+                                                {req.Game?.developer && (
+                                                    <p className="text-sm text-gray-500">{req.Game.developer.name}</p>
+                                                )}
+                                                {req.Game?.release_year && (
+                                                    <p className="text-xs text-gray-600">Released: {req.Game.release_year}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Vote count + button */}
+                                        <div className="flex items-center gap-3 flex-shrink-0">
+                                            <div className="text-center">
+                                                <p className="text-xl font-bold text-green-400">{req.total_votes}</p>
+                                                <p className="text-xs text-gray-500">votes</p>
+                                            </div>
+
+                                            {req.status === 'fulfilled' ? (
+                                                <span className="px-3 py-2 rounded-lg bg-green-500/20 text-green-400 text-sm font-medium">
+                                                    ✅ Fulfilled
+                                                </span>
+                                            ) : isAuthenticated ? (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handleVote(req.game_id)}
+                                                    disabled={votingFor === req.game_id}
+                                                    className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 text-sm font-medium transition-colors disabled:opacity-50"
+                                                >
+                                                    {votingFor === req.game_id ? '...' : '👍 Vote'}
+                                                </motion.button>
+                                            ) : null}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        )}
+
+                        {!rereleasesLoading && rereleases.length === 0 && (
+                            <div className="glass-card text-center py-16">
+                                <div className="text-6xl mb-4">🗳️</div>
+                                <h3 className="text-2xl font-bold mb-2 text-white">No re-release requests yet</h3>
+                                <p className="text-gray-400">Be the first to request a re-release for an abandonware game!</p>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Preservation Info Banner */}
             <motion.div
                 variants={itemVariants}
                 className="glass-card p-8 relative overflow-hidden"
                 style={{
-                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
-                    border: '2px solid rgba(245, 158, 11, 0.3)',
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%)',
+                    border: '2px solid rgba(245, 158, 11, 0.2)',
                 }}
             >
                 <div className="absolute -right-10 -bottom-10 text-[120px] opacity-10">🏛️</div>
                 <div className="relative z-10">
                     <h3 className="text-2xl font-extrabold text-white mb-3">🏛️ About Game Preservation</h3>
                     <p className="text-gray-400 leading-relaxed max-w-3xl">
-                        Abandonware refers to software that is no longer sold, supported, or maintained by its publisher.
+                        Abandonware refers to software no longer sold, supported, or maintained by its publisher.
                         These games represent important milestones in gaming history. Organizations like the Internet Archive,
                         GOG.com, and the Video Game History Foundation work to preserve these titles for future generations.
-                        Many of these classic games have been re-released on modern platforms — always support official releases when available.
+                        Always support official releases when available.
                     </p>
                 </div>
             </motion.div>
