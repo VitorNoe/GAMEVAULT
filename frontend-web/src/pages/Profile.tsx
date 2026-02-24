@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { useUserStats } from '../hooks/useUserStats';
+import { api } from '../services/api';
+import { reviewService, Review } from '../services/reviewService';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 
@@ -19,19 +22,37 @@ const itemVariants = {
 
 export const Profile: React.FC = () => {
     const { user, logout } = useAuth();
+    const { stats } = useUserStats();
     const [isEditing, setIsEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState('');
+    const [recentReviews, setRecentReviews] = useState<Review[]>([]);
     const [formData, setFormData] = useState({
         name: user?.name || '',
-        email: user?.email || '',
-        bio: '',
-        favoriteGenre: '',
-        gamerTag: '',
+        bio: user?.bio || '',
     });
+
+    useEffect(() => {
+        if (user?.id) {
+            reviewService.getUserReviews(user.id, { limit: 5 })
+                .then((res) => setRecentReviews(res.data?.reviews || []))
+                .catch(() => { });
+        }
+    }, [user?.id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Update profile:', formData);
-        setIsEditing(false);
+        setSaving(true);
+        setSaveMessage('');
+        try {
+            await api.put('/users/me', { name: formData.name, bio: formData.bio });
+            setSaveMessage('Profile updated successfully!');
+            setIsEditing(false);
+        } catch (err: any) {
+            setSaveMessage(err.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleLogout = () => {
@@ -80,7 +101,7 @@ export const Profile: React.FC = () => {
                                 <h2 className="text-2xl font-bold text-white">{user?.name || 'User'}</h2>
                                 <p className="text-gray-400">{user?.email}</p>
                                 <p className="text-sm text-gray-500 mt-1">
-                                    Member since {new Date().toLocaleDateString()}
+                                    Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : new Date().toLocaleDateString()}
                                 </p>
                             </div>
                             <Button
@@ -92,28 +113,29 @@ export const Profile: React.FC = () => {
                             </Button>
                         </div>
 
+                        {saveMessage && (
+                            <div className={`px-4 py-2 rounded-lg text-sm mb-4 ${saveMessage.includes('success') ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {saveMessage}
+                            </div>
+                        )}
+
                         {/* Stats */}
-                        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-dark-300">
-                            <motion.div
-                                className="text-center"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">0</div>
+                        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-dark-300">
+                            <motion.div className="text-center" whileHover={{ scale: 1.05 }}>
+                                <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{stats.collection || 0}</div>
                                 <div className="text-sm text-gray-500">Games</div>
                             </motion.div>
-                            <motion.div
-                                className="text-center"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                <div className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">0</div>
+                            <motion.div className="text-center" whileHover={{ scale: 1.05 }}>
+                                <div className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">{stats.completed || 0}</div>
                                 <div className="text-sm text-gray-500">Completed</div>
                             </motion.div>
-                            <motion.div
-                                className="text-center"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">0</div>
-                                <div className="text-sm text-gray-500">Achievements</div>
+                            <motion.div className="text-center" whileHover={{ scale: 1.05 }}>
+                                <div className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{stats.wishlist || 0}</div>
+                                <div className="text-sm text-gray-500">Wishlist</div>
+                            </motion.div>
+                            <motion.div className="text-center" whileHover={{ scale: 1.05 }}>
+                                <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{stats.reviews || 0}</div>
+                                <div className="text-sm text-gray-500">Reviews</div>
                             </motion.div>
                         </div>
                     </div>
@@ -137,14 +159,6 @@ export const Profile: React.FC = () => {
                             placeholder="Your name"
                         />
 
-                        <Input
-                            label="Email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="your@email.com"
-                        />
-
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">
                                 Bio
@@ -158,22 +172,8 @@ export const Profile: React.FC = () => {
                             />
                         </div>
 
-                        <Input
-                            label="Favorite Genre"
-                            value={formData.favoriteGenre}
-                            onChange={(e) => setFormData({ ...formData, favoriteGenre: e.target.value })}
-                            placeholder="e.g., RPG, Action, Strategy"
-                        />
-
-                        <Input
-                            label="Gamer Tag"
-                            value={formData.gamerTag}
-                            onChange={(e) => setFormData({ ...formData, gamerTag: e.target.value })}
-                            placeholder="Your gamer tag"
-                        />
-
                         <div className="flex gap-3 pt-4">
-                            <Button type="submit">Save Changes</Button>
+                            <Button type="submit" loading={saving}>Save Changes</Button>
                             <Button type="button" variant="secondary" onClick={() => setIsEditing(false)}>
                                 Cancel
                             </Button>
@@ -240,6 +240,26 @@ export const Profile: React.FC = () => {
                     </Button>
                 </div>
             </motion.div>
+
+            {/* Recent Reviews */}
+            {recentReviews.length > 0 && (
+                <motion.div variants={itemVariants} className="glass-card p-6">
+                    <h3 className="text-xl font-bold mb-4 text-white">My Recent Reviews</h3>
+                    <div className="space-y-3">
+                        {recentReviews.map((review) => (
+                            <div key={review.id} className="flex items-center justify-between p-3 rounded-lg bg-dark-300/50">
+                                <div className="flex-1">
+                                    <p className="text-sm text-white font-medium">Game #{review.game_id}</p>
+                                    <p className="text-xs text-gray-500 line-clamp-1">{review.review_text || 'No text'}</p>
+                                </div>
+                                <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                                    {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
         </motion.div>
     );
 };

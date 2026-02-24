@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { gameService } from '../services/gameService';
+import { wishlistService } from '../services/wishlistService';
+import { collectionService } from '../services/collectionService';
+import { reviewService, Review } from '../services/reviewService';
 import { Game } from '../types/game.types';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 import { ErrorMessage } from '../components/common/ErrorMessage';
+import { ReviewsList } from '../components/games/ReviewsList';
 import { useAuth } from '../hooks/useAuth';
 import { RELEASE_STATUS_LABELS, AVAILABILITY_STATUS_LABELS, ROUTES } from '../utils/constants';
 
@@ -31,32 +35,62 @@ export const GameDetail: React.FC = () => {
     const [game, setGame] = useState<Game | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // Wishlist state (backend API)
     const [isInWishlist, setIsInWishlist] = useState(false);
-    const [isPlayingNow, setIsPlayingNow] = useState(false);
-    const [isCompletedGame, setIsCompletedGame] = useState(false);
+    const [wishlistItemId, setWishlistItemId] = useState<number | null>(null);
     const [wishlistLoading, setWishlistLoading] = useState(false);
+
+    // Collection state (backend API)
+    const [collectionStatus, setCollectionStatus] = useState<string | null>(null);
+    const [collectionItemId, setCollectionItemId] = useState<number | null>(null);
+    const [collectionLoading, setCollectionLoading] = useState(false);
+
+    // Reviews
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+
+    const gameId = id ? parseInt(id) : 0;
+
+    const fetchReviews = useCallback(async () => {
+        if (!gameId) return;
+        setReviewsLoading(true);
+        try {
+            const response = await reviewService.getGameReviews(gameId, { limit: 20 });
+            setReviews(response.data?.reviews || response.data || []);
+        } catch {
+            // Reviews are non-critical, fail silently
+        } finally {
+            setReviewsLoading(false);
+        }
+    }, [gameId]);
 
     useEffect(() => {
         const fetchGame = async () => {
-            if (!id) return;
+            if (!gameId) return;
 
             try {
                 setLoading(true);
                 setError('');
-                const gameData = await gameService.getGameById(parseInt(id));
+                const gameData = await gameService.getGameById(gameId);
                 setGame(gameData);
 
-                // Check if game is in wishlist (from localStorage)
-                const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-                setIsInWishlist(wishlist.includes(parseInt(id)));
+                // Check wishlist & collection status via backend API (if authenticated)
+                if (isAuthenticated) {
+                    try {
+                        const wishCheck = await wishlistService.checkGame(gameId);
+                        setIsInWishlist(wishCheck.inWishlist);
+                        if (wishCheck.item) setWishlistItemId(wishCheck.item.id);
+                    } catch { }
 
-                // Check if game is in playing now (from localStorage)
-                const playing = JSON.parse(localStorage.getItem('playing_now') || '[]');
-                setIsPlayingNow(playing.includes(parseInt(id)));
-
-                // Check if game is in completed (from localStorage)
-                const completed = JSON.parse(localStorage.getItem('completed') || '[]');
-                setIsCompletedGame(completed.includes(parseInt(id)));
+                    try {
+                        const colStatus = await collectionService.getGameStatus(gameId);
+                        if (colStatus.data) {
+                            setCollectionStatus(colStatus.data.status || 'owned');
+                            setCollectionItemId(colStatus.data.id || null);
+                        }
+                    } catch { }
+                }
             } catch (err: any) {
                 console.error('Error fetching game:', err);
                 setError(err.response?.data?.message || 'Failed to load game details');
@@ -66,100 +100,55 @@ export const GameDetail: React.FC = () => {
         };
 
         fetchGame();
-    }, [id]);
+        fetchReviews();
+    }, [gameId, isAuthenticated, fetchReviews]);
 
-    const handleWishlistToggle = () => {
-        if (!isAuthenticated) {
-            navigate(ROUTES.LOGIN);
-            return;
-        }
+    const handleWishlistToggle = async () => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN); return; }
 
         setWishlistLoading(true);
-        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-
-        if (isInWishlist) {
-            // Remove from wishlist
-            const newWishlist = wishlist.filter((gameId: number) => gameId !== parseInt(id!));
-            localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-            setIsInWishlist(false);
-        } else {
-            // Add to wishlist
-            wishlist.push(parseInt(id!));
-            localStorage.setItem('wishlist', JSON.stringify(wishlist));
-            setIsInWishlist(true);
+        try {
+            if (isInWishlist && wishlistItemId) {
+                await wishlistService.removeFromWishlist(wishlistItemId);
+                setIsInWishlist(false);
+                setWishlistItemId(null);
+            } else {
+                const response = await wishlistService.addToWishlist({ game_id: gameId });
+                setIsInWishlist(true);
+                setWishlistItemId(response.data?.id || null);
+            }
+        } catch (err: any) {
+            console.error('Wishlist toggle failed:', err);
+        } finally {
+            setWishlistLoading(false);
         }
-
-        // Dispatch event to update stats in sidebar
-        window.dispatchEvent(new Event('wishlist-updated'));
-        setWishlistLoading(false);
     };
 
-    const handlePlayingToggle = () => {
-        if (!isAuthenticated) {
-            navigate(ROUTES.LOGIN);
-            return;
+    const handleCollectionToggle = async (status: string) => {
+        if (!isAuthenticated) { navigate(ROUTES.LOGIN); return; }
+
+        setCollectionLoading(true);
+        try {
+            if (collectionStatus === status && collectionItemId) {
+                // Remove from collection
+                await collectionService.removeFromCollection(collectionItemId);
+                setCollectionStatus(null);
+                setCollectionItemId(null);
+            } else if (collectionItemId) {
+                // Update status
+                await collectionService.updateItem(collectionItemId, { status });
+                setCollectionStatus(status);
+            } else {
+                // Add to collection
+                const response = await collectionService.addToCollection({ game_id: gameId, platform_id: 1, status });
+                setCollectionStatus(status);
+                setCollectionItemId(response.data?.id || null);
+            }
+        } catch (err: any) {
+            console.error('Collection toggle failed:', err);
+        } finally {
+            setCollectionLoading(false);
         }
-
-        const playing = JSON.parse(localStorage.getItem('playing_now') || '[]');
-        const gameIdNum = parseInt(id!);
-
-        if (isPlayingNow) {
-            // Remove from playing
-            const newPlaying = playing.filter((gId: number) => gId !== gameIdNum);
-            localStorage.setItem('playing_now', JSON.stringify(newPlaying));
-            // Also update detailed list
-            try {
-                const detailed = JSON.parse(localStorage.getItem('gamevault_playing_now') || '[]');
-                localStorage.setItem('gamevault_playing_now', JSON.stringify(detailed.filter((item: any) => item.id !== gameIdNum)));
-            } catch { }
-            setIsPlayingNow(false);
-        } else {
-            // Add to playing
-            playing.push(gameIdNum);
-            localStorage.setItem('playing_now', JSON.stringify(playing));
-            // Also update detailed list
-            try {
-                const detailed = JSON.parse(localStorage.getItem('gamevault_playing_now') || '[]');
-                detailed.push({ id: gameIdNum, title: game?.title, cover_url: game?.cover_url, addedAt: new Date().toISOString() });
-                localStorage.setItem('gamevault_playing_now', JSON.stringify(detailed));
-            } catch { }
-            setIsPlayingNow(true);
-        }
-        window.dispatchEvent(new Event('playing-updated'));
-    };
-
-    const handleCompletedToggle = () => {
-        if (!isAuthenticated) {
-            navigate(ROUTES.LOGIN);
-            return;
-        }
-
-        const completed = JSON.parse(localStorage.getItem('completed') || '[]');
-        const gameIdNum = parseInt(id!);
-
-        if (isCompletedGame) {
-            // Remove from completed
-            const newCompleted = completed.filter((gId: number) => gId !== gameIdNum);
-            localStorage.setItem('completed', JSON.stringify(newCompleted));
-            // Also update detailed list
-            try {
-                const detailed = JSON.parse(localStorage.getItem('gamevault_completed') || '[]');
-                localStorage.setItem('gamevault_completed', JSON.stringify(detailed.filter((item: any) => item.id !== gameIdNum)));
-            } catch { }
-            setIsCompletedGame(false);
-        } else {
-            // Add to completed
-            completed.push(gameIdNum);
-            localStorage.setItem('completed', JSON.stringify(completed));
-            // Also update detailed list
-            try {
-                const detailed = JSON.parse(localStorage.getItem('gamevault_completed') || '[]');
-                detailed.push({ id: gameIdNum, title: game?.title, cover_url: game?.cover_url, addedAt: new Date().toISOString() });
-                localStorage.setItem('gamevault_completed', JSON.stringify(detailed));
-            } catch { }
-            setIsCompletedGame(true);
-        }
-        window.dispatchEvent(new Event('completed-updated'));
     };
 
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -251,20 +240,33 @@ export const GameDetail: React.FC = () => {
                         </Button>
 
                         <Button
-                            onClick={handlePlayingToggle}
-                            variant={isPlayingNow ? 'secondary' : 'primary'}
+                            onClick={() => handleCollectionToggle('playing')}
+                            disabled={collectionLoading}
+                            variant={collectionStatus === 'playing' ? 'secondary' : 'primary'}
                             className="w-full"
                         >
-                            {isPlayingNow ? '✓ Playing Now' : '🎯 Mark as Playing'}
+                            {collectionLoading ? 'Loading...' : collectionStatus === 'playing' ? '✓ Playing Now' : '🎯 Mark as Playing'}
                         </Button>
 
                         <Button
-                            onClick={handleCompletedToggle}
-                            variant={isCompletedGame ? 'secondary' : 'primary'}
+                            onClick={() => handleCollectionToggle('completed')}
+                            disabled={collectionLoading}
+                            variant={collectionStatus === 'completed' ? 'secondary' : 'primary'}
                             className="w-full"
                         >
-                            {isCompletedGame ? '✓ Completed' : '✅ Mark as Completed'}
+                            {collectionLoading ? 'Loading...' : collectionStatus === 'completed' ? '✓ Completed' : '✅ Mark as Completed'}
                         </Button>
+
+                        {!collectionStatus && (
+                            <Button
+                                onClick={() => handleCollectionToggle('owned')}
+                                disabled={collectionLoading}
+                                variant="ghost"
+                                className="w-full"
+                            >
+                                📚 Add to Collection
+                            </Button>
+                        )}
 
                         {game.trailer_url && (
                             <a href={game.trailer_url} target="_blank" rel="noopener noreferrer" className="block">
@@ -422,6 +424,16 @@ export const GameDetail: React.FC = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Reviews Section */}
+            <motion.div variants={itemVariants} className="mt-8">
+                <ReviewsList
+                    gameId={gameId}
+                    reviews={reviews}
+                    onReviewAdded={fetchReviews}
+                    loading={reviewsLoading}
+                />
+            </motion.div>
         </motion.div>
     );
 };

@@ -37,7 +37,7 @@ const DISCOVER_ITEMS: NavItemType[] = [
 ];
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const { stats, formatCount } = useUserStats();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -206,6 +206,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <span className="font-medium">Profile</span>
                   </motion.div>
                 </Link>
+                {isAdmin && (
+                  <Link to={ROUTES.ADMIN}>
+                    <motion.div className={`nav-item ${isActive(ROUTES.ADMIN) ? 'active' : ''}`} whileHover={{ x: 4 }}>
+                      <span className="text-xl">🛡️</span>
+                      <span className="font-medium">Admin</span>
+                    </motion.div>
+                  </Link>
+                )}
                 <motion.div
                   className="nav-item cursor-pointer"
                   whileHover={{ x: 4 }}

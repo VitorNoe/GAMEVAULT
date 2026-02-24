@@ -1,61 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { gameService } from '../services/gameService';
 import { Game } from '../types/game.types';
 import { Loading } from '../components/common/Loading';
 import { ErrorMessage } from '../components/common/ErrorMessage';
-import { Button } from '../components/common/Button';
+import { Pagination } from '../components/common/Pagination';
+import { FiltersPanel } from '../components/games/FiltersPanel';
 import { RELEASE_STATUS_LABELS } from '../utils/constants';
 
+interface FiltersState {
+  search?: string;
+  release_status?: string;
+  availability_status?: string;
+  year?: number | '';
+  sort?: string;
+  order?: 'ASC' | 'DESC';
+}
+
 export const Games: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [totalGames, setTotalGames] = useState(0);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
-  const filters = ['All', 'Released', 'Coming Soon', 'Early Access'];
+  const [filters, setFilters] = useState<FiltersState>({
+    search: searchParams.get('search') || '',
+    release_status: searchParams.get('release_status') || '',
+    availability_status: searchParams.get('availability_status') || '',
+    year: searchParams.get('year') ? Number(searchParams.get('year')) : '',
+    sort: searchParams.get('sort') || '',
+    order: (searchParams.get('order') as 'ASC' | 'DESC') || 'DESC',
+  });
 
-  const fetchGames = async (pageNum: number) => {
+  const fetchGames = useCallback(async (pageNum: number, currentFilters: FiltersState) => {
     try {
       setLoading(true);
       setError('');
-      const response = await gameService.getAllGames({ page: pageNum, limit: 20 });
+
+      const params: Record<string, any> = { page: pageNum, limit: 20 };
+      if (currentFilters.search) params.search = currentFilters.search;
+      if (currentFilters.release_status) params.release_status = currentFilters.release_status;
+      if (currentFilters.availability_status) params.availability_status = currentFilters.availability_status;
+      if (currentFilters.year) params.year = currentFilters.year;
+      if (currentFilters.sort) params.sort = currentFilters.sort;
+      if (currentFilters.order) params.order = currentFilters.order;
+
+      let response;
+      if (currentFilters.search) {
+        response = await gameService.searchGames(currentFilters.search, params);
+      } else {
+        response = await gameService.getAllGames(params);
+      }
+
       setGames(response.data?.games || []);
-      setTotalPages(response.data?.pagination.totalPages || 1);
+      setTotalPages(response.data?.pagination?.totalPages || 1);
+      setTotalGames(response.data?.pagination?.total || 0);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load games');
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Sync URL params
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (page > 1) params.page = String(page);
+    if (filters.search) params.search = filters.search;
+    if (filters.release_status) params.release_status = filters.release_status;
+    if (filters.availability_status) params.availability_status = filters.availability_status;
+    if (filters.year) params.year = String(filters.year);
+    if (filters.sort) params.sort = filters.sort;
+    if (filters.order && filters.order !== 'DESC') params.order = filters.order;
+    setSearchParams(params, { replace: true });
+  }, [page, filters, setSearchParams]);
+
+  // Debounced fetch
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchGames(page, filters);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [page, filters, fetchGames]);
+
+  const handleFilterChange = (newFilters: FiltersState) => {
+    setFilters(newFilters);
+    setPage(1);
   };
 
-  useEffect(() => {
-    fetchGames(page);
-  }, [page]);
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      fetchGames(1);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-      const response = await gameService.searchGames(searchQuery, { page: 1, limit: 20 });
-      setGames(response.data?.games || []);
-      setTotalPages(response.data?.pagination.totalPages || 1);
-      setPage(1);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Search failed');
-    } finally {
-      setLoading(false);
-    }
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading && games.length === 0) return <Loading />;
@@ -66,55 +107,20 @@ export const Games: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6"
       >
         <h1 className="text-4xl font-extrabold gradient-text mb-2">Games Catalog</h1>
-        <p className="text-gray-400">Discover and explore thousands of games across all platforms</p>
+        <p className="text-gray-400">
+          Discover and explore {totalGames > 0 ? `${totalGames.toLocaleString()} games` : 'games'} across all platforms
+        </p>
       </motion.div>
 
-      {/* Search and Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="mb-8"
-      >
-        <form onSubmit={handleSearch} className="flex gap-3 mb-6">
-          <div className="flex-1 relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search games by title..."
-              className="input pl-12"
-            />
-          </div>
-          <Button type="submit">Search</Button>
-        </form>
-
-        <div className="flex gap-2 flex-wrap">
-          {filters.map((filter) => (
-            <motion.button
-              key={filter}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setActiveFilter(filter.toLowerCase())}
-              className={`filter-btn ${activeFilter === filter.toLowerCase() ? 'active' : ''}`}
-            >
-              {filter}
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
+      {/* Filters */}
+      <FiltersPanel filters={filters} onFilterChange={handleFilterChange} />
 
       {error && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6"
-        >
-          <ErrorMessage message={error} onRetry={() => fetchGames(page)} />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
+          <ErrorMessage message={error} onRetry={() => fetchGames(page, filters)} />
         </motion.div>
       )}
 
@@ -125,7 +131,7 @@ export const Games: React.FC = () => {
             key={game.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ delay: index * 0.03 }}
           >
             <Link to={`/games/${game.id}`}>
               <motion.div
@@ -138,6 +144,7 @@ export const Games: React.FC = () => {
                       src={game.cover_url}
                       alt={game.title}
                       className="w-full h-full object-cover transition-transform duration-300"
+                      loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://placehold.co/300x400/1f2937/a78bfa?text=${encodeURIComponent(game.title.substring(0, 15))}`;
@@ -159,8 +166,8 @@ export const Games: React.FC = () => {
                   {/* Metacritic Score */}
                   {game.metacritic_score && (
                     <div className={`absolute top-3 right-3 px-2 py-1 rounded text-white text-sm font-bold ${game.metacritic_score >= 90 ? 'bg-green-600' :
-                      game.metacritic_score >= 75 ? 'bg-yellow-500' :
-                        game.metacritic_score >= 50 ? 'bg-orange-500' : 'bg-red-600'
+                        game.metacritic_score >= 75 ? 'bg-yellow-500' :
+                          game.metacritic_score >= 50 ? 'bg-orange-500' : 'bg-red-600'
                       }`}>
                       {game.metacritic_score}
                     </div>
@@ -168,22 +175,16 @@ export const Games: React.FC = () => {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2 text-white line-clamp-2">
-                    {game.title}
-                  </h3>
-
+                  <h3 className="font-bold text-lg mb-2 text-white line-clamp-2">{game.title}</h3>
                   <div className="flex items-center justify-between text-sm text-gray-400">
                     <span>
                       {game.release_date
-                        ? new Date(game.release_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short'
-                        })
+                        ? new Date(game.release_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
                         : game.release_year || 'TBA'}
                     </span>
                     {game.average_rating && (
                       <span className="flex items-center gap-1 text-yellow-400">
-                        ⭐ {game.average_rating.toFixed(1)}
+                        ⭐ {Number(game.average_rating).toFixed(1)}
                       </span>
                     )}
                   </div>
@@ -195,42 +196,23 @@ export const Games: React.FC = () => {
       </div>
 
       {games.length === 0 && !loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
           <span className="text-6xl mb-4 block">🎮</span>
           <p className="text-gray-400 text-lg">No games found</p>
+          {(filters.search || filters.release_status || filters.availability_status || filters.year) && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              onClick={() => handleFilterChange({ search: '', release_status: '', availability_status: '', year: '', sort: '', order: 'DESC' })}
+              className="mt-4 text-primary-400 hover:text-primary-300 font-medium"
+            >
+              Clear all filters
+            </motion.button>
+          )}
         </motion.div>
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-12 flex justify-center items-center gap-4"
-        >
-          <Button
-            variant="secondary"
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-          >
-            ← Previous
-          </Button>
-          <span className="text-gray-400 font-medium">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            variant="secondary"
-            disabled={page === totalPages}
-            onClick={() => setPage(page + 1)}
-          >
-            Next →
-          </Button>
-        </motion.div>
-      )}
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
     </div>
   );
 };

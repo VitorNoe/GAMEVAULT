@@ -21,6 +21,7 @@ const CompletedGames = lazy(() => import('./pages/CompletedGames').then(m => ({ 
 const GotyAwards = lazy(() => import('./pages/GotyAwards').then(m => ({ default: m.GotyAwards })));
 const UpcomingReleases = lazy(() => import('./pages/UpcomingReleases').then(m => ({ default: m.UpcomingReleases })));
 const Abandonware = lazy(() => import('./pages/Abandonware').then(m => ({ default: m.Abandonware })));
+const Admin = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = memo(({ children }) => {
@@ -153,6 +154,14 @@ function App() {
                       <h1 className="text-3xl font-bold">Settings</h1>
                       <p className="text-gray-600 mt-2">Coming soon...</p>
                     </div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.ADMIN}
+                element={
+                  <ProtectedRoute>
+                    <Admin />
                   </ProtectedRoute>
                 }
               />
