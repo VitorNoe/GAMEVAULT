@@ -7,6 +7,8 @@ import collectionRoutes from './collectionRoutes';
 import rawgRoutes from './rawgRoutes';
 import reviewRoutes from './reviewRoutes';
 import wishlistRoutes from './wishlistRoutes';
+import preservationRoutes from './preservationRoutes';
+import rereleaseRoutes from './rereleaseRoutes';
 
 const router = Router();
 
@@ -28,5 +30,7 @@ router.use('/collection', collectionRoutes);
 router.use('/external/rawg', rawgRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/wishlist', wishlistRoutes);
+router.use('/preservation', preservationRoutes);
+router.use('/rereleases', rereleaseRoutes);
 
 export default router;

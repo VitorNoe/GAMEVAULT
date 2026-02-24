@@ -105,6 +105,12 @@ export function setupAssociations(): void {
   Game.belongsToMany(PreservationSource, { through: GamePreservation, foreignKey: 'game_id', otherKey: 'source_id', as: 'preservationSources' });
   PreservationSource.belongsToMany(Game, { through: GamePreservation, foreignKey: 'source_id', otherKey: 'game_id', as: 'games' });
 
+  // Direct associations on GamePreservation junction for eager loading
+  GamePreservation.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });
+  GamePreservation.belongsTo(PreservationSource, { foreignKey: 'source_id', as: 'source' });
+  Game.hasMany(GamePreservation, { foreignKey: 'game_id', as: 'gamePreservations' });
+  PreservationSource.hasMany(GamePreservation, { foreignKey: 'source_id', as: 'gamePreservations' });
+
   // --- User → UserCollection ---
   User.hasMany(UserCollection, { foreignKey: 'user_id', as: 'collections' });
   UserCollection.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
