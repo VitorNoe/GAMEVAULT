@@ -13,11 +13,15 @@ export interface ReviewAttributes {
   recommends?: boolean;
   likes_count: number;
   dislikes_count: number;
+  moderation_status: 'approved' | 'flagged' | 'removed' | 'pending';
+  moderation_reason?: string;
+  moderated_by?: number;
+  moderated_at?: Date;
   created_at?: Date;
   updated_at?: Date;
 }
 
-interface ReviewCreationAttributes extends Optional<ReviewAttributes, 'id' | 'platform_id' | 'review_text' | 'has_spoilers' | 'hours_played' | 'recommends' | 'likes_count' | 'dislikes_count' | 'created_at' | 'updated_at'> {}
+interface ReviewCreationAttributes extends Optional<ReviewAttributes, 'id' | 'platform_id' | 'review_text' | 'has_spoilers' | 'hours_played' | 'recommends' | 'likes_count' | 'dislikes_count' | 'moderation_status' | 'moderation_reason' | 'moderated_by' | 'moderated_at' | 'created_at' | 'updated_at'> {}
 
 class Review extends Model<ReviewAttributes, ReviewCreationAttributes> implements ReviewAttributes {
   public id!: number;
@@ -31,6 +35,10 @@ class Review extends Model<ReviewAttributes, ReviewCreationAttributes> implement
   public recommends?: boolean;
   public likes_count!: number;
   public dislikes_count!: number;
+  public moderation_status!: 'approved' | 'flagged' | 'removed' | 'pending';
+  public moderation_reason?: string;
+  public moderated_by?: number;
+  public moderated_at?: Date;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -100,6 +108,24 @@ Review.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+    },
+    moderation_status: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'approved',
+    },
+    moderation_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    moderated_by: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: 'users', key: 'id' },
+    },
+    moderated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     created_at: {
       type: DataTypes.DATE,

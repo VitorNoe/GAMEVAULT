@@ -18,13 +18,17 @@ export interface UserAttributes {
   notification_push: boolean;
   notification_email: boolean;
   notification_in_app: boolean;
+  is_banned: boolean;
+  banned_at?: Date | null;
+  ban_reason?: string | null;
+  banned_by?: number | null;
   last_login?: Date | null;
   created_at?: Date;
   updated_at?: Date;
 }
 
 // Attributes for user creation (id is optional since it's auto-generated)
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'avatar_url' | 'bio' | 'email_verified' | 'email_verification_token' | 'password_reset_token' | 'password_reset_expires' | 'notification_push' | 'notification_email' | 'notification_in_app' | 'last_login' | 'created_at' | 'updated_at'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'avatar_url' | 'bio' | 'email_verified' | 'email_verification_token' | 'password_reset_token' | 'password_reset_expires' | 'notification_push' | 'notification_email' | 'notification_in_app' | 'is_banned' | 'banned_at' | 'ban_reason' | 'banned_by' | 'last_login' | 'created_at' | 'updated_at'> {}
 
 // User model class
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -42,6 +46,10 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public notification_push!: boolean;
   public notification_email!: boolean;
   public notification_in_app!: boolean;
+  public is_banned!: boolean;
+  public banned_at?: Date | null;
+  public ban_reason?: string | null;
+  public banned_by?: number | null;
   public last_login?: Date | null;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -132,6 +140,24 @@ User.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true
+    },
+    is_banned: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    banned_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    ban_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    banned_by: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: { model: 'users', key: 'id' },
     },
     last_login: {
       type: DataTypes.DATE,

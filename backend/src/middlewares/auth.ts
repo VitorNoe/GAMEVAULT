@@ -55,6 +55,16 @@ export const authenticate = async (
       return;
     }
 
+    // Check if user is banned
+    if (user.is_banned) {
+      res.status(403).json({
+        success: false,
+        message: 'Your account has been banned.',
+        ban_reason: user.ban_reason || undefined,
+      });
+      return;
+    }
+
     // Attach user to request
     req.user = {
       id: decoded.id,

@@ -11,6 +11,7 @@ import preservationRoutes from './preservationRoutes';
 import rereleaseRoutes from './rereleaseRoutes';
 import notificationRoutes from './notificationRoutes';
 import mediaRoutes from './mediaRoutes';
+import adminRoutes from './adminRoutes';
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use('/preservation', preservationRoutes);
 router.use('/rereleases', rereleaseRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/media', mediaRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;
