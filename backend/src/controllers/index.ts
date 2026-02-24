@@ -9,3 +9,4 @@ export * from './reviewController';
 export * from './wishlistController';
 export * from './preservationController';
 export * from './rereleaseController';
+export * from './notificationController';

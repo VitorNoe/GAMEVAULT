@@ -18,6 +18,7 @@ export { default as Wishlist } from './Wishlist';
 export { default as Review } from './Review';
 export { default as ReviewLike } from './ReviewLike';
 export { default as Notification } from './Notification';
+export { default as NotificationPreference } from './NotificationPreference';
 export { default as UserActivity } from './UserActivity';
 
 // ============================================
@@ -55,6 +56,7 @@ import Wishlist from './Wishlist';
 import Review from './Review';
 import ReviewLike from './ReviewLike';
 import Notification from './Notification';
+import NotificationPreference from './NotificationPreference';
 import UserActivity from './UserActivity';
 import RereleaseRequest from './RereleaseRequest';
 import RereleaseVote from './RereleaseVote';
@@ -146,6 +148,10 @@ export function setupAssociations(): void {
   Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
   Game.hasMany(Notification, { foreignKey: 'game_id', as: 'notifications' });
   Notification.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });
+
+  // --- User → NotificationPreference ---
+  User.hasMany(NotificationPreference, { foreignKey: 'user_id', as: 'notificationPreferences' });
+  NotificationPreference.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
   // --- User → UserActivity ---
   User.hasMany(UserActivity, { foreignKey: 'user_id', as: 'activities' });
