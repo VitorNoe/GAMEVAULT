@@ -27,6 +27,12 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve local uploads (static files)
+import storageConfig from './config/storage';
+if (storageConfig.provider === 'local') {
+  app.use(storageConfig.local.serveBase, express.static(storageConfig.local.uploadDir));
+}
+
 // Routes
 app.use('/api', routes);
 

@@ -20,6 +20,7 @@ export { default as ReviewLike } from './ReviewLike';
 export { default as Notification } from './Notification';
 export { default as NotificationPreference } from './NotificationPreference';
 export { default as UserActivity } from './UserActivity';
+export { default as Media } from './Media';
 
 // ============================================
 // Re-release Models
@@ -65,6 +66,7 @@ import GameGenre from './GameGenre';
 import GameAward from './GameAward';
 import GamePreservation from './GamePreservation';
 import GameStatusHistory from './GameStatusHistory';
+import Media from './Media';
 
 // ============================================
 // Define Associations
@@ -172,6 +174,10 @@ export function setupAssociations(): void {
   GameStatusHistory.belongsTo(Game, { foreignKey: 'game_id', as: 'game' });
   GameStatusHistory.belongsTo(User, { foreignKey: 'changed_by', as: 'changedByUser' });
   User.hasMany(GameStatusHistory, { foreignKey: 'changed_by', as: 'statusChanges' });
+
+  // --- User → Media ---
+  User.hasMany(Media, { foreignKey: 'uploader_id', as: 'uploads' });
+  Media.belongsTo(User, { foreignKey: 'uploader_id', as: 'uploader' });
 }
 
 // Initialize associations immediately

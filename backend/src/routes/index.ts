@@ -10,6 +10,7 @@ import wishlistRoutes from './wishlistRoutes';
 import preservationRoutes from './preservationRoutes';
 import rereleaseRoutes from './rereleaseRoutes';
 import notificationRoutes from './notificationRoutes';
+import mediaRoutes from './mediaRoutes';
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use('/wishlist', wishlistRoutes);
 router.use('/preservation', preservationRoutes);
 router.use('/rereleases', rereleaseRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/media', mediaRoutes);
 
 export default router;
