@@ -16,6 +16,31 @@ import adminRoutes from './adminRoutes';
 const router = Router();
 
 // Health check endpoint
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     tags: [Health]
+ *     summary: API health check
+ *     description: Returns 200 when the API server is running.
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: GameVault API is running
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ */
 router.get('/health', (_req, res) => {
   res.status(200).json({
     success: true,

@@ -37,44 +37,219 @@ router.use(authenticate, authorizeAdmin);
 // ═══════════════════════════════════════════════════════════════════════
 
 /**
- * @route GET /api/admin/users
- * @desc List all users with filters (search, type, banned, verified)
- * @access Admin
+ * @openapi
+ * /admin/users:
+ *   get:
+ *     tags: [Admin]
+ *     summary: List all users
+ *     description: Search, filter, and paginate users. Supports search, type, banned, and verified filters.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [user, admin]
+ *       - in: query
+ *         name: banned
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: verified
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Users list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationMeta'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/users', generalLimiter, adminListUsers);
 
 /**
- * @route GET /api/admin/users/:id
- * @desc Get single user detail
- * @access Admin
+ * @openapi
+ * /admin/users/{id}:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Get single user detail
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User detail
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  */
 router.get('/users/:id', generalLimiter, adminGetUser);
 
 /**
- * @route PUT /api/admin/users/:id/role
- * @desc Change user role (regular ↔ admin)
- * @access Admin
+ * @openapi
+ * /admin/users/{id}/role:
+ *   put:
+ *     tags: [Admin]
+ *     summary: Change user role
+ *     description: Toggle between regular and admin roles.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [role]
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       200:
+ *         description: Role changed
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.put('/users/:id/role', createLimiter, adminChangeRole);
 
 /**
- * @route POST /api/admin/users/:id/ban
- * @desc Ban a user
- * @access Admin
+ * @openapi
+ * /admin/users/{id}/ban:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Ban a user
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User banned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.post('/users/:id/ban', createLimiter, adminBanUser);
 
 /**
- * @route POST /api/admin/users/:id/unban
- * @desc Unban a user
- * @access Admin
+ * @openapi
+ * /admin/users/{id}/unban:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Unban a user
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User unbanned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.post('/users/:id/unban', createLimiter, adminUnbanUser);
 
 /**
- * @route DELETE /api/admin/users/:id
- * @desc Hard-delete a user account
- * @access Admin
+ * @openapi
+ * /admin/users/{id}:
+ *   delete:
+ *     tags: [Admin]
+ *     summary: Hard-delete a user account
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.delete('/users/:id', createLimiter, adminRemoveUser);
 
@@ -83,37 +258,154 @@ router.delete('/users/:id', createLimiter, adminRemoveUser);
 // ═══════════════════════════════════════════════════════════════════════
 
 /**
- * @route GET /api/admin/moderation/reviews
- * @desc List reviews with moderation filters
- * @access Admin
+ * @openapi
+ * /admin/moderation/reviews:
+ *   get:
+ *     tags: [Admin]
+ *     summary: List reviews with moderation filters
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: flagged
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Reviews list
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/moderation/reviews', generalLimiter, adminListReviews);
 
 /**
- * @route PUT /api/admin/moderation/reviews/:id
- * @desc Moderate a review (approve / flag / remove)
- * @access Admin
+ * @openapi
+ * /admin/moderation/reviews/{id}:
+ *   put:
+ *     tags: [Admin]
+ *     summary: Moderate a review
+ *     description: Approve, flag, or remove a review.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [action]
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [approve, flag, remove]
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Review moderated
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *   delete:
+ *     tags: [Admin]
+ *     summary: Hard-delete a review
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Review deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.put('/moderation/reviews/:id', createLimiter, adminModerateReview);
 
-/**
- * @route DELETE /api/admin/moderation/reviews/:id
- * @desc Hard-delete a review
- * @access Admin
- */
 router.delete('/moderation/reviews/:id', createLimiter, adminDeleteReview);
 
 /**
- * @route DELETE /api/admin/moderation/games/:id
- * @desc Remove a game from the catalog
- * @access Admin
+ * @openapi
+ * /admin/moderation/games/{id}:
+ *   delete:
+ *     tags: [Admin]
+ *     summary: Remove a game from the catalog
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Game removed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.delete('/moderation/games/:id', createLimiter, adminDeleteGame);
 
 /**
- * @route GET /api/admin/moderation/log
- * @desc Admin moderation action history
- * @access Admin
+ * @openapi
+ * /admin/moderation/log:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Admin moderation action history
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Moderation log
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/moderation/log', generalLimiter, adminGetModerationLog);
 
@@ -122,9 +414,44 @@ router.get('/moderation/log', generalLimiter, adminGetModerationLog);
 // ═══════════════════════════════════════════════════════════════════════
 
 /**
- * @route GET /api/admin/activity-logs
- * @desc All activity logs (filterable by type, entity, user)
- * @access Admin
+ * @openapi
+ * /admin/activity-logs:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Get all activity logs
+ *     description: Filterable by type, entity, and user.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: entity_type
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: user_id
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Activity logs
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/activity-logs', generalLimiter, adminGetActivityLogs);
 
@@ -133,51 +460,132 @@ router.get('/activity-logs', generalLimiter, adminGetActivityLogs);
 // ═══════════════════════════════════════════════════════════════════════
 
 /**
- * @route GET /api/admin/reports/dashboard
- * @desc Dashboard overview with aggregate stats
- * @access Admin
+ * @openapi
+ * /admin/reports/dashboard:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Dashboard overview with aggregate stats
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard stats
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/dashboard', generalLimiter, adminDashboard);
 
 /**
- * @route GET /api/admin/reports/top-games
- * @desc Top-rated games
- * @access Admin
+ * @openapi
+ * /admin/reports/top-games:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Top-rated games
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Top games
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/top-games', generalLimiter, adminTopGames);
 
 /**
- * @route GET /api/admin/reports/most-reviewed
- * @desc Most reviewed games
- * @access Admin
+ * @openapi
+ * /admin/reports/most-reviewed:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Most reviewed games
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Most reviewed games
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/most-reviewed', generalLimiter, adminMostReviewed);
 
 /**
- * @route GET /api/admin/reports/active-users
- * @desc Most active users (by reviews + activity)
- * @access Admin
+ * @openapi
+ * /admin/reports/active-users:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Most active users
+ *     description: Users ranked by reviews and activity.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Active users
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/active-users', generalLimiter, adminActiveUsers);
 
 /**
- * @route GET /api/admin/reports/rereleases
- * @desc Rerelease request summary (by votes)
- * @access Admin
+ * @openapi
+ * /admin/reports/rereleases:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Re-release request summary
+ *     description: Requests grouped by votes.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Re-release summary
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/rereleases', generalLimiter, adminRereleasesSummary);
 
 /**
- * @route GET /api/admin/reports/registration-trend
- * @desc User registration trend (last 12 months)
- * @access Admin
+ * @openapi
+ * /admin/reports/registration-trend:
+ *   get:
+ *     tags: [Admin]
+ *     summary: User registration trend
+ *     description: Monthly registration count for the last 12 months.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Registration trend data
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/registration-trend', generalLimiter, adminRegistrationTrend);
 
 /**
- * @route GET /api/admin/reports/review-trend
- * @desc Review trend (last 12 months: count + avg rating)
- * @access Admin
+ * @openapi
+ * /admin/reports/review-trend:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Review trend
+ *     description: Monthly review count and average rating for the last 12 months.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Review trend data
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/review-trend', generalLimiter, adminReviewTrend);
 

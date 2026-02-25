@@ -18,38 +18,162 @@ const router = Router();
 // ─── Static routes first ─────────────────────────────────────────────
 
 /**
- * @route POST /api/wishlist/admin/check-releases
- * @desc Trigger wishlist release notification check
- * @access Admin
+ * @openapi
+ * /wishlist/admin/check-releases:
+ *   post:
+ *     tags: [Wishlist]
+ *     summary: Trigger wishlist release notification check
+ *     description: Admin only. Checks for newly released wishlist games and sends notifications.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Check triggered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.post('/admin/check-releases', generalLimiter, authenticate, authorizeAdmin, triggerWishlistCheck);
 
 /**
- * @route GET /api/wishlist/export
- * @desc Export wishlist as CSV or JSON
- * @access Private
+ * @openapi
+ * /wishlist/export:
+ *   get:
+ *     tags: [Wishlist]
+ *     summary: Export wishlist
+ *     description: Export the user's wishlist as CSV or JSON.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: format
+ *         schema:
+ *           type: string
+ *           enum: [csv, json]
+ *           default: json
+ *     responses:
+ *       200:
+ *         description: Exported wishlist data
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/export', generalLimiter, authenticate, requireVerified, exportWishlist);
 
 /**
- * @route GET /api/wishlist/check/:gameId
- * @desc Check if a game is in the user's wishlist
- * @access Private
+ * @openapi
+ * /wishlist/check/{gameId}:
+ *   get:
+ *     tags: [Wishlist]
+ *     summary: Check if a game is in wishlist
+ *     description: Returns whether the specified game is on the user's wishlist.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Wishlist status check
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 in_wishlist:
+ *                   type: boolean
+ *                   example: true
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/check/:gameId', generalLimiter, authenticate, requireVerified, checkWishlistStatus);
 
 /**
- * @route GET /api/wishlist
- * @desc Get user's wishlist
- * @access Private
+ * @openapi
+ * /wishlist:
+ *   get:
+ *     tags: [Wishlist]
+ *     summary: Get user's wishlist
+ *     description: Returns the user's wishlist with pagination.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: [high, medium, low]
+ *     responses:
+ *       200:
+ *         description: User's wishlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 wishlist:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/WishlistItem'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationMeta'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *   post:
+ *     tags: [Wishlist]
+ *     summary: Add game to wishlist
+ *     description: Adds a game to the user's wishlist with optional priority and max price.
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AddToWishlistRequest'
+ *     responses:
+ *       201:
+ *         description: Game added to wishlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 item:
+ *                   $ref: '#/components/schemas/WishlistItem'
+ *       400:
+ *         $ref: '#/components/responses/ValidationFailed'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/', generalLimiter, authenticate, requireVerified, getWishlist);
 
-/**
- * @route POST /api/wishlist
- * @desc Add game to wishlist
- * @access Private
- */
 router.post(
     '/',
     createLimiter,
@@ -70,17 +194,93 @@ router.post(
 );
 
 /**
- * @route GET /api/wishlist/:id
- * @desc Get a single wishlist item
- * @access Private
+ * @openapi
+ * /wishlist/{id}:
+ *   get:
+ *     tags: [Wishlist]
+ *     summary: Get a single wishlist item
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Wishlist item
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 item:
+ *                   $ref: '#/components/schemas/WishlistItem'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *   put:
+ *     tags: [Wishlist]
+ *     summary: Update wishlist item
+ *     description: Update priority and/or max price.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               priority:
+ *                 type: string
+ *                 enum: [high, medium, low]
+ *               max_price:
+ *                 type: number
+ *                 minimum: 0
+ *     responses:
+ *       200:
+ *         description: Wishlist item updated
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *   delete:
+ *     tags: [Wishlist]
+ *     summary: Remove game from wishlist
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Item removed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
  */
 router.get('/:id', generalLimiter, authenticate, requireVerified, getWishlistItem);
 
-/**
- * @route PUT /api/wishlist/:id
- * @desc Update wishlist item
- * @access Private
- */
 router.put(
     '/:id',
     createLimiter,
@@ -99,11 +299,6 @@ router.put(
     updateWishlistItem
 );
 
-/**
- * @route DELETE /api/wishlist/:id
- * @desc Remove game from wishlist
- * @access Private
- */
 router.delete('/:id', generalLimiter, authenticate, requireVerified, removeFromWishlist);
 
 export default router;

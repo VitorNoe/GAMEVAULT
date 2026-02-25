@@ -2,18 +2,31 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 
 import routes from './routes';
 import { errorHandler, notFound } from './middlewares';
 import sequelize from './config/database';
+import swaggerSpec from './config/swagger';
 
 dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
-app.use(helmet());
+// Security middleware – relax CSP for Swagger UI assets
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    },
+  })
+);
 
 // CORS configuration for frontend
 app.use(cors({
@@ -32,6 +45,23 @@ import storageConfig from './config/storage';
 if (storageConfig.provider === 'local') {
   app.use(storageConfig.local.serveBase, express.static(storageConfig.local.uploadDir));
 }
+
+// Swagger API documentation
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'GameVault API Docs',
+  customCss: '.swagger-ui .topbar { display: none }',
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'list',
+    filter: true,
+  },
+}));
+
+// Serve the raw OpenAPI JSON spec
+app.get('/api/docs.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // Routes
 app.use('/api', routes);
@@ -84,6 +114,7 @@ const startServer = async (): Promise<void> => {
       console.log(`📍 Environment: ${process.env.NODE_ENV}`);
       console.log(`✅ CORS enabled for: ${process.env.CORS_ORIGIN}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`📖 API Docs: http://localhost:${PORT}/api/docs`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

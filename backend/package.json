@@ -12,7 +12,8 @@
     "migrate": "ts-node src/scripts/migrate.ts",
     "migrate:rollback": "ts-node src/scripts/migrate.ts rollback",
     "seed": "ts-node src/scripts/seed.ts",
-    "db:setup": "npm run migrate && npm run seed"
+    "db:setup": "npm run migrate && npm run seed",
+    "docs:generate": "ts-node -e \"import s from './src/config/swagger'; require('fs').writeFileSync('openapi.json', JSON.stringify(s, null, 2)); console.log('openapi.json generated');\""
   },
   "keywords": [
     "gamevault",
@@ -39,6 +40,8 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.35.2",
     "sharp": "^0.34.5",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -56,6 +59,8 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.10.4",
     "@types/sharp": "^0.31.1",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
