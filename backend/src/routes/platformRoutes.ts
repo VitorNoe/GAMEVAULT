@@ -10,6 +10,7 @@ import {
 } from '../controllers/platformController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -109,6 +110,7 @@ router.post(
       .isIn(['console', 'handheld', 'pc', 'mobile'])
       .withMessage('Type must be one of: console, handheld, pc, mobile')
   ],
+  validate,
   createPlatform
 );
 
@@ -274,6 +276,7 @@ router.put(
       .isIn(['console', 'handheld', 'pc', 'mobile'])
       .withMessage('Type must be one of: console, handheld, pc, mobile')
   ],
+  validate,
   updatePlatform
 );
 

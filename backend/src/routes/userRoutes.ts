@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { getAllUsers, getUserById, updateProfile, deleteUser, getUserStats } from '../controllers/userController';
 import { authenticate, authorizeAdmin, requireVerified } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -139,6 +140,7 @@ router.put(
       .isURL()
       .withMessage('Avatar URL must be a valid URL')
   ],
+  validate,
   updateProfile
 );
 

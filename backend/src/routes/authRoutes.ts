@@ -13,6 +13,8 @@ import {
 } from '../controllers/authController';
 import { authenticate, requireVerified } from '../middlewares/auth';
 import { authLimiter, generalLimiter } from '../middlewares/rateLimiter';
+import { validate } from '../middlewares/validate';
+import { checkAccountLock } from '../middlewares/accountLockout';
 
 const router = Router();
 
@@ -61,6 +63,7 @@ router.post(
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long'),
   ],
+  validate,
   register
 );
 
@@ -132,6 +135,7 @@ router.post(
       .withMessage('Please provide a valid email')
       .normalizeEmail(),
   ],
+  validate,
   resendVerification
 );
 
@@ -172,6 +176,7 @@ router.post(
 router.post(
   '/login',
   authLimiter,
+  checkAccountLock,
   [
     body('email')
       .isEmail()
@@ -181,6 +186,7 @@ router.post(
       .notEmpty()
       .withMessage('Password is required'),
   ],
+  validate,
   login
 );
 
@@ -217,6 +223,7 @@ router.post(
       .notEmpty()
       .withMessage('Refresh token is required'),
   ],
+  validate,
   refreshToken
 );
 
@@ -296,6 +303,7 @@ router.post(
       .withMessage('Please provide a valid email')
       .normalizeEmail(),
   ],
+  validate,
   forgotPassword
 );
 
@@ -339,6 +347,7 @@ router.post(
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long'),
   ],
+  validate,
   resetPassword
 );
 

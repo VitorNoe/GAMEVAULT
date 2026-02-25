@@ -12,6 +12,7 @@ import {
 } from '../controllers/wishlistController';
 import { authenticate, authorizeAdmin, requireVerified } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -190,6 +191,7 @@ router.post(
             .isFloat({ min: 0 })
             .withMessage('Max price must be a positive number'),
     ],
+    validate,
     addToWishlist
 );
 
@@ -296,6 +298,7 @@ router.put(
             .isFloat({ min: 0 })
             .withMessage('Max price must be a positive number'),
     ],
+    validate,
     updateWishlistItem
 );
 

@@ -17,7 +17,6 @@ export const generalLimiter = rateLimit({
     success: false,
     message: 'Too many requests, please try again later.'
   },
-  skip: () => isDevelopment // Skip rate limiting in development
 });
 
 /**
@@ -34,7 +33,6 @@ export const authLimiter = rateLimit({
     success: false,
     message: 'Too many authentication attempts, please try again later.'
   },
-  skip: () => isDevelopment // Skip rate limiting in development
 });
 
 /**
@@ -51,5 +49,4 @@ export const createLimiter = rateLimit({
     success: false,
     message: 'Too many creation requests, please try again later.'
   },
-  skip: () => isDevelopment // Skip rate limiting in development
 });

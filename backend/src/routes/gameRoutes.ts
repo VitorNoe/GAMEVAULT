@@ -25,6 +25,7 @@ import {
 } from '../controllers/releaseStatusController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -333,6 +334,7 @@ router.post(
       .isIn(['available', 'out_of_catalog', 'expired_license', 'abandonware', 'public_domain', 'discontinued', 'rereleased'])
       .withMessage('Invalid availability status')
   ],
+  validate,
   createGame
 );
 
@@ -448,6 +450,7 @@ router.put(
       .isIn(['available', 'out_of_catalog', 'expired_license', 'abandonware', 'public_domain', 'discontinued', 'rereleased'])
       .withMessage('Invalid availability status')
   ],
+  validate,
   updateGame
 );
 

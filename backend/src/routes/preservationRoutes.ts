@@ -11,6 +11,8 @@ import {
 } from '../controllers/preservationController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { body } from 'express-validator';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -73,7 +75,20 @@ const router = Router();
  */
 router.get('/sources', generalLimiter, listSources);
 
-router.post('/sources', createLimiter, authenticate, authorizeAdmin, createSource);
+router.post(
+  '/sources',
+  createLimiter,
+  authenticate,
+  authorizeAdmin,
+  [
+    body('name').notEmpty().withMessage('Name is required').isLength({ max: 255 }).withMessage('Name must be at most 255 characters'),
+    body('type').notEmpty().withMessage('Type is required').isLength({ max: 100 }).withMessage('Type must be at most 100 characters'),
+    body('url').optional().isURL().withMessage('URL must be a valid URL'),
+    body('description').optional().isLength({ max: 2000 }).withMessage('Description must be at most 2000 characters'),
+  ],
+  validate,
+  createSource
+);
 
 /**
  * @openapi
@@ -157,7 +172,20 @@ router.post('/sources', createLimiter, authenticate, authorizeAdmin, createSourc
  */
 router.get('/sources/:id', generalLimiter, getSource);
 
-router.put('/sources/:id', generalLimiter, authenticate, authorizeAdmin, updateSource);
+router.put(
+  '/sources/:id',
+  generalLimiter,
+  authenticate,
+  authorizeAdmin,
+  [
+    body('name').optional().isLength({ max: 255 }).withMessage('Name must be at most 255 characters'),
+    body('type').optional().isLength({ max: 100 }).withMessage('Type must be at most 100 characters'),
+    body('url').optional().isURL().withMessage('URL must be a valid URL'),
+    body('description').optional().isLength({ max: 2000 }).withMessage('Description must be at most 2000 characters'),
+  ],
+  validate,
+  updateSource
+);
 
 router.delete('/sources/:id', generalLimiter, authenticate, authorizeAdmin, removeSource);
 
@@ -216,7 +244,17 @@ router.get('/games/:gameId', generalLimiter, getGamePreservationInfo);
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.post('/games/:gameId/sources', createLimiter, authenticate, authorizeAdmin, linkGame);
+router.post(
+  '/games/:gameId/sources',
+  createLimiter,
+  authenticate,
+  authorizeAdmin,
+  [
+    body('source_id').isInt({ min: 1 }).withMessage('Valid source_id is required'),
+  ],
+  validate,
+  linkGame
+);
 
 /**
  * @openapi

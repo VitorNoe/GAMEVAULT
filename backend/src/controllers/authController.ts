@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
+import { recordFailedLogin, clearFailedLogins } from '../middlewares/accountLockout';
 import User from '../models/User';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import {
@@ -218,6 +219,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Find user
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      recordFailedLogin(email);
       res.status(401).json({
         success: false,
         message: 'Invalid email or password.',
@@ -228,6 +230,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Check password
     const isValidPassword = await user.comparePassword(password);
     if (!isValidPassword) {
+      recordFailedLogin(email);
       res.status(401).json({
         success: false,
         message: 'Invalid email or password.',
@@ -249,6 +252,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const payload: TokenPayload = { id: user.id, email: user.email, type: user.type };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
+
+    // Clear lockout on successful login
+    clearFailedLogins(email);
 
     // Update last login timestamp
     await user.update({ last_login: new Date() });

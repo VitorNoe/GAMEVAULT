@@ -12,6 +12,7 @@ import {
 } from '../controllers/collectionController';
 import { authenticate, requireVerified } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -240,6 +241,7 @@ router.post(
             .isFloat({ min: 0 })
             .withMessage('Price must be a positive number'),
     ],
+    validate,
     addToCollection
 );
 
@@ -337,6 +339,7 @@ router.put(
             .isFloat({ min: 0 })
             .withMessage('Price must be a positive number'),
     ],
+    validate,
     updateCollectionItem
 );
 

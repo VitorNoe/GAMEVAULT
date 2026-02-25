@@ -1,21 +1,26 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import hpp from 'hpp';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 
 import routes from './routes';
 import { errorHandler, notFound } from './middlewares';
+import { sanitizeInputs } from './middlewares/sanitize';
 import sequelize from './config/database';
 import swaggerSpec from './config/swagger';
+import appConfig from './config/app';
 
 dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware – relax CSP for Swagger UI assets
+// ─── Security Headers (helmet) ────────────────────────────────────────
+// Relaxed CSP only for the Swagger UI path; strict for everything else.
 app.use(
+  '/api/docs',
   helmet({
     contentSecurityPolicy: {
       directives: {
@@ -27,18 +32,43 @@ app.use(
     },
   })
 );
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:'],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: appConfig.isProduction ? [] : null,
+      },
+    },
+    // Enforce HSTS in production (browsers remember HTTPS for 1 year)
+    hsts: appConfig.isProduction
+      ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+      : false,
+  })
+);
 
-// CORS configuration for frontend
+// ─── CORS – use configured origins instead of blanket allow ───────────
 app.use(cors({
-  origin: true, // Allow all origins for development
+  origin: appConfig.corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400, // preflight cache 24 h
 }));
 
-// Body parsing middleware
+// ─── Body parsing ─────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// ─── HTTP Parameter Pollution protection ──────────────────────────────
+app.use(hpp());
+
+// ─── Input sanitization (XSS / NoSQL-injection) ──────────────────────
+app.use(sanitizeInputs);
 
 // Serve local uploads (static files)
 import storageConfig from './config/storage';

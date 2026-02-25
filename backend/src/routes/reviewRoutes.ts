@@ -15,6 +15,8 @@ import {
 } from '../controllers/reviewController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { body } from 'express-validator';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -259,7 +261,19 @@ router.get('/user/:userId', generalLimiter, optionalAuth, getUserReviews);
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-router.post('/', createLimiter, authenticate, createReview);
+router.post(
+  '/',
+  createLimiter,
+  authenticate,
+  [
+    body('game_id').isInt({ min: 1 }).withMessage('Valid game_id is required'),
+    body('rating').isInt({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10'),
+    body('title').optional().isLength({ max: 255 }).withMessage('Title must be at most 255 characters'),
+    body('body').optional().isLength({ max: 5000 }).withMessage('Body must be at most 5000 characters'),
+  ],
+  validate,
+  createReview
+);
 
 /**
  * @openapi
@@ -349,7 +363,18 @@ router.post('/', createLimiter, authenticate, createReview);
  */
 router.get('/:id', generalLimiter, optionalAuth, getReviewById);
 
-router.put('/:id', generalLimiter, authenticate, updateReview);
+router.put(
+  '/:id',
+  generalLimiter,
+  authenticate,
+  [
+    body('rating').optional().isInt({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10'),
+    body('title').optional().isLength({ max: 255 }).withMessage('Title must be at most 255 characters'),
+    body('body').optional().isLength({ max: 5000 }).withMessage('Body must be at most 5000 characters'),
+  ],
+  validate,
+  updateReview
+);
 
 router.delete('/:id', generalLimiter, authenticate, deleteReview);
 
@@ -408,7 +433,16 @@ router.delete('/:id', generalLimiter, authenticate, deleteReview);
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-router.post('/:id/like', createLimiter, authenticate, likeReview);
+router.post(
+  '/:id/like',
+  createLimiter,
+  authenticate,
+  [
+    body('is_like').optional().isBoolean().withMessage('is_like must be a boolean'),
+  ],
+  validate,
+  likeReview
+);
 
 router.delete('/:id/like', generalLimiter, authenticate, unlikeReview);
 

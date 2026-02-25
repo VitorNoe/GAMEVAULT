@@ -14,6 +14,8 @@ import {
 } from '../controllers/rereleaseController';
 import { authenticate, authorizeAdmin, optionalAuth } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { body } from 'express-validator';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -113,7 +115,20 @@ router.post('/admin/:id/archive', generalLimiter, authenticate, authorizeAdmin, 
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.put('/admin/games/:gameId/availability', generalLimiter, authenticate, authorizeAdmin, changeAvailability);
+router.put(
+  '/admin/games/:gameId/availability',
+  generalLimiter,
+  authenticate,
+  authorizeAdmin,
+  [
+    body('availability_status')
+      .notEmpty().withMessage('availability_status is required')
+      .isIn(['available', 'out_of_catalog', 'expired_license', 'abandonware', 'public_domain', 'discontinued', 'rereleased'])
+      .withMessage('Invalid availability status'),
+  ],
+  validate,
+  changeAvailability
+);
 
 // ─── Public / Authenticated routes ───────────────────────────────────
 
@@ -216,7 +231,17 @@ router.get('/most-voted', generalLimiter, mostVoted);
  */
 router.get('/', generalLimiter, listRequests);
 
-router.post('/', createLimiter, authenticate, createRequest);
+router.post(
+  '/',
+  createLimiter,
+  authenticate,
+  [
+    body('game_id').isInt({ min: 1 }).withMessage('Valid game_id is required'),
+    body('reason').optional().isLength({ max: 1000 }).withMessage('Reason must be at most 1000 characters'),
+  ],
+  validate,
+  createRequest
+);
 
 /**
  * @openapi
@@ -347,7 +372,16 @@ router.delete('/:id', generalLimiter, authenticate, authorizeAdmin, deleteReques
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-router.post('/:gameId/vote', createLimiter, authenticate, vote);
+router.post(
+  '/:gameId/vote',
+  createLimiter,
+  authenticate,
+  [
+    body('comment').optional().isLength({ max: 500 }).withMessage('Comment must be at most 500 characters'),
+  ],
+  validate,
+  vote
+);
 
 router.delete('/:gameId/vote', generalLimiter, authenticate, unvote);
 

@@ -13,6 +13,8 @@ import {
 } from '../controllers/notificationController';
 import { authenticate, authorizeAdmin } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { body } from 'express-validator';
+import { validate } from '../middlewares/validate';
 
 const router = Router();
 
@@ -55,7 +57,19 @@ const router = Router();
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.post('/admin/test', createLimiter, authenticate, authorizeAdmin, adminSendTest);
+router.post(
+  '/admin/test',
+  createLimiter,
+  authenticate,
+  authorizeAdmin,
+  [
+    body('user_id').isInt({ min: 1 }).withMessage('Valid user_id is required'),
+    body('title').optional().isLength({ max: 255 }).withMessage('Title must be at most 255 characters'),
+    body('body').optional().isLength({ max: 1000 }).withMessage('Body must be at most 1000 characters'),
+  ],
+  validate,
+  adminSendTest
+);
 
 // ─── Settings (before /:id) ──────────────────────────────────────────
 
@@ -104,7 +118,18 @@ router.get('/settings', generalLimiter, authenticate, getSettings);
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-router.put('/settings/master', generalLimiter, authenticate, updateMaster);
+router.put(
+  '/settings/master',
+  generalLimiter,
+  authenticate,
+  [
+    body('in_app').optional().isBoolean().withMessage('in_app must be a boolean'),
+    body('email').optional().isBoolean().withMessage('email must be a boolean'),
+    body('push').optional().isBoolean().withMessage('push must be a boolean'),
+  ],
+  validate,
+  updateMaster
+);
 
 /**
  * @openapi
@@ -139,7 +164,19 @@ router.put('/settings/master', generalLimiter, authenticate, updateMaster);
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-router.put('/settings/bulk', generalLimiter, authenticate, bulkUpdate);
+router.put(
+  '/settings/bulk',
+  generalLimiter,
+  authenticate,
+  [
+    body('preferences').isArray({ min: 1 }).withMessage('preferences must be a non-empty array'),
+    body('preferences.*.type').notEmpty().withMessage('Each preference must have a type'),
+    body('preferences.*.in_app').optional().isBoolean().withMessage('in_app must be a boolean'),
+    body('preferences.*.email').optional().isBoolean().withMessage('email must be a boolean'),
+  ],
+  validate,
+  bulkUpdate
+);
 
 /**
  * @openapi
@@ -173,7 +210,17 @@ router.put('/settings/bulk', generalLimiter, authenticate, bulkUpdate);
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-router.put('/settings/:type', generalLimiter, authenticate, updatePreference);
+router.put(
+  '/settings/:type',
+  generalLimiter,
+  authenticate,
+  [
+    body('in_app').optional().isBoolean().withMessage('in_app must be a boolean'),
+    body('email').optional().isBoolean().withMessage('email must be a boolean'),
+  ],
+  validate,
+  updatePreference
+);
 
 // ─── Notifications CRUD ──────────────────────────────────────────────
 

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { authenticate, authorizeAdmin } from '../middlewares/auth';
 import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { body } from 'express-validator';
+import { validate } from '../middlewares/validate';
 import {
   // User management
   adminListUsers,
@@ -167,7 +169,17 @@ router.get('/users/:id', generalLimiter, adminGetUser);
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.put('/users/:id/role', createLimiter, adminChangeRole);
+router.put(
+  '/users/:id/role',
+  createLimiter,
+  [
+    body('role')
+      .notEmpty().withMessage('Role is required')
+      .isIn(['user', 'admin']).withMessage('Role must be user or admin'),
+  ],
+  validate,
+  adminChangeRole
+);
 
 /**
  * @openapi
@@ -348,7 +360,18 @@ router.get('/moderation/reviews', generalLimiter, adminListReviews);
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-router.put('/moderation/reviews/:id', createLimiter, adminModerateReview);
+router.put(
+  '/moderation/reviews/:id',
+  createLimiter,
+  [
+    body('action')
+      .notEmpty().withMessage('Action is required')
+      .isIn(['approve', 'flag', 'remove']).withMessage('Action must be approve, flag, or remove'),
+    body('reason').optional().isLength({ max: 500 }).withMessage('Reason must be at most 500 characters'),
+  ],
+  validate,
+  adminModerateReview
+);
 
 router.delete('/moderation/reviews/:id', createLimiter, adminDeleteReview);
 
