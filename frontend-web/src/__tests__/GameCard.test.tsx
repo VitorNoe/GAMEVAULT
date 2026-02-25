@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Game } from '../types/game.types';
+import GameCard from '../components/games/GameCard';
 
 // framer-motion is auto-mocked via src/__mocks__/framer-motion.tsx
 
@@ -13,8 +14,6 @@ jest.mock('../utils/imageUtils', () => ({
 jest.mock('../utils/animations', () => ({
     getLimitedStagger: (i: number) => i * 0.03,
 }));
-
-import GameCard from '../components/games/GameCard';
 
 const baseGame: Game = {
     id: 10, title: 'Celeste', slug: 'celeste',

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
+import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 
 // framer-motion is auto-mocked via src/__mocks__/framer-motion.tsx
 
@@ -23,8 +24,6 @@ jest.mock('../services/authService', () => ({
         getToken: (...args: any[]) => mockGetToken(...args),
     },
 }));
-
-import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 
 const AuthConsumer: React.FC = () => {
     const ctx = React.useContext(AuthContext);

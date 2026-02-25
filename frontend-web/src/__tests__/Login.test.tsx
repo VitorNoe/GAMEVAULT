@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { Login } from '../pages/Login';
 
 // framer-motion is auto-mocked via src/__mocks__/framer-motion.tsx
 
@@ -20,8 +21,6 @@ jest.mock('../hooks/useAuth', () => ({
         loading: false,
     }),
 }));
-
-import { Login } from '../pages/Login';
 
 const renderLogin = () =>
     render(

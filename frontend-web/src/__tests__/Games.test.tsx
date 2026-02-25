@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { Games } from '../pages/Games';
 
 // framer-motion is auto-mocked via src/__mocks__/framer-motion.tsx
 
@@ -21,8 +22,6 @@ jest.mock('../hooks/useAuth', () => ({
         user: null,
     }),
 }));
-
-import { Games } from '../pages/Games';
 
 const makePaginatedResponse = (games: any[], total = games.length) => ({
     success: true,
