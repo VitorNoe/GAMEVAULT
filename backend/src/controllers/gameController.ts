@@ -572,9 +572,13 @@ export const searchGames = async (req: Request, res: Response): Promise<void> =>
       limit,
       offset,
       order: [
-        [literal(`CASE WHEN LOWER("Game"."title") = LOWER('${sanitized}') THEN 0 WHEN LOWER("Game"."title") LIKE LOWER('${sanitized}%') THEN 1 ELSE 2 END`), 'ASC'],
+        [literal('CASE WHEN LOWER("Game"."title") = LOWER(:exactTitle) THEN 0 WHEN LOWER("Game"."title") LIKE LOWER(:prefixTitle) THEN 1 ELSE 2 END'), 'ASC'],
         ['title', 'ASC'],
       ],
+      bind: {
+        exactTitle: sanitized,
+        prefixTitle: `${sanitized}%`,
+      },
     });
 
     res.status(200).json({
