@@ -6,7 +6,7 @@
 COMPOSE = docker compose
 
 .PHONY: help up up-dev down build logs \
-        migrate seed db-setup \
+        migrate seed db-setup dev-setup \
         test lint shell-backend shell-frontend \
         clean
 
@@ -52,6 +52,13 @@ db-reset: ## Reset DB: drop volumes, reinit from schema+seed
 	@echo "Waiting for Postgres…"
 	@sleep 5
 	$(COMPOSE) up --build -d
+
+## ── Developer Onboarding ────────────────────────────────────
+dev-setup: ## One-command local dev setup (install, migrate, seed)
+	@bash scripts/dev-setup.sh
+
+dev-setup-docker: ## One-command Docker dev setup (everything in containers)
+	@bash scripts/dev-setup.sh --docker
 
 ## ── Quality ─────────────────────────────────────────────────
 test: ## Run backend + frontend tests locally

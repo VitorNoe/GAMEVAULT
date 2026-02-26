@@ -3,6 +3,72 @@
 
 ---
 
+# Developer Quick Start
+
+> **New to the project?** Get a working dev environment with demo data in
+> under 5 minutes.
+
+### Prerequisites
+
+- **Node.js 18+** and **npm 9+**
+- **Docker** and **Docker Compose v2**
+- **Git 2.30+**
+
+### One-command setup
+
+```bash
+# Clone & bootstrap (installs deps, starts DB, runs migrations, seeds demo data)
+git clone https://github.com/VitorNoe/GAMEVAULT.git
+cd GAMEVAULT
+./scripts/dev-setup.sh          # local Node + Docker DB
+# OR
+./scripts/dev-setup.sh --docker # everything in containers
+```
+
+### Start the servers (local mode)
+
+```bash
+# Terminal 1 — Backend API (http://localhost:3000)
+cd backend && npm run dev
+
+# Terminal 2 — Frontend UI (http://localhost:3001)
+cd frontend-web && npm start
+```
+
+### Useful endpoints
+
+| URL | Description |
+|---|---|
+| http://localhost:3000/api/docs | Swagger API documentation |
+| http://localhost:3000/api/health | Health check |
+| http://localhost:3000/metrics | Prometheus metrics |
+| http://localhost:3001 | Frontend application |
+
+### Demo accounts (password: `Password123!`)
+
+| Email | Role |
+|---|---|
+| `admin@gamevault.com` | Admin |
+| `john@example.com` | Regular user (large collection) |
+| `jane@example.com` | Regular user |
+| `demo@gamevault.com` | Regular user |
+| `speedrun@example.com` | Regular user |
+
+### Make shortcuts
+
+```bash
+make dev-setup          # local setup (same as ./scripts/dev-setup.sh)
+make dev-setup-docker   # Docker setup
+make db-setup           # run migrations + seed only
+make db-reset           # wipe DB and start fresh
+make test               # run all tests
+make logs               # follow Docker logs
+```
+
+> For the full contribution guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 # **1. PROJECT IDENTIFICATION**
 
 **Project Name:** GameVault
