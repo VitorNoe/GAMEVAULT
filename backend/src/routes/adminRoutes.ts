@@ -33,9 +33,10 @@ import {
 } from '../controllers/adminController';
 
 const router = Router();
+const adminLimiter = createLimiter('admin');
 
 // All routes require authentication + admin role
-router.use(authenticate, authorizeAdmin);
+router.use(adminLimiter, authenticate, authorizeAdmin);
 
 // ═══════════════════════════════════════════════════════════════════════
 // USER MANAGEMENT
