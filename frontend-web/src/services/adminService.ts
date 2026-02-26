@@ -134,4 +134,21 @@ export const adminService = {
     const response = await api.get('/admin/reports/review-trend');
     return response.data;
   },
+
+  // Report exports (CSV / PDF)
+  async exportReport(report: string, format: 'csv' | 'pdf' = 'csv', limit?: number) {
+    const response = await api.get(`/admin/reports/export/${report}`, {
+      params: { format, limit },
+      responseType: 'blob',
+    });
+    return response;
+  },
+
+  async exportDashboard(format: 'csv' | 'pdf' = 'csv') {
+    const response = await api.get('/admin/reports/export/dashboard', {
+      params: { format },
+      responseType: 'blob',
+    });
+    return response;
+  },
 };

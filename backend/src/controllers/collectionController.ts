@@ -12,6 +12,7 @@ import {
     successResponse,
     errorResponse,
 } from '../utils/helpers';
+import { toPdf, COLLECTION_HEADERS } from '../services/exportService';
 
 // ─── CRUD ────────────────────────────────────────────────────────────
 
@@ -483,8 +484,8 @@ export const exportCollection = async (req: AuthenticatedRequest, res: Response)
         }
 
         const exportFormat = (req.query.format as string || 'csv').toLowerCase();
-        if (!['csv', 'json'].includes(exportFormat)) {
-            res.status(400).json(errorResponse('Supported formats: csv, json'));
+        if (!['csv', 'json', 'pdf'].includes(exportFormat)) {
+            res.status(400).json(errorResponse('Supported formats: csv, json, pdf'));
             return;
         }
 
@@ -514,6 +515,19 @@ export const exportCollection = async (req: AuthenticatedRequest, res: Response)
                 total_items: items.length,
                 collection: items,
             });
+            return;
+        }
+
+        if (exportFormat === 'pdf') {
+            const pdfBuffer = await toPdf({
+                title: 'My Game Collection',
+                subtitle: `${items.length} items — exported by user #${userId}`,
+                headers: COLLECTION_HEADERS,
+                rows: items as unknown as Record<string, any>[],
+            });
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename="gamevault_collection.pdf"');
+            res.status(200).send(pdfBuffer);
             return;
         }
 

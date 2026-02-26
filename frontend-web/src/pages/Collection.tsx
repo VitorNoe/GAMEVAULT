@@ -9,6 +9,19 @@ import { Pagination } from '../components/common/Pagination';
 import { CollectionStats } from '../components/games/CollectionStats';
 import { ROUTES } from '../utils/constants';
 
+/** Trigger a file download from a blob response or raw data */
+function downloadFile(data: any, filename: string, mime: string) {
+    const blob = data instanceof Blob ? data : new Blob([typeof data === 'string' ? data : JSON.stringify(data, null, 2)], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
 const STATUS_FILTERS = [
     { value: '', label: 'All Games', icon: '📚' },
     { value: 'playing', label: 'Playing', icon: '🎮' },
@@ -83,16 +96,72 @@ export const Collection: React.FC = () => {
         setPage(1);
     };
 
+    const [exporting, setExporting] = useState(false);
+    const handleExport = async (format: 'csv' | 'json' | 'pdf') => {
+        try {
+            setExporting(true);
+            if (format === 'pdf') {
+                const response = await collectionService.exportCollection('pdf');
+                downloadFile(response.data, 'gamevault_collection.pdf', 'application/pdf');
+            } else if (format === 'csv') {
+                const data = await collectionService.exportCollection('csv');
+                downloadFile(data, 'gamevault_collection.csv', 'text/csv');
+            } else {
+                const data = await collectionService.exportCollection('json');
+                downloadFile(data, 'gamevault_collection.json', 'application/json');
+            }
+        } catch {
+            // silent
+        } finally {
+            setExporting(false);
+        }
+    };
+
     if (loading && items.length === 0 && !error) return <Loading />;
 
     return (
         <div className="space-y-6">
             {/* Page Header */}
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-                <h1 className="text-4xl font-extrabold gradient-text mb-2">My Collection</h1>
-                <p className="text-gray-400">
-                    {totalItems > 0 ? `${totalItems} games in your collection` : 'Your personal game library'}
-                </p>
+                <div className="flex items-start justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 className="text-4xl font-extrabold gradient-text mb-2">My Collection</h1>
+                        <p className="text-gray-400">
+                            {totalItems > 0 ? `${totalItems} games in your collection` : 'Your personal game library'}
+                        </p>
+                    </div>
+                    {totalItems > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                disabled={exporting}
+                                onClick={() => handleExport('csv')}
+                                className="px-3 py-2 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
+                            >
+                                📄 Export CSV
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                disabled={exporting}
+                                onClick={() => handleExport('pdf')}
+                                className="px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                            >
+                                📕 Export PDF
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                disabled={exporting}
+                                onClick={() => handleExport('json')}
+                                className="px-3 py-2 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                            >
+                                💾 Export JSON
+                            </motion.button>
+                        </div>
+                    )}
+                </div>
             </motion.div>
 
             {/* Collection Stats */}

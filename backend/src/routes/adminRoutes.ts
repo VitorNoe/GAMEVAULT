@@ -27,6 +27,9 @@ import {
   adminRereleasesSummary,
   adminRegistrationTrend,
   adminReviewTrend,
+  // Report exports
+  adminExportReport,
+  adminExportDashboard,
 } from '../controllers/adminController';
 
 const router = Router();
@@ -611,5 +614,75 @@ router.get('/reports/registration-trend', generalLimiter, adminRegistrationTrend
  *         $ref: '#/components/responses/Forbidden'
  */
 router.get('/reports/review-trend', generalLimiter, adminReviewTrend);
+
+// ═══════════════════════════════════════════════════════════════════════
+// REPORT EXPORTS (CSV / PDF)
+// ═══════════════════════════════════════════════════════════════════════
+
+/**
+ * @openapi
+ * /admin/reports/export/dashboard:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Export dashboard overview as CSV or PDF
+ *     description: Download the platform dashboard stats in CSV or PDF format.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: format
+ *         schema:
+ *           type: string
+ *           enum: [csv, pdf]
+ *           default: csv
+ *     responses:
+ *       200:
+ *         description: File download
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ */
+router.get('/reports/export/dashboard', generalLimiter, adminExportDashboard);
+
+/**
+ * @openapi
+ * /admin/reports/export/{report}:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Export an admin report as CSV or PDF
+ *     description: |
+ *       Available reports: top-games, most-reviewed, active-users, rereleases, registration-trend, review-trend.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: report
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [top-games, most-reviewed, active-users, rereleases, registration-trend, review-trend]
+ *       - in: query
+ *         name: format
+ *         schema:
+ *           type: string
+ *           enum: [csv, pdf]
+ *           default: csv
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *     responses:
+ *       200:
+ *         description: File download
+ *       400:
+ *         description: Unknown report
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ */
+router.get('/reports/export/:report', generalLimiter, adminExportReport);
 
 export default router;

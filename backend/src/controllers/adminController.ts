@@ -39,6 +39,13 @@ import {
   getReviewTrend,
 } from '../services/reportsService';
 
+// Export service (CSV / PDF)
+import {
+  toCsv,
+  toPdf,
+  REPORT_DEFINITIONS,
+} from '../services/exportService';
+
 // ═══════════════════════════════════════════════════════════════════════
 // USER MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════
@@ -424,5 +431,136 @@ export const adminReviewTrend = async (_req: AuthenticatedRequest, res: Response
   } catch (error: any) {
     console.error('Review trend error:', error);
     res.status(500).json(errorResponse('Error fetching review trend'));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// REPORT EXPORTS (CSV / PDF)
+// ═══════════════════════════════════════════════════════════════════════
+
+type ReportKey = 'top-games' | 'most-reviewed' | 'active-users' | 'rereleases' | 'registration-trend' | 'review-trend';
+
+/** Resolve data for a given report key */
+async function resolveReportData(report: ReportKey, limit: number): Promise<Record<string, any>[]> {
+  switch (report) {
+    case 'top-games':
+      return (await getTopGames(limit)) as unknown as Record<string, any>[];
+    case 'most-reviewed':
+      return (await getMostReviewedGames(limit)) as unknown as Record<string, any>[];
+    case 'active-users':
+      return (await getMostActiveUsers(limit)) as unknown as Record<string, any>[];
+    case 'rereleases':
+      return (await getRereleaseRequestsSummary(limit)) as unknown as Record<string, any>[];
+    case 'registration-trend':
+      return (await getUserRegistrationTrend()) as unknown as Record<string, any>[];
+    case 'review-trend':
+      return (await getReviewTrend()) as unknown as Record<string, any>[];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Export any admin report as CSV or PDF.
+ * GET /api/admin/reports/export/:report?format=csv|pdf&limit=50
+ */
+export const adminExportReport = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const report = req.params.report as ReportKey;
+    const format = ((req.query.format as string) || 'csv').toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 100, 500);
+
+    const definition = REPORT_DEFINITIONS[report];
+    if (!definition) {
+      res.status(400).json(errorResponse(
+        `Unknown report: ${report}. Available: ${Object.keys(REPORT_DEFINITIONS).join(', ')}`,
+      ));
+      return;
+    }
+
+    if (!['csv', 'pdf'].includes(format)) {
+      res.status(400).json(errorResponse('Supported formats: csv, pdf'));
+      return;
+    }
+
+    const data = await resolveReportData(report, limit);
+
+    if (format === 'pdf') {
+      const pdfBuffer = await toPdf({
+        title: definition.title,
+        subtitle: `Admin Report — ${data.length} rows`,
+        headers: definition.headers,
+        rows: data,
+      });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="gamevault_${report}.pdf"`);
+      res.status(200).send(pdfBuffer);
+      return;
+    }
+
+    // CSV
+    const csv = toCsv(definition.headers, data);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="gamevault_${report}.csv"`);
+    res.status(200).send(csv);
+  } catch (error: any) {
+    console.error('Export report error:', error);
+    res.status(500).json(errorResponse('Error exporting report'));
+  }
+};
+
+/**
+ * Dashboard overview export as CSV or PDF.
+ * GET /api/admin/reports/export/dashboard?format=csv|pdf
+ */
+export const adminExportDashboard = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const format = ((req.query.format as string) || 'csv').toLowerCase();
+    if (!['csv', 'pdf'].includes(format)) {
+      res.status(400).json(errorResponse('Supported formats: csv, pdf'));
+      return;
+    }
+
+    const stats = await getDashboardStats();
+
+    // Flatten the dashboard object into key-value rows
+    const rows: Record<string, any>[] = [];
+    const addSection = (section: string, data: Record<string, any>) => {
+      for (const [key, value] of Object.entries(data)) {
+        rows.push({ section, metric: key, value });
+      }
+    };
+    addSection('Users', stats.users);
+    addSection('Games', stats.games);
+    addSection('Reviews', stats.reviews);
+    addSection('Media', stats.media);
+    addSection('Re-releases', stats.rereleases);
+
+    const headers = [
+      { key: 'section', label: 'Section', width: 150 },
+      { key: 'metric', label: 'Metric', width: 200 },
+      { key: 'value', label: 'Value', width: 150 },
+    ];
+
+    if (format === 'pdf') {
+      const pdfBuffer = await toPdf({
+        title: 'Dashboard Overview',
+        subtitle: 'Platform-wide aggregate statistics',
+        headers,
+        rows,
+      });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="gamevault_dashboard.pdf"');
+      res.status(200).send(pdfBuffer);
+      return;
+    }
+
+    const csv = toCsv(headers, rows);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="gamevault_dashboard.csv"');
+    res.status(200).send(csv);
+  } catch (error: any) {
+    console.error('Export dashboard error:', error);
+    res.status(500).json(errorResponse('Error exporting dashboard'));
   }
 };

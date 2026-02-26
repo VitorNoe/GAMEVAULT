@@ -31,4 +31,6 @@ export {
   adminRereleasesSummary,
   adminRegistrationTrend,
   adminReviewTrend,
+  adminExportReport,
+  adminExportDashboard,
 } from './adminController';

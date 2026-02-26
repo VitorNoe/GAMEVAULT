@@ -89,7 +89,14 @@ export const collectionService = {
     return response.data;
   },
 
-  async exportCollection(format: 'csv' | 'json' = 'json') {
+  async exportCollection(format: 'csv' | 'json' | 'pdf' = 'json') {
+    if (format === 'pdf') {
+      const response = await api.get('/collection/export', {
+        params: { format },
+        responseType: 'blob',
+      });
+      return response;
+    }
     const response = await api.get('/collection/export', { params: { format } });
     return response.data;
   },

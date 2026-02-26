@@ -11,6 +11,18 @@ import { ROUTES } from '../utils/constants';
 
 type Tab = 'dashboard' | 'users' | 'moderation' | 'logs';
 
+/** Trigger a file download from a blob response */
+function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
@@ -26,6 +38,7 @@ const DashboardTab: React.FC = () => {
     const [report, setReport] = useState<DashboardReport | null>(null);
     const [topGames, setTopGames] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -40,6 +53,20 @@ const DashboardTab: React.FC = () => {
         };
         load();
     }, []);
+
+    const handleExport = async (reportType: string, format: 'csv' | 'pdf') => {
+        try {
+            setExporting(true);
+            let response;
+            if (reportType === 'dashboard') {
+                response = await adminService.exportDashboard(format);
+            } else {
+                response = await adminService.exportReport(reportType, format);
+            }
+            const ext = format === 'pdf' ? 'pdf' : 'csv';
+            downloadBlob(response.data, `gamevault_${reportType}.${ext}`);
+        } catch { } finally { setExporting(false); }
+    };
 
     if (loading) return <Loading />;
     if (!report) return <ErrorMessage message="Failed to load dashboard" />;
@@ -87,6 +114,52 @@ const DashboardTab: React.FC = () => {
                     </div>
                 </motion.div>
             )}
+
+            {/* Export Reports Section */}
+            <motion.div variants={itemVariants} className="glass-card p-5 rounded-xl">
+                <h3 className="text-lg font-bold text-white mb-4">📥 Export Reports</h3>
+                <p className="text-sm text-gray-400 mb-4">Download platform reports as CSV or PDF files.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                        { key: 'dashboard', label: 'Dashboard Overview', icon: '📊' },
+                        { key: 'top-games', label: 'Top Rated Games', icon: '🏆' },
+                        { key: 'most-reviewed', label: 'Most Reviewed Games', icon: '📝' },
+                        { key: 'active-users', label: 'Most Active Users', icon: '👥' },
+                        { key: 'rereleases', label: 'Re-release Requests', icon: '🔄' },
+                        { key: 'registration-trend', label: 'Registration Trend', icon: '📈' },
+                        { key: 'review-trend', label: 'Review Trend', icon: '⭐' },
+                    ].map((item) => (
+                        <div key={item.key} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                            <div className="flex items-center gap-2">
+                                <span>{item.icon}</span>
+                                <span className="text-sm text-white font-medium">{item.label}</span>
+                            </div>
+                            <div className="flex gap-1">
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    disabled={exporting}
+                                    onClick={() => handleExport(item.key, 'csv')}
+                                    className="px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
+                                    title="Download CSV"
+                                >
+                                    CSV
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    disabled={exporting}
+                                    onClick={() => handleExport(item.key, 'pdf')}
+                                    className="px-2 py-1 rounded text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                    title="Download PDF"
+                                >
+                                    PDF
+                                </motion.button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
         </motion.div>
     );
 };
