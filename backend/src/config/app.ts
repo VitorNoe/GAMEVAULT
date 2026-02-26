@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -41,7 +42,7 @@ const config: AppConfig = {
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigin: parseCorsOrigin(),
   jwt: {
-    secret: process.env.JWT_SECRET || 'dev_secret_change_in_production_' + Math.random().toString(36),
+    secret: process.env.JWT_SECRET || 'dev_secret_change_in_production_' + crypto.randomBytes(32).toString('hex'),
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   },
   rawgApiKey: process.env.RAWG_API_KEY || '',
