@@ -215,9 +215,9 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
       case 'relevance':
       default:
         if (search) {
-          const q = sanitizeSearchQuery(search as string);
+          // When sorting by relevance with a search term, avoid using a raw SQL literal
+          // built from user input. Fall back to a safe, deterministic ordering.
           order = [
-            [literal(`CASE WHEN LOWER("Game"."title") = LOWER('${q}') THEN 0 WHEN LOWER("Game"."title") LIKE LOWER('${q}%') THEN 1 ELSE 2 END`), 'ASC'],
             ['metacritic_score', 'DESC NULLS LAST'],
             ['title', 'ASC'],
           ];
