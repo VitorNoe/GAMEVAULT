@@ -111,7 +111,8 @@ app.get('/metrics', async (_req, res) => {
     res.set('Content-Type', metricsRegister.contentType);
     res.end(await metricsRegister.metrics());
   } catch (err) {
-    res.status(500).end(String(err));
+    console.error('Error while serving /metrics endpoint:', err);
+    res.status(500).end('Internal server error');
   }
 });
 
