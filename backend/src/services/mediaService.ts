@@ -45,7 +45,32 @@ export interface MediaWithUrl extends Record<string, unknown> {
 // ─── Folder conventions ──────────────────────────────────────────────
 
 function resolveFolder(entityType: MediaEntityType, category: MediaCategory): string {
-  return `${entityType}s/${category}`;
+  // Normalize entityType to a safe, known set of folder names
+  const allowedEntityTypes: Record<string, string> = {
+    game: 'game',
+    user: 'user',
+    general: 'general',
+    // add other valid entity types here as needed, mapping to their folder names
+  };
+
+  const normalizedEntityTypeKey = String(entityType).toLowerCase();
+  const safeEntityType = allowedEntityTypes[normalizedEntityTypeKey] ?? 'general';
+
+  // Normalize category to a safe, known set of folder names
+  const allowedCategories: Record<string, string> = {
+    avatar: 'avatar',
+    cover: 'cover',
+    screenshot: 'screenshot',
+    trailer: 'trailer',
+    document: 'document',
+    other: 'other',
+    // add other valid categories here as needed, mapping to their folder names
+  };
+
+  const normalizedCategoryKey = String(category).toLowerCase();
+  const safeCategory = allowedCategories[normalizedCategoryKey] ?? 'other';
+
+  return `${safeEntityType}s/${safeCategory}`;
 }
 
 // ─── Upload single file ──────────────────────────────────────────────
