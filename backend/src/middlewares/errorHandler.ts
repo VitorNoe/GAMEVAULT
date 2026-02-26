@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ValidationError, UniqueConstraintError, DatabaseError } from 'sequelize';
 import { AppError } from '../utils/AppError';
+import { Sentry } from '../config/sentry';
 
 /**
  * Enhanced error handling middleware with specific error types
@@ -17,6 +18,11 @@ export const errorHandler = (
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
+
+  // Report non-client errors to Sentry
+  if (!(err instanceof AppError && err.statusCode < 500)) {
+    Sentry.captureException(err);
+  }
 
   // Handle AppError (our custom error)
   if (err instanceof AppError) {

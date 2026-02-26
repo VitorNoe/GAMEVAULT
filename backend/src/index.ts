@@ -12,10 +12,22 @@ import sequelize from './config/database';
 import swaggerSpec from './config/swagger';
 import appConfig from './config/app';
 
+// ─── Observability ────────────────────────────────────────────────────
+import initSentry, { Sentry } from './config/sentry';
+import metricsMiddleware from './middlewares/metrics';
+import metricsRegister from './config/metrics';
+
 dotenv.config();
+
+// Sentry must be initialised before any other middleware / imports that
+// should be instrumented.
+initSentry();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── Prometheus metrics middleware (must be early) ────────────────────
+app.use(metricsMiddleware);
 
 // ─── Security Headers (helmet) ────────────────────────────────────────
 // Relaxed CSP only for the Swagger UI path; strict for everything else.
@@ -93,6 +105,16 @@ app.get('/api/docs.json', (_req, res) => {
   res.send(swaggerSpec);
 });
 
+// ─── Prometheus metrics endpoint ──────────────────────────────────────
+app.get('/metrics', async (_req, res) => {
+  try {
+    res.set('Content-Type', metricsRegister.contentType);
+    res.end(await metricsRegister.metrics());
+  } catch (err) {
+    res.status(500).end(String(err));
+  }
+});
+
 // Routes
 app.use('/api', routes);
 
@@ -117,6 +139,12 @@ app.get('/', (_req, res) => {
 
 // Error handling middleware
 app.use(notFound);
+
+// Sentry error handler must come AFTER routes but BEFORE our custom handler
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
 app.use(errorHandler);
 
 // Initialize database and start server
@@ -145,6 +173,7 @@ const startServer = async (): Promise<void> => {
       console.log(`✅ CORS enabled for: ${process.env.CORS_ORIGIN}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
       console.log(`📖 API Docs: http://localhost:${PORT}/api/docs`);
+      console.log(`📊 Metrics: http://localhost:${PORT}/metrics`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
