@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorizeAdmin } from '../middlewares/auth';
-import { generalLimiter, createLimiter } from '../middlewares/rateLimiter';
+import { generalLimiter, createLimiter, adminLimiter } from '../middlewares/rateLimiter';
 import { body } from 'express-validator';
 import { validate } from '../middlewares/validate';
 import {
@@ -34,8 +34,8 @@ import {
 
 const router = Router();
 
-// All routes require authentication + admin role
-router.use(authenticate, authorizeAdmin);
+// All routes require rate limiting + authentication + admin role
+router.use(adminLimiter, authenticate, authorizeAdmin);
 
 // ═══════════════════════════════════════════════════════════════════════
 // USER MANAGEMENT

@@ -50,3 +50,19 @@ export const createLimiter = rateLimit({
     message: 'Too many creation requests, please try again later.'
   },
 });
+
+/**
+ * Admin route rate limiter
+ * Development: 300 requests per 5 minutes
+ * Production: 60 requests per 15 minutes
+ */
+export const adminLimiter = rateLimit({
+  windowMs: isDevelopment ? 5 * 60 * 1000 : 15 * 60 * 1000,
+  max: isDevelopment ? 300 : 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many admin requests, please try again later.'
+  },
+});
