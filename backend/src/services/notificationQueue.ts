@@ -55,7 +55,7 @@ async function processNext(): Promise<void> {
   try {
     await processJob(job);
   } catch (err) {
-    console.error(`[NotificationQueue] Error processing ${job.channel} job for user ${job.userId}:`, err);
+    console.error('[NotificationQueue] Error processing job', { channel: job.channel, userId: job.userId }, err);
   }
 
   // Short delay then next job
