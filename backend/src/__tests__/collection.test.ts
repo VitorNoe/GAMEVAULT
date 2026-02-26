@@ -480,7 +480,7 @@ describe('exportCollection', () => {
   });
 
   it('should return 400 for unsupported format', async () => {
-    const req = mockReq({ query: { format: 'pdf' } });
+    const req = mockReq({ query: { format: 'xml' } });
     const res = mockRes();
 
     await exportCollection(req, res);
