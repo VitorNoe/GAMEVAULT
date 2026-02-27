@@ -75,7 +75,7 @@ Review.init(
       },
     },
     rating: {
-      type: DataTypes.DECIMAL(3, 2),
+      type: DataTypes.DECIMAL(4, 2),
       allowNull: false,
       validate: {
         min: 0,

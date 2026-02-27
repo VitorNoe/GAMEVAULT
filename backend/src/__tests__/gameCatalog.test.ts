@@ -97,9 +97,17 @@ const mockFindOne = jest.fn();
 const mockCreate = jest.fn();
 const mockDestroy = jest.fn();
 
+// The controller now uses Game.count() + Game.findAll() instead of findAndCountAll.
+// We keep mockFindAndCountAll as the test-facing API so existing tests need minimal changes.
+// Game.count resolves with the `count` value and Game.findAll with `rows`.
+const mockCount = jest.fn();
+const mockFindAll = jest.fn();
+
 jest.mock('../models', () => ({
   Game: {
     findAndCountAll: (...args: any[]) => mockFindAndCountAll(...args),
+    count: (...args: any[]) => mockCount(...args),
+    findAll: (...args: any[]) => mockFindAll(...args),
     findByPk: (...args: any[]) => mockFindByPk(...args),
     findOne: (...args: any[]) => mockFindOne(...args),
     create: (...args: any[]) => mockCreate(...args),
@@ -185,6 +193,24 @@ function mockRes(): Response {
 beforeEach(() => {
   jest.clearAllMocks();
   (catalogCache as any)._store.clear();
+
+  // Bridge: when tests call mockFindAndCountAll.mockResolvedValue({ count, rows }),
+  // automatically wire mockCount and mockFindAll so the controller code works.
+  const origMockResolvedValue = mockFindAndCountAll.mockResolvedValue.bind(mockFindAndCountAll);
+  mockFindAndCountAll.mockResolvedValue = (val: any) => {
+    if (val && typeof val === 'object' && 'count' in val && 'rows' in val) {
+      mockCount.mockResolvedValue(val.count);
+      mockFindAll.mockResolvedValue(val.rows);
+    }
+    return origMockResolvedValue(val);
+  };
+  // Also handle mockRejectedValue for error tests
+  const origMockRejectedValue = mockFindAndCountAll.mockRejectedValue.bind(mockFindAndCountAll);
+  mockFindAndCountAll.mockRejectedValue = (err: any) => {
+    mockCount.mockRejectedValue(err);
+    mockFindAll.mockRejectedValue(err);
+    return origMockRejectedValue(err);
+  };
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -222,7 +248,7 @@ describe('GET /api/games – getAllGames', () => {
     await getAllGames(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     // WHERE clause should contain Op.or for search
     expect(opts.where).toBeDefined();
     // Ensure the search is passed through
@@ -327,7 +353,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.order[0]).toEqual(['title', 'ASC']);
   });
 
@@ -339,7 +365,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.order[0]).toEqual(['release_date', 'DESC']);
   });
 
@@ -351,7 +377,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.order[0]).toEqual(['average_rating', 'DESC']);
   });
 
@@ -363,7 +389,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.order[0]).toEqual(['metacritic_score', 'DESC']);
   });
 
@@ -375,7 +401,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.order[0]).toEqual(['created_at', 'DESC']);
   });
 
@@ -389,7 +415,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.limit).toBe(10);
     expect(opts.offset).toBe(20); // (3-1)*10
   });
@@ -402,7 +428,7 @@ describe('GET /api/games – getAllGames', () => {
     const res = mockRes();
     await getAllGames(req, res);
 
-    const opts = mockFindAndCountAll.mock.calls[0][0];
+    const opts = mockFindAll.mock.calls[0][0];
     expect(opts.limit).toBe(100);
   });
 
@@ -470,7 +496,7 @@ describe('GET /api/games – getAllGames', () => {
     await getAllGames(req, res2);
 
     // DB should only be called once (second time serves cache)
-    expect(mockFindAndCountAll).toHaveBeenCalledTimes(1);
+    expect(mockFindAll).toHaveBeenCalledTimes(1);
     expect(res2.status).toHaveBeenCalledWith(200);
   });
 

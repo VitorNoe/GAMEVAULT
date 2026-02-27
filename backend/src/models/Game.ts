@@ -161,7 +161,7 @@ Game.init(
       allowNull: true
     },
     average_rating: {
-      type: DataTypes.DECIMAL(3, 2),
+      type: DataTypes.DECIMAL(4, 2),
       allowNull: true
     },
     total_reviews: {

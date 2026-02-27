@@ -85,7 +85,7 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
     LEFT JOIN developers d ON d.id = g.developer_id
     LEFT JOIN publishers p ON p.id = g.publisher_id
     LEFT JOIN (
-      SELECT game_id, AVG(rating)::numeric(3,2) AS avg_rating, COUNT(*)::int AS review_count
+      SELECT game_id, AVG(rating)::numeric(4,2) AS avg_rating, COUNT(*)::int AS review_count
       FROM reviews GROUP BY game_id
     ) rv ON rv.game_id = g.id
     LEFT JOIN rerelease_requests rr ON rr.game_id = g.id

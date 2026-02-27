@@ -125,10 +125,11 @@ beforeEach(() => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('register', () => {
-  it('should register a new user and send verification email', async () => {
+  it('should register a new user and auto-verify in dev mode', async () => {
+    const userObj = freshUser({ email_verified: false });
     (User.findOne as jest.Mock).mockResolvedValue(null);
     (User.hashPassword as jest.Mock).mockResolvedValue('hashed_pw');
-    (User.create as jest.Mock).mockResolvedValue(freshUser({ email_verified: false }));
+    (User.create as jest.Mock).mockResolvedValue(userObj);
 
     const req = mockReq({ body: { name: 'Test', email: 'test@example.com', password: 'Password1!' } });
     const res = mockRes();
@@ -142,7 +143,9 @@ describe('register', () => {
         email_verification_token: 'hashed_token_hex',
       })
     );
-    expect(sendVerificationEmail).toHaveBeenCalledWith('test@example.com', 'Test', 'raw_token_hex');
+    // In dev mode (NODE_ENV !== 'production'), auto-verify instead of sending email
+    expect(sendVerificationEmail).not.toHaveBeenCalled();
+    expect(userObj.update).toHaveBeenCalledWith({ email_verified: true, email_verification_token: null });
     expect(res.status).toHaveBeenCalledWith(201);
   });
 

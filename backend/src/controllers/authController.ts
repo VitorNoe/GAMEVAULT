@@ -64,20 +64,27 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       email_verification_token: hashedToken,
     });
 
-    // Send verification email (dev mode: logged to console)
-    await sendVerificationEmail(email, name, rawToken);
+    // In development mode, auto-verify so users can log in immediately
+    const isDevMode = process.env.NODE_ENV !== 'production';
+    if (isDevMode) {
+      await user.update({ email_verified: true, email_verification_token: null });
+    } else {
+      // Send verification email (production)
+      await sendVerificationEmail(email, name, rawToken);
+    }
 
     res.status(201).json({
       success: true,
-      message:
-        'User registered successfully. Please check your email to verify your account.',
+      message: isDevMode
+        ? 'User registered successfully. You can log in now.'
+        : 'User registered successfully. Please check your email to verify your account.',
       data: {
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           type: user.type,
-          email_verified: user.email_verified,
+          email_verified: isDevMode ? true : user.email_verified,
         },
       },
     });

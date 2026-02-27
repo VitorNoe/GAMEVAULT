@@ -239,7 +239,7 @@ CREATE TABLE games (
     abandonment_reason TEXT,
     development_percentage INTEGER CHECK (development_percentage >= 0 AND development_percentage <= 100),
     age_rating VARCHAR(20),
-    average_rating DECIMAL(3,2) CHECK (average_rating >= 0 AND average_rating <= 10),
+    average_rating DECIMAL(4,2) CHECK (average_rating >= 0 AND average_rating <= 10),
     total_reviews INTEGER NOT NULL DEFAULT 0,
     is_early_access BOOLEAN NOT NULL DEFAULT FALSE,
     was_rereleased BOOLEAN NOT NULL DEFAULT FALSE,
@@ -344,7 +344,7 @@ CREATE TABLE reviews (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
     platform_id INTEGER REFERENCES platforms(id) ON DELETE SET NULL,
-    rating DECIMAL(3,2) NOT NULL CHECK (rating >= 0 AND rating <= 10),
+    rating DECIMAL(4,2) NOT NULL CHECK (rating >= 0 AND rating <= 10),
     review_text TEXT,
     has_spoilers BOOLEAN NOT NULL DEFAULT FALSE,
     hours_played INTEGER,
@@ -569,7 +569,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     target_game_id INTEGER;
     review_count INTEGER;
-    avg_rating DECIMAL(3,2);
+    avg_rating DECIMAL(4,2);
 BEGIN
     -- Determine which game_id to use based on operation type
     target_game_id := CASE WHEN TG_OP = 'DELETE' THEN OLD.game_id ELSE NEW.game_id END;

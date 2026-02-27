@@ -228,15 +228,47 @@ export const getAllGames = async (req: Request, res: Response): Promise<void> =>
     }
 
     // ── Execute query ──
+    // Split count + findAll to avoid PostgreSQL GROUP BY error with
+    // findAndCountAll when multiple belongsToMany includes are present.
     const hasRelationFilter = platformIds.length > 0 || genreIds.length > 0 || wantAwards;
 
-    const { count, rows: games } = await Game.findAndCountAll({
+    // Build a minimal include list containing only the filtering associations
+    const countInclude: Includeable[] = [];
+    if (platformIds.length > 0) {
+      countInclude.push({
+        model: Platform, as: 'platforms', attributes: [],
+        through: { attributes: [] },
+        where: { id: { [Op.in]: platformIds } },
+      });
+    }
+    if (genreIds.length > 0) {
+      countInclude.push({
+        model: Genre, as: 'genres', attributes: [],
+        through: { attributes: [] },
+        where: { id: { [Op.in]: genreIds } },
+      });
+    }
+    if (wantAwards) {
+      countInclude.push({
+        model: Award, as: 'awards', attributes: [],
+        through: { attributes: [] },
+        required: true,
+      });
+    }
+
+    const count = await Game.count({
+      where,
+      ...(countInclude.length > 0 && { include: countInclude }),
+      distinct: true,
+      col: 'id',
+    });
+
+    const games = await Game.findAll({
       where,
       include,
       order,
       limit,
       offset,
-      distinct: true,
       subQuery: !hasRelationFilter,
     });
 
