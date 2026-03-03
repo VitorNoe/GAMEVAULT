@@ -84,7 +84,15 @@ class ApiService {
   // ── Response handler ──
 
   Map<String, dynamic> _handleResponse(http.Response response) {
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    Map<String, dynamic> body;
+    try {
+      body = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw ApiException(
+        'Unexpected server response (${response.statusCode})',
+        statusCode: response.statusCode,
+      );
+    }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
@@ -111,7 +119,10 @@ class ApiService {
     Map<String, String>? queryParams,
   }) async {
     try {
-      final uri = Uri.parse('$_baseUrl$path').replace(queryParameters: queryParams);
+      var uri = Uri.parse('$_baseUrl$path');
+      if (queryParams != null && queryParams.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParams);
+      }
       final headers = await _buildHeaders(auth: auth);
       final response = await _client
           .get(uri, headers: headers)

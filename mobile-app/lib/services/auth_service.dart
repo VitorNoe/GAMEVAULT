@@ -34,24 +34,23 @@ class AuthService {
   }
 
   /// Register a new account.
+  ///
+  /// The backend register endpoint does NOT return a token — it only creates
+  /// the user.  After a successful registration we automatically log in so
+  /// the caller receives a valid [AuthResult] with a token.
   Future<AuthResult> register({
     required String name,
     required String email,
     required String password,
   }) async {
-    final response = await _api.post(
+    // Step 1: register the new account
+    await _api.post(
       '/auth/register',
       body: {'name': name, 'email': email, 'password': password},
     );
 
-    final data = response['data'] as Map<String, dynamic>;
-    final user = User.fromJson(data['user'] as Map<String, dynamic>);
-    final token = data['token'] as String;
-
-    await _api.saveToken(token);
-    await _api.saveUserData(jsonEncode(user.toJson()));
-
-    return AuthResult(user: user, token: token);
+    // Step 2: immediately log in to obtain a token
+    return login(email: email, password: password);
   }
 
   /// Get current authenticated user profile.

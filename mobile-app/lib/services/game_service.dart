@@ -73,29 +73,19 @@ class GameService {
   }
 
   /// Search games by text query.
+  ///
+  /// Uses the main `/games` endpoint with a `search` parameter because the
+  /// dedicated `/games/search` endpoint may not be available in all backend
+  /// versions.
   Future<PaginatedGames> searchGames({
     required String query,
     int page = 1,
     int limit = 20,
   }) async {
-    final response = await _api.get('/games/search', queryParams: {
-      'q': query,
-      'page': page.toString(),
-      'limit': limit.toString(),
-    });
-
-    final data = response['data'] as Map<String, dynamic>;
-    final pagination = data['pagination'] as Map<String, dynamic>? ?? {};
-    final gamesJson = data['games'] as List<dynamic>? ?? [];
-    final games = gamesJson
-        .map((g) => Game.fromJson(g as Map<String, dynamic>))
-        .toList();
-
-    return PaginatedGames(
-      games: games,
-      total: pagination['total'] as int? ?? games.length,
-      page: pagination['page'] as int? ?? page,
-      totalPages: pagination['totalPages'] as int? ?? 1,
+    return getAllGames(
+      page: page,
+      limit: limit,
+      search: query,
     );
   }
 

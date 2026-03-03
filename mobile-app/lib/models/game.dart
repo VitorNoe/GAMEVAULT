@@ -199,6 +199,59 @@ class Game {
   });
 
   factory Game.fromJson(Map<String, dynamic> json) {
+    // ── Developer / Publisher ──
+    // The backend may return these as objects: { "name": "..." } or as plain
+    // strings (developer_name / publisher_name).  We normalise to a String?.
+    String? developerName = json['developer_name'] as String?;
+    if (developerName == null && json['developer'] is Map) {
+      developerName = (json['developer'] as Map<String, dynamic>)['name'] as String?;
+    }
+    String? publisherName = json['publisher_name'] as String?;
+    if (publisherName == null && json['publisher'] is Map) {
+      publisherName = (json['publisher'] as Map<String, dynamic>)['name'] as String?;
+    }
+
+    // ── Genres ──
+    // Backend returns either a comma-separated string ("Action,RPG") or a
+    // List of objects [{ "name": "Action" }, …].
+    String? genres;
+    if (json['genres'] is String) {
+      genres = json['genres'] as String?;
+    } else if (json['genres'] is List) {
+      final list = json['genres'] as List<dynamic>;
+      genres = list
+          .map((g) => g is Map<String, dynamic> ? (g['name'] ?? '') : g.toString())
+          .where((g) => g.toString().isNotEmpty)
+          .join(', ');
+      if (genres.isEmpty) genres = null;
+    }
+
+    // ── Platforms ──
+    String? platforms;
+    if (json['platforms'] is String) {
+      platforms = json['platforms'] as String?;
+    } else if (json['platforms'] is List) {
+      final list = json['platforms'] as List<dynamic>;
+      platforms = list
+          .map((p) => p is Map<String, dynamic> ? (p['name'] ?? '') : p.toString())
+          .where((p) => p.toString().isNotEmpty)
+          .join(', ');
+      if (platforms.isEmpty) platforms = null;
+    }
+
+    // ── Tags ──
+    String? tags;
+    if (json['tags'] is String) {
+      tags = json['tags'] as String?;
+    } else if (json['tags'] is List) {
+      final list = json['tags'] as List<dynamic>;
+      tags = list
+          .map((t) => t is Map<String, dynamic> ? (t['name'] ?? '') : t.toString())
+          .where((t) => t.toString().isNotEmpty)
+          .join(', ');
+      if (tags != null && tags.isEmpty) tags = null;
+    }
+
     return Game(
       id: json['id'] as int,
       title: json['title'] as String? ?? 'Unknown',
@@ -220,11 +273,11 @@ class Game {
           : null,
       totalReviews: json['total_reviews'] as int? ?? 0,
       metacriticScore: json['metacritic_score'] as int?,
-      tags: json['tags'] as String?,
-      developerName: json['developer_name'] as String?,
-      publisherName: json['publisher_name'] as String?,
-      genres: json['genres'] as String?,
-      platforms: json['platforms'] as String?,
+      tags: tags,
+      developerName: developerName,
+      publisherName: publisherName,
+      genres: genres,
+      platforms: platforms,
       isEarlyAccess: json['is_early_access'] == true,
       wasRereleased: json['was_rereleased'] == true,
       createdAt: json['created_at'] != null

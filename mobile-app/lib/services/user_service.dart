@@ -32,7 +32,9 @@ class UserService {
   Future<CollectionStats> getCollectionStats() async {
     final response = await _api.get('/collection/stats', auth: true);
     final data = response['data'] as Map<String, dynamic>? ?? response;
-    return CollectionStats.fromJson(data);
+    // Backend nests the counts inside a 'stats' key
+    final stats = data['stats'] as Map<String, dynamic>? ?? data;
+    return CollectionStats.fromJson(stats);
   }
 
   /// Check if a game is in the user's collection.
@@ -101,7 +103,9 @@ class UserService {
   Future<UserStats> getUserStats() async {
     final response = await _api.get('/users/me/stats', auth: true);
     final data = response['data'] as Map<String, dynamic>? ?? response;
-    return UserStats.fromJson(data);
+    // Backend nests the counts inside a 'stats' key
+    final stats = data['stats'] as Map<String, dynamic>? ?? data;
+    return UserStats.fromJson(stats);
   }
 
   // ── Profile ──

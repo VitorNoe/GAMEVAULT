@@ -5,20 +5,22 @@ class AppConfig {
   static const String appVersion = '1.0.0';
   static const bool isDebug = true;
 
-  /// Codespace public URL for the backend API.
-  /// This URL is accessible from any device (including Android emulators)
-  /// without needing 10.0.2.2 or localhost workarounds.
-  static const String codespaceApiUrl =
-      'https://organic-waddle-v6pqv4rj459g2wpj7-3001.app.github.dev/api';
+  /// The API base URL used at runtime.
+  /// Defaults to [_defaultApiUrl] but can be changed via [setApiBaseUrl].
+  static String _apiBaseUrl = _defaultApiUrl;
 
-  /// Returns the API base URL.
-  /// In debug mode, uses the Codespace public URL so the Android emulator
-  /// can reach the backend running in GitHub Codespaces.
-  static String get apiBaseUrl {
-    if (isDebug) {
-      return codespaceApiUrl;
-    }
-    return productionApiUrl;
+  /// Default API URL.
+  /// For Android emulators 10.0.2.2 maps to the host machine's localhost.
+  /// Change this to your Codespace public URL or production URL as needed.
+  static const String _defaultApiUrl = 'http://10.0.2.2:3001/api';
+
+  /// Returns the current API base URL.
+  static String get apiBaseUrl => _apiBaseUrl;
+
+  /// Override the API base URL at runtime (e.g. from a settings screen or
+  /// environment variable).  Call this before any network requests.
+  static void setApiBaseUrl(String url) {
+    _apiBaseUrl = url;
   }
 
   static const String localApiUrl = 'http://10.0.2.2:3001/api';
