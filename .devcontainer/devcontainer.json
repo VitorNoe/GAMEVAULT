@@ -113,9 +113,8 @@
   "postCreateCommand": "bash .devcontainer/init.sh ${localWorkspaceFolderBasename}",
   // Features adicionais (opcional)
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {
-      "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   // Mounts adicionais (se necessário)
   // "mounts": [

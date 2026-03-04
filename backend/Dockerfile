@@ -1,8 +1,9 @@
 # ── Stage 1: Install dependencies ──────────────────────────────
 FROM node:20-alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci
 
 # ── Stage 2: Build TypeScript ──────────────────────────────────
 FROM node:20-alpine AS build
@@ -16,9 +17,10 @@ FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Install only production dependencies
+# Install only production dependencies (with native build support)
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm ci --omit=dev && apk del python3 make g++
 
 COPY --from=build /app/dist ./dist
 
