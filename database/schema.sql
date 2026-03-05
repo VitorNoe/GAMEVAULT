@@ -135,6 +135,10 @@ CREATE TABLE users (
     notification_push BOOLEAN NOT NULL DEFAULT TRUE,
     notification_email BOOLEAN NOT NULL DEFAULT TRUE,
     notification_in_app BOOLEAN NOT NULL DEFAULT TRUE,
+    is_banned BOOLEAN NOT NULL DEFAULT FALSE,
+    banned_at TIMESTAMP,
+    ban_reason TEXT,
+    banned_by INTEGER REFERENCES users(id),
     last_login TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

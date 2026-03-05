@@ -73,6 +73,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       await sendVerificationEmail(email, name, rawToken);
     }
 
+    // Generate tokens so the user is automatically logged in after registration
+    const payload: TokenPayload = { id: user.id, email: user.email, type: user.type };
+    const accessToken = isDevMode ? generateAccessToken(payload) : '';
+    const refreshTkn = isDevMode ? generateRefreshToken(payload) : '';
+
     res.status(201).json({
       success: true,
       message: isDevMode
@@ -86,6 +91,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           type: user.type,
           email_verified: isDevMode ? true : user.email_verified,
         },
+        ...(isDevMode && {
+          token: accessToken,
+          accessToken,
+          refreshToken: refreshTkn,
+        }),
       },
     });
   } catch (error) {

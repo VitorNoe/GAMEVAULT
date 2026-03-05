@@ -30,7 +30,7 @@ validateEnv();
 
 // Parse CORS origins (comma-separated for multiple origins)
 const parseCorsOrigin = (): string | string[] => {
-  const origin = process.env.CORS_ORIGIN || 'http://localhost:3001';
+  const origin = process.env.CORS_ORIGIN || 'http://localhost';
   if (origin.includes(',')) {
     return origin.split(',').map(o => o.trim());
   }

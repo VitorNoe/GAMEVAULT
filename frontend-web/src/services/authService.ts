@@ -5,6 +5,11 @@ import { ApiResponse } from '../types/api.types';
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/login', credentials);
+    if (!response.data.success) {
+      const error: any = new Error(response.data.message || 'Login failed.');
+      error.response = { data: response.data };
+      throw error;
+    }
     if (response.data.data?.token) {
       localStorage.setItem('token', response.data.data.token);
     }
@@ -13,6 +18,11 @@ export const authService = {
 
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/register', data);
+    if (!response.data.success) {
+      const error: any = new Error(response.data.message || 'Registration failed.');
+      error.response = { data: response.data };
+      throw error;
+    }
     if (response.data.data?.token) {
       localStorage.setItem('token', response.data.data.token);
     }
