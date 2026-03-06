@@ -1,16 +1,24 @@
 import { ReleaseStatus, AvailabilityStatus } from '../types/game.types';
 
-// Detectar se estamos no Codespaces ou local - executado em runtime
+// Detect the correct API base URL at runtime
 export const getApiBaseUrl = (): string => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('app.github.dev')) {
-    // Codespaces – derive backend URL from the current hostname
-    const hostname = window.location.hostname;
-    // Frontend is served from port-80, backend is on port-3000
-    const backendHost = hostname.replace(/-\d+\./, '-3000.');
-    return `https://${backendHost}/api`;
+  if (typeof window !== 'undefined') {
+    const { hostname, port } = window.location;
+
+    // Running behind nginx (Docker) – nginx proxies /api/ to backend
+    // Covers both local Docker (localhost:80) and Codespaces (*.app.github.dev on port 80)
+    if (!port || port === '80' || port === '443') {
+      return '/api';
+    }
+
+    // Codespaces dev server (port 3001) – reach backend on port 3000
+    if (hostname.includes('app.github.dev')) {
+      const backendHost = hostname.replace(/-\d+\./, '-3000.');
+      return `https://${backendHost}/api`;
+    }
   }
-  // When served behind nginx (Docker), /api is proxied to backend
-  return process.env.REACT_APP_API_URL || '/api';
+  // Fallback: dev server pointing at local backend
+  return process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 };
 
 // For compatibility, we keep API_BASE_URL but it will be overridden at runtime
