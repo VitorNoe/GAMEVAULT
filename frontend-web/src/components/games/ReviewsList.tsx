@@ -53,13 +53,13 @@ const ReviewItem: React.FC<{ review: Review; onLike: (id: number, type: 'like' |
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-pink flex items-center justify-center font-bold text-sm">
-                            {review.User?.name?.charAt(0).toUpperCase() || 'U'}
+                            {(review.user || review.User)?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div>
-                            <p className="font-semibold text-white">{review.User?.name || 'Anonymous'}</p>
+                            <p className="font-semibold text-white">{(review.user || review.User)?.name || 'Anonymous'}</p>
                             <p className="text-xs text-gray-500">
                                 {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
-                                {review.Platform && <span> · on {review.Platform.name}</span>}
+                                {(review.platform || review.Platform) && <span> · on {(review.platform || review.Platform)!.name}</span>}
                                 {review.hours_played && <span> · {review.hours_played}h played</span>}
                             </p>
                         </div>
@@ -207,8 +207,8 @@ const WriteReviewForm: React.FC<{ gameId: number; onSubmit: () => void }> = ({ g
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setRecommends(recommends === true ? undefined : true)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${recommends === true
-                                    ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                                    : 'bg-dark-300 text-gray-400 hover:text-white'
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                                : 'bg-dark-300 text-gray-400 hover:text-white'
                                 }`}
                         >
                             👍 Yes
@@ -219,8 +219,8 @@ const WriteReviewForm: React.FC<{ gameId: number; onSubmit: () => void }> = ({ g
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setRecommends(recommends === false ? undefined : false)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${recommends === false
-                                    ? 'bg-red-500/20 text-red-400 border border-red-500/50'
-                                    : 'bg-dark-300 text-gray-400 hover:text-white'
+                                ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                                : 'bg-dark-300 text-gray-400 hover:text-white'
                                 }`}
                         >
                             👎 No

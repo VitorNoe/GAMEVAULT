@@ -267,9 +267,11 @@ router.post(
   authenticate,
   [
     body('game_id').isInt({ min: 1 }).withMessage('Valid game_id is required'),
-    body('rating').isInt({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10'),
-    body('title').optional().isLength({ max: 255 }).withMessage('Title must be at most 255 characters'),
-    body('body').optional().isLength({ max: 5000 }).withMessage('Body must be at most 5000 characters'),
+    body('rating').isFloat({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10'),
+    body('review_text').optional().isLength({ max: 5000 }).withMessage('Review text must be at most 5000 characters'),
+    body('has_spoilers').optional().isBoolean().withMessage('has_spoilers must be a boolean'),
+    body('hours_played').optional().isInt({ min: 0 }).withMessage('hours_played must be a positive integer'),
+    body('recommends').optional().isBoolean().withMessage('recommends must be a boolean'),
   ],
   validate,
   createReview
@@ -368,9 +370,11 @@ router.put(
   generalLimiter,
   authenticate,
   [
-    body('rating').optional().isInt({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10'),
-    body('title').optional().isLength({ max: 255 }).withMessage('Title must be at most 255 characters'),
-    body('body').optional().isLength({ max: 5000 }).withMessage('Body must be at most 5000 characters'),
+    body('rating').optional().isFloat({ min: 1, max: 10 }).withMessage('Rating must be between 1 and 10'),
+    body('review_text').optional().isLength({ max: 5000 }).withMessage('Review text must be at most 5000 characters'),
+    body('has_spoilers').optional().isBoolean().withMessage('has_spoilers must be a boolean'),
+    body('hours_played').optional().isInt({ min: 0 }).withMessage('hours_played must be a positive integer'),
+    body('recommends').optional().isBoolean().withMessage('recommends must be a boolean'),
   ],
   validate,
   updateReview

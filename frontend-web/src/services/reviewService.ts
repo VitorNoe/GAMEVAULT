@@ -16,10 +16,19 @@ export interface Review {
   moderation_status?: string;
   created_at: string;
   updated_at: string;
+  user?: {
+    id: number;
+    name: string;
+    avatar_url?: string;
+  };
   User?: {
     id: number;
     name: string;
     avatar_url?: string;
+  };
+  platform?: {
+    id: number;
+    name: string;
   };
   Platform?: {
     id: number;

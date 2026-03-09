@@ -96,10 +96,10 @@ UserCollection.init(
             allowNull: true
         },
         rating: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DECIMAL(3, 1),
             allowNull: true,
             validate: {
-                min: 1,
+                min: 0,
                 max: 10,
             },
         },

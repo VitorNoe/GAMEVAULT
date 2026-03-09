@@ -359,6 +359,10 @@ CREATE TABLE reviews (
     recommends BOOLEAN,
     likes_count INTEGER NOT NULL DEFAULT 0,
     dislikes_count INTEGER NOT NULL DEFAULT 0,
+    moderation_status VARCHAR(20) NOT NULL DEFAULT 'approved',
+    moderation_reason TEXT,
+    moderated_by INTEGER REFERENCES users(id),
+    moderated_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, game_id)

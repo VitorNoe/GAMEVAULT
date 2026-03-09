@@ -9,7 +9,8 @@ export interface WishlistItem {
   priority: 'low' | 'medium' | 'high';
   max_price?: number;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
+  game?: Game;
   Game?: Game;
 }
 

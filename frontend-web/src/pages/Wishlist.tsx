@@ -11,13 +11,6 @@ import { ROUTES, RELEASE_STATUS_LABELS } from '../utils/constants';
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/300x400/1a1a2e/a78bfa?text=No+Cover';
 
-const PRIORITY_FILTERS = [
-    { value: '', label: 'All', icon: '⭐' },
-    { value: 'high', label: 'High Priority', icon: '🔴' },
-    { value: 'medium', label: 'Medium', icon: '🟡' },
-    { value: 'low', label: 'Low', icon: '🟢' },
-];
-
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -35,7 +28,6 @@ export const Wishlist: React.FC = () => {
     const [items, setItems] = useState<WishlistItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [priorityFilter, setPriorityFilter] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -46,7 +38,6 @@ export const Wishlist: React.FC = () => {
             setError('');
 
             const params: Record<string, any> = { page, limit: 20 };
-            if (priorityFilter) params.priority = priorityFilter;
 
             const response = await wishlistService.getWishlist(params);
             const data = response.data || response;
@@ -58,7 +49,7 @@ export const Wishlist: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, priorityFilter]);
+    }, [page]);
 
     useEffect(() => {
         fetchWishlist();
@@ -101,22 +92,6 @@ export const Wishlist: React.FC = () => {
                 </div>
             </motion.div>
 
-            {/* Priority Filters */}
-            <motion.div variants={itemVariants} className="flex gap-2 flex-wrap">
-                {PRIORITY_FILTERS.map((filter) => (
-                    <motion.button
-                        key={filter.value}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setPriorityFilter(filter.value); setPage(1); }}
-                        className={`filter-btn flex items-center gap-1.5 ${priorityFilter === filter.value ? 'active' : ''}`}
-                    >
-                        <span>{filter.icon}</span>
-                        <span>{filter.label}</span>
-                    </motion.button>
-                ))}
-            </motion.div>
-
             {error && <ErrorMessage message={error} onRetry={fetchWishlist} />}
 
             {items.length > 0 ? (
@@ -129,11 +104,7 @@ export const Wishlist: React.FC = () => {
                             const game = ((item as any).game || (item as any).Game) as Game | undefined;
                             if (!game) return null;
 
-                            const priorityColors: Record<string, string> = {
-                                high: 'bg-red-500/80',
-                                medium: 'bg-yellow-500/80',
-                                low: 'bg-green-500/80',
-                            };
+
 
                             return (
                                 <motion.div
@@ -159,11 +130,7 @@ export const Wishlist: React.FC = () => {
                                                     {game.metacritic_score}
                                                 </div>
                                             )}
-                                            <div className="absolute top-2 left-2">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold backdrop-blur-sm text-white capitalize ${priorityColors[item.priority] || 'bg-gray-500/80'}`}>
-                                                    {item.priority}
-                                                </span>
-                                            </div>
+
                                             <div className="absolute inset-0 bg-gradient-to-t from-dark-400 via-transparent to-transparent opacity-60" />
                                         </div>
                                     </Link>
@@ -218,18 +185,14 @@ export const Wishlist: React.FC = () => {
                 <motion.div className="glass-card text-center py-16" variants={itemVariants}>
                     <div className="text-6xl mb-4">⭐</div>
                     <h3 className="text-2xl font-bold mb-2 text-white">
-                        {priorityFilter ? 'No games with this priority' : 'Your wishlist is empty'}
+                        Your wishlist is empty
                     </h3>
                     <p className="text-gray-400 mb-6">
-                        {priorityFilter
-                            ? 'Try a different filter'
-                            : 'Browse our game catalog and add games you want to play!'}
+                        Browse our game catalog and add games you want to play!
                     </p>
-                    {!priorityFilter && (
-                        <Link to={ROUTES.GAMES}>
-                            <Button size="lg">🎮 Browse Games</Button>
-                        </Link>
-                    )}
+                    <Link to={ROUTES.GAMES}>
+                        <Button size="lg">🎮 Browse Games</Button>
+                    </Link>
                 </motion.div>
             ) : null}
         </motion.div>

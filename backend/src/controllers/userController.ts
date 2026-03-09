@@ -28,9 +28,9 @@ export const getUserStats = async (req: AuthenticatedRequest, res: Response): Pr
     );
     const collectionCount = parseInt(collectionResult[0]?.count || '0', 10);
 
-    // Get wishlist count (from user_collection with wishlist status)
+    // Get wishlist count (from dedicated wishlist table)
     const wishlistResult = await sequelize.query<{ count: string }>(
-      "SELECT COUNT(*) as count FROM user_collection WHERE user_id = :userId AND status = 'wishlist'",
+      'SELECT COUNT(*) as count FROM wishlist WHERE user_id = :userId',
       { replacements: { userId }, type: QueryTypes.SELECT }
     );
     const wishlistCount = parseInt(wishlistResult[0]?.count || '0', 10);
