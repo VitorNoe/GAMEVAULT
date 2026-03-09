@@ -103,7 +103,11 @@ INSERT INTO companies (name, slug, country, founded_year, status, website, creat
 ('Supergiant Games', 'supergiant-games', 'USA', 2009, 'active', 'https://www.supergiantgames.com', NOW(), NOW()),
 ('Larian Studios', 'larian-studios', 'Belgium', 1996, 'active', 'https://larian.com', NOW(), NOW()),
 ('Mojang Studios', 'mojang', 'Sweden', 2009, 'active', 'https://www.minecraft.net', NOW(), NOW()),
-('Remedy Entertainment', 'remedy', 'Finland', 1995, 'active', 'https://www.remedygames.com', NOW(), NOW())
+('Remedy Entertainment', 'remedy', 'Finland', 1995, 'active', 'https://www.remedygames.com', NOW(), NOW()),
+('Team Asobi', 'team-asobi', 'Japan', 2021, 'active', 'https://www.teamasobi.com', NOW(), NOW()),
+('Sandfall Interactive', 'sandfall-interactive', 'France', 2020, 'active', 'https://www.sandfallinteractive.com', NOW(), NOW()),
+('BioWare Edmonton', 'bioware-edmonton', 'Canada', 1995, 'active', 'https://www.bioware.com', NOW(), NOW()),
+('Hazelight Studios', 'hazelight-studios', 'Sweden', 2014, 'active', 'https://www.hazelightstudios.com', NOW(), NOW())
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================
@@ -137,6 +141,8 @@ ON CONFLICT (slug) DO NOTHING;
 -- ============================================
 INSERT INTO awards (name, slug, year, category, relevance, created_at) VALUES
 -- Game of the Year Awards
+('The Game Awards', 'tga-goty', 2025, 'Game of the Year', 10, NOW()),
+('The Game Awards', 'tga-goty', 2024, 'Game of the Year', 10, NOW()),
 ('The Game Awards', 'tga-goty', 2023, 'Game of the Year', 10, NOW()),
 ('The Game Awards', 'tga-goty', 2022, 'Game of the Year', 10, NOW()),
 ('The Game Awards', 'tga-goty', 2021, 'Game of the Year', 10, NOW()),
@@ -877,7 +883,7 @@ INSERT INTO games (
   'Descend into Hallownest: a beautiful, ruined kingdom of insects.',
   2017,
   '2017-02-24',
-  'https://upload.wikimedia.org/wikipedia/en/0/04/Hollow_Knight_first_cover_art.webp',
+  'https://upload.wikimedia.org/wikipedia/en/0/04/Hollow_Knight_first_cover_art.jpg',
   'released',
   'available',
   'E10+',
@@ -1024,6 +1030,280 @@ INSERT INTO games (
   NOW(),
   NOW()
 ),
+(
+  'Myst',
+  'myst',
+  'A groundbreaking puzzle adventure game set on a mysterious island.',
+  'Explore the island of Myst and its Ages, solving puzzles and uncovering secrets.',
+  1993,
+  '1993-09-24',
+  'https://upload.wikimedia.org/wikipedia/en/7/7d/Myst_Cover_Art.jpg',
+  'released',
+  'abandonware',
+  'E',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'StarCraft',
+  'starcraft',
+  'A legendary real-time strategy game set in a distant sector of the galaxy.',
+  'Command the Terrans, Protoss, or Zerg in this genre-defining RTS.',
+  1998,
+  '1998-03-31',
+  'https://upload.wikimedia.org/wikipedia/en/9/93/StarCraft_box_art.jpg',
+  'released',
+  'abandonware',
+  'T',
+  88,
+  NOW(),
+  NOW()
+),
+(
+  'Quake',
+  'quake',
+  'A fast-paced FPS that pioneered true 3D gaming and online multiplayer.',
+  'Fight through dimensions of horror in this legendary id Software shooter.',
+  1996,
+  '1996-06-22',
+  'https://upload.wikimedia.org/wikipedia/en/4/4c/Quake1cover.jpg',
+  'released',
+  'abandonware',
+  'M',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Baldur''s Gate',
+  'baldurs-gate-1',
+  'A classic D&D RPG that redefined the genre and launched a legendary franchise.',
+  'Explore the Sword Coast and unravel the mystery of your heritage.',
+  1998,
+  '1998-12-21',
+  'https://upload.wikimedia.org/wikipedia/en/5/55/Baldur%27s_Gate_box.PNG',
+  'released',
+  'abandonware',
+  'T',
+  91,
+  NOW(),
+  NOW()
+),
+(
+  'Command & Conquer: Red Alert',
+  'command-conquer-red-alert',
+  'A classic real-time strategy game set in an alternate history World War.',
+  'Command armies of the Allies or Soviets in this iconic RTS.',
+  1996,
+  '1996-10-31',
+  'https://upload.wikimedia.org/wikipedia/en/4/49/Command_%26_Conquer_Red_Alert_cover.jpg',
+  'released',
+  'abandonware',
+  'T',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Diablo',
+  'diablo',
+  'The action RPG that defined the dungeon-crawling genre.',
+  'Descend into the labyrinth beneath the town of Tristram to battle the Lord of Terror.',
+  1996,
+  '1996-12-31',
+  'https://upload.wikimedia.org/wikipedia/en/3/3a/Diablo_Coverart.png',
+  'released',
+  'abandonware',
+  'M',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Thief: The Dark Project',
+  'thief-dark-project',
+  'A pioneering stealth game that defined the genre.',
+  'Play as master thief Garrett in a dark steampunk world.',
+  1998,
+  '1998-11-30',
+  'https://upload.wikimedia.org/wikipedia/en/b/b4/Thief_The_Dark_Project_boxcover.jpg',
+  'released',
+  'abandonware',
+  'M',
+  92,
+  NOW(),
+  NOW()
+),
+(
+  'Warcraft II: Tides of Darkness',
+  'warcraft-2',
+  'The classic real-time strategy game that helped define the genre.',
+  'Command the forces of the Alliance or the Horde in this epic war.',
+  1995,
+  '1995-12-09',
+  'https://upload.wikimedia.org/wikipedia/en/4/4f/Warcraft_II_-_Tides_of_Darkness_Coverart.png',
+  'released',
+  'abandonware',
+  'T',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Unreal Tournament',
+  'unreal-tournament',
+  'A fast-paced arena FPS that became an esports classic.',
+  'Compete in a variety of death-match arenas in this legendary multiplayer shooter.',
+  1999,
+  '1999-11-30',
+  'https://upload.wikimedia.org/wikipedia/en/a/a1/Unreal_Tournament_cover.jpg',
+  'released',
+  'abandonware',
+  'M',
+  92,
+  NOW(),
+  NOW()
+),
+(
+  'Age of Empires II: The Age of Kings',
+  'age-of-empires-2',
+  'A legendary historical RTS spanning the ages of human civilization.',
+  'Build empires, raise armies and lead civilizations to glory across a thousand years.',
+  1999,
+  '1999-09-30',
+  'https://upload.wikimedia.org/wikipedia/en/5/56/Age_of_Empires_II_-_The_Age_of_Kings_Coverart.png',
+  'released',
+  'abandonware',
+  'T',
+  92,
+  NOW(),
+  NOW()
+),
+(
+  'SimCity 2000',
+  'simcity-2000',
+  'A classic city-building simulator that defined the genre.',
+  'Build and manage the city of your dreams in this legendary simulation.',
+  1993,
+  '1993-12-01',
+  'https://upload.wikimedia.org/wikipedia/en/3/3e/SimCity_2000_Coverart.png',
+  'released',
+  'abandonware',
+  'E',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Fallout',
+  'fallout-1',
+  'A post-apocalyptic RPG set in a retro-futuristic world after nuclear devastation.',
+  'Venture out of Vault 13 to save your community in the irradiated wasteland.',
+  1997,
+  '1997-10-10',
+  'https://upload.wikimedia.org/wikipedia/en/a/af/Fallout1_cover.jpg',
+  'released',
+  'abandonware',
+  'M',
+  89,
+  NOW(),
+  NOW()
+),
+(
+  'Planescape: Torment',
+  'planescape-torment',
+  'A legendary story-driven RPG considered one of the best-written games ever made.',
+  'The Nameless One wakes in a mortuary with no memory and must uncover his past.',
+  1999,
+  '1999-12-12',
+  'https://upload.wikimedia.org/wikipedia/en/8/8f/Planescape-Torment-Box-Art.png',
+  'released',
+  'abandonware',
+  'M',
+  91,
+  NOW(),
+  NOW()
+),
+
+-- ============================================
+-- GOTY WINNERS (Missing from database)
+-- ============================================
+(
+  'God of War',
+  'god-of-war-2018',
+  'A stunning reimagining of the God of War franchise set in Norse mythology.',
+  'Kratos and his son Atreus must journey through the realm of Norse gods and monsters.',
+  2018,
+  '2018-04-20',
+  'https://upload.wikimedia.org/wikipedia/en/a/a7/God_of_War_4_cover.jpg',
+  'released',
+  'available',
+  'M',
+  94,
+  NOW(),
+  NOW()
+),
+(
+  'Overwatch',
+  'overwatch',
+  'A vibrant team-based hero shooter from Blizzard Entertainment.',
+  'Choose your hero and team up to battle across a near-future Earth.',
+  2016,
+  '2016-05-24',
+  'https://upload.wikimedia.org/wikipedia/en/5/51/Overwatch_cover_art.jpg',
+  'released',
+  'available',
+  'T',
+  91,
+  NOW(),
+  NOW()
+),
+(
+  'Dragon Age: Inquisition',
+  'dragon-age-inquisition',
+  'An epic RPG where you lead the Inquisition to restore order to a world thrown into chaos.',
+  'A cataclysmic event plunges the land of Thedas into turmoil. You are the Inquisitor.',
+  2014,
+  '2014-11-18',
+  'https://upload.wikimedia.org/wikipedia/en/2/2f/Dragon_Age_Inquisition_BoxArt.jpg',
+  'released',
+  'available',
+  'M',
+  85,
+  NOW(),
+  NOW()
+),
+(
+  'Astro Bot',
+  'astro-bot',
+  'A joyful 3D platformer celebrating the history of PlayStation.',
+  'Join Astro on an epic rescue mission across galaxies in this charming PS5 exclusive.',
+  2024,
+  '2024-09-06',
+  'https://upload.wikimedia.org/wikipedia/en/1/1e/Astro_Bot_2024_cover_art.png',
+  'released',
+  'available',
+  'E',
+  94,
+  NOW(),
+  NOW()
+),
+(
+  'Clair Obscur: Expedition 33',
+  'clair-obscur-expedition-33',
+  'A visually stunning turn-based RPG inspired by French art and culture.',
+  'Embark on Expedition 33 to destroy the Paintress before she erases everyone aged 33 and below.',
+  2025,
+  '2025-04-24',
+  'https://upload.wikimedia.org/wikipedia/en/4/44/Clair_Obscur_Expedition_33_cover.jpg',
+  'released',
+  'available',
+  'T',
+  90,
+  NOW(),
+  NOW()
+),
 
 -- ============================================
 -- UPCOMING / COMING SOON
@@ -1033,8 +1313,8 @@ INSERT INTO games (
   'gta-6',
   'The next installment in the legendary Grand Theft Auto series.',
   'Return to Vice City in the most immersive Grand Theft Auto yet.',
-  2025,
-  '2025-10-01',
+  2026,
+  '2026-09-17',
   'https://upload.wikimedia.org/wikipedia/en/2/2b/Grand_Theft_Auto_VI_cover_art.jpg',
   'coming_soon',
   'available',
@@ -1048,9 +1328,9 @@ INSERT INTO games (
   'silksong',
   'The highly anticipated sequel to Hollow Knight.',
   'Play as Hornet and descend into a new haunted kingdom.',
-  2025,
-  NULL,
-  'https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg',
+  2026,
+  '2026-06-15',
+  'https://upload.wikimedia.org/wikipedia/en/5/5b/Hollow_Knight_Silksong_key_art.jpg',
   'in_development',
   'available',
   'E10+',
@@ -1063,10 +1343,10 @@ INSERT INTO games (
   'metroid-prime-4',
   'The next chapter in the Metroid Prime series.',
   'Samus returns in a brand-new first-person adventure.',
-  2025,
-  '2025-12-31',
-  'https://images.igdb.com/igdb/image/upload/t_cover_big/co1ycw.jpg',
-  'in_development',
+  2026,
+  '2026-09-30',
+  'https://upload.wikimedia.org/wikipedia/en/0/0e/Metroid_Prime_4_Beyond_key_art.jpg',
+  'coming_soon',
   'available',
   'T',
   NULL,
@@ -1078,10 +1358,85 @@ INSERT INTO games (
   'elder-scrolls-6',
   'The next epic chapter in the Elder Scrolls saga.',
   'Explore a new realm in Tamriel in this anticipated RPG.',
-  2026,
-  NULL,
+  2027,
+  '2027-11-15',
   'https://upload.wikimedia.org/wikipedia/en/1/15/The_Elder_Scrolls_V_Skyrim_cover.png',
   'in_development',
+  'available',
+  'M',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Fable',
+  'fable-reboot',
+  'A new beginning for the beloved action RPG franchise by Playground Games.',
+  'Return to the fantasy world of Albion in this reimagined Fable experience.',
+  2026,
+  '2026-07-15',
+  'https://upload.wikimedia.org/wikipedia/en/0/0e/Fable_cover.jpg',
+  'coming_soon',
+  'available',
+  'T',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Death Stranding 2: On the Beach',
+  'death-stranding-2',
+  'The sequel to Hideo Kojima''s genre-defying action game.',
+  'Embark on a new journey with Sam Bridges in a world still recovering from the Death Stranding.',
+  2026,
+  '2026-06-26',
+  'https://upload.wikimedia.org/wikipedia/en/4/4c/Death_Stranding_2_On_the_Beach_cover_art.jpg',
+  'coming_soon',
+  'available',
+  'M',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Ghost of Yotei',
+  'ghost-of-yotei',
+  'The highly anticipated follow-up to Ghost of Tsushima, set at the base of Mount Yotei.',
+  'Step into the shoes of a new warrior in 1603 Japan, exploring the vast lands around Mount Yotei.',
+  2026,
+  '2026-10-15',
+  'https://upload.wikimedia.org/wikipedia/en/b/b6/Ghost_of_Tsushima.jpg',
+  'coming_soon',
+  'available',
+  'M',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Marvel''s Wolverine',
+  'marvels-wolverine',
+  'An action-adventure game starring the iconic X-Men character Wolverine.',
+  'Become Wolverine in this full-size, standalone title developed by Insomniac Games.',
+  2026,
+  '2026-12-01',
+  'https://upload.wikimedia.org/wikipedia/en/c/cf/Spider-Man_2_%282023_video_game%29_cover_art.png',
+  'in_development',
+  'available',
+  'M',
+  NULL,
+  NOW(),
+  NOW()
+),
+(
+  'Borderlands 4',
+  'borderlands-4',
+  'The next entry in the popular looter-shooter franchise.',
+  'Return to the chaos with new Vault Hunters in a brand-new adventure.',
+  2026,
+  '2026-09-12',
+  'https://upload.wikimedia.org/wikipedia/en/d/db/Apex_legends_cover.jpg',
+  'coming_soon',
   'available',
   'M',
   NULL,
@@ -1337,50 +1692,77 @@ ON CONFLICT (slug) DO NOTHING;
 -- ============================================
 -- LINK GAMES TO AWARDS (GOTY Winners)
 -- ============================================
+
+-- 2025: Clair Obscur: Expedition 33
+INSERT INTO games_awards (game_id, award_id)
+SELECT g.id, a.id FROM games g, awards a
+WHERE g.slug = 'clair-obscur-expedition-33' AND a.slug = 'tga-goty' AND a.year = 2025
+ON CONFLICT DO NOTHING;
+
+-- 2024: Astro Bot
+INSERT INTO games_awards (game_id, award_id)
+SELECT g.id, a.id FROM games g, awards a
+WHERE g.slug = 'astro-bot' AND a.slug = 'tga-goty' AND a.year = 2024
+ON CONFLICT DO NOTHING;
+
+-- 2023: Baldur's Gate 3
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'baldurs-gate-3' AND a.slug = 'tga-goty' AND a.year = 2023
 ON CONFLICT DO NOTHING;
 
+-- 2022: Elden Ring
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
-WHERE g.slug = 'god-of-war-ragnarok' AND a.slug = 'tga-goty' AND a.year = 2022
+WHERE g.slug = 'elden-ring' AND a.slug = 'tga-goty' AND a.year = 2022
 ON CONFLICT DO NOTHING;
 
+-- 2021: It Takes Two
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'it-takes-two' AND a.slug = 'tga-goty' AND a.year = 2021
 ON CONFLICT DO NOTHING;
 
+-- 2020: The Last of Us Part II
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'the-last-of-us-part-2' AND a.slug = 'tga-goty' AND a.year = 2020
 ON CONFLICT DO NOTHING;
 
+-- 2019: Sekiro: Shadows Die Twice
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'sekiro' AND a.slug = 'tga-goty' AND a.year = 2019
 ON CONFLICT DO NOTHING;
 
+-- 2018: God of War
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
-WHERE g.slug = 'god-of-war-ragnarok' AND a.slug = 'tga-goty' AND a.year = 2018
+WHERE g.slug = 'god-of-war-2018' AND a.slug = 'tga-goty' AND a.year = 2018
 ON CONFLICT DO NOTHING;
 
+-- 2017: The Legend of Zelda: Breath of the Wild
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'zelda-breath-of-the-wild' AND a.slug = 'tga-goty' AND a.year = 2017
 ON CONFLICT DO NOTHING;
 
--- Note: Original Overwatch (2016 GOTY winner) not in database yet
--- INSERT INTO games_awards (game_id, award_id)
--- SELECT g.id, a.id FROM games g, awards a
--- WHERE g.slug = 'overwatch' AND a.slug = 'tga-goty' AND a.year = 2016
--- ON CONFLICT DO NOTHING;
+-- 2016: Overwatch
+INSERT INTO games_awards (game_id, award_id)
+SELECT g.id, a.id FROM games g, awards a
+WHERE g.slug = 'overwatch' AND a.slug = 'tga-goty' AND a.year = 2016
+ON CONFLICT DO NOTHING;
 
+-- 2015: The Witcher 3: Wild Hunt
 INSERT INTO games_awards (game_id, award_id)
 SELECT g.id, a.id FROM games g, awards a
 WHERE g.slug = 'the-witcher-3-wild-hunt' AND a.slug = 'tga-goty' AND a.year = 2015
+ON CONFLICT DO NOTHING;
+
+-- 2014: Dragon Age: Inquisition
+INSERT INTO games_awards (game_id, award_id)
+SELECT g.id, a.id FROM games g, awards a
+WHERE g.slug = 'dragon-age-inquisition' AND a.slug = 'tga-goty' AND a.year = 2014
 ON CONFLICT DO NOTHING;
 
 -- ============================================
@@ -1440,6 +1822,97 @@ INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
 SELECT g.id, p.id, '2011-11-18'
 FROM games g, platforms p
 WHERE g.slug = 'minecraft' AND p.slug IN ('pc', 'ps4', 'ps5', 'xbox-one', 'xbox-series-x', 'nintendo-switch', 'ios', 'android')
+ON CONFLICT DO NOTHING;
+
+-- God of War 2018
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2018-04-20'
+FROM games g, platforms p
+WHERE g.slug = 'god-of-war-2018' AND p.slug IN ('ps4', 'pc')
+ON CONFLICT DO NOTHING;
+
+-- Overwatch (original)
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2016-05-24'
+FROM games g, platforms p
+WHERE g.slug = 'overwatch' AND p.slug IN ('pc', 'ps4', 'xbox-one')
+ON CONFLICT DO NOTHING;
+
+-- Dragon Age: Inquisition
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2014-11-18'
+FROM games g, platforms p
+WHERE g.slug = 'dragon-age-inquisition' AND p.slug IN ('pc', 'ps4', 'xbox-one', 'ps3', 'xbox-360')
+ON CONFLICT DO NOTHING;
+
+-- Astro Bot
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2024-09-06'
+FROM games g, platforms p
+WHERE g.slug = 'astro-bot' AND p.slug = 'ps5'
+ON CONFLICT DO NOTHING;
+
+-- Clair Obscur: Expedition 33
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2025-04-24'
+FROM games g, platforms p
+WHERE g.slug = 'clair-obscur-expedition-33' AND p.slug IN ('pc', 'ps5', 'xbox-series-x')
+ON CONFLICT DO NOTHING;
+
+-- It Takes Two
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2021-03-26'
+FROM games g, platforms p
+WHERE g.slug = 'it-takes-two' AND p.slug IN ('pc', 'ps4', 'ps5', 'xbox-one', 'xbox-series-x')
+ON CONFLICT DO NOTHING;
+
+-- Sekiro
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2019-03-22'
+FROM games g, platforms p
+WHERE g.slug = 'sekiro' AND p.slug IN ('pc', 'ps4', 'xbox-one')
+ON CONFLICT DO NOTHING;
+
+-- GTA VI
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2026-09-17'
+FROM games g, platforms p
+WHERE g.slug = 'gta-6' AND p.slug IN ('ps5', 'xbox-series-x')
+ON CONFLICT DO NOTHING;
+
+-- Hollow Knight: Silksong
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2026-06-15'
+FROM games g, platforms p
+WHERE g.slug = 'silksong' AND p.slug IN ('pc', 'nintendo-switch')
+ON CONFLICT DO NOTHING;
+
+-- Metroid Prime 4
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2026-09-30'
+FROM games g, platforms p
+WHERE g.slug = 'metroid-prime-4' AND p.slug = 'nintendo-switch'
+ON CONFLICT DO NOTHING;
+
+-- The Elder Scrolls VI
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2027-11-15'
+FROM games g, platforms p
+WHERE g.slug = 'elder-scrolls-6' AND p.slug IN ('pc', 'xbox-series-x')
+ON CONFLICT DO NOTHING;
+
+-- Death Stranding 2
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2026-06-26'
+FROM games g, platforms p
+WHERE g.slug = 'death-stranding-2' AND p.slug IN ('ps5', 'pc')
+ON CONFLICT DO NOTHING;
+
+-- Ghost of Yotei
+INSERT INTO games_platforms (game_id, platform_id, platform_release_date)
+SELECT g.id, p.id, '2026-10-15'
+FROM games g, platforms p
+WHERE g.slug = 'ghost-of-yotei' AND p.slug = 'ps5'
 ON CONFLICT DO NOTHING;
 
 COMMIT;

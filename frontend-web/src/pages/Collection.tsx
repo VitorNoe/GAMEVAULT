@@ -195,7 +195,7 @@ export const Collection: React.FC = () => {
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {items.map((item, index) => {
-                            const game = item.Game;
+                            const game = (item as any).Game || (item as any).game;
                             if (!game) return null;
 
                             const statusColors: Record<string, string> = {
@@ -251,7 +251,7 @@ export const Collection: React.FC = () => {
                                             <div className="p-4">
                                                 <h3 className="font-bold text-white mb-1 line-clamp-1">{game.title}</h3>
                                                 <div className="flex items-center justify-between text-sm text-gray-400">
-                                                    {item.Platform && <span>{item.Platform.name}</span>}
+                                                    {(item.Platform || (item as any).platform) && <span>{((item as any).Platform || (item as any).platform).name}</span>}
                                                     {item.format && <span className="capitalize">{item.format}</span>}
                                                 </div>
                                             </div>

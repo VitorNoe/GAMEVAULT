@@ -35,7 +35,7 @@ export const Dashboard: React.FC = () => {
         const loadDashboardData = async () => {
             try {
                 setLoading(true);
-                const response = await gameService.getAllGames({ page: 1, limit: 6 });
+                const response = await gameService.getAllGames({ page: 1, limit: 6, release_status: 'released' });
                 setRecentGames(response.data?.games || []);
                 setCatalogTotal(response.data?.pagination.total || 0);
             } catch (error) {

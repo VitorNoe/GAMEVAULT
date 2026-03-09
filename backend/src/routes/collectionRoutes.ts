@@ -226,7 +226,7 @@ router.post(
         body('platform_id').isInt().withMessage('Valid platform_id is required'),
         body('status')
             .optional()
-            .isIn(['playing', 'completed', 'paused', 'abandoned', 'not_started', 'wishlist', 'backlog'])
+            .isIn(['playing', 'completed', 'paused', 'abandoned', 'not_started', 'wishlist', 'backlog', 'owned', 'dropped'])
             .withMessage('Invalid status'),
         body('format')
             .optional()
@@ -328,7 +328,7 @@ router.put(
     [
         body('status')
             .optional()
-            .isIn(['playing', 'completed', 'paused', 'abandoned', 'not_started', 'wishlist', 'backlog'])
+            .isIn(['playing', 'completed', 'paused', 'abandoned', 'not_started', 'wishlist', 'backlog', 'owned', 'dropped'])
             .withMessage('Invalid status'),
         body('rating')
             .optional()

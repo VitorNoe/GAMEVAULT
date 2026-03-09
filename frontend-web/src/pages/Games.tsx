@@ -30,7 +30,7 @@ export const Games: React.FC = () => {
 
   const [filters, setFilters] = useState<FiltersState>({
     search: searchParams.get('search') || '',
-    release_status: searchParams.get('release_status') || '',
+    release_status: searchParams.get('release_status') || 'released',
     availability_status: searchParams.get('availability_status') || '',
     year: searchParams.get('year') ? Number(searchParams.get('year')) : '',
     sort: searchParams.get('sort') || '',
@@ -166,8 +166,8 @@ export const Games: React.FC = () => {
                   {/* Metacritic Score */}
                   {game.metacritic_score && (
                     <div className={`absolute top-3 right-3 px-2 py-1 rounded text-white text-sm font-bold ${game.metacritic_score >= 90 ? 'bg-green-600' :
-                        game.metacritic_score >= 75 ? 'bg-yellow-500' :
-                          game.metacritic_score >= 50 ? 'bg-orange-500' : 'bg-red-600'
+                      game.metacritic_score >= 75 ? 'bg-yellow-500' :
+                        game.metacritic_score >= 50 ? 'bg-orange-500' : 'bg-red-600'
                       }`}>
                       {game.metacritic_score}
                     </div>
