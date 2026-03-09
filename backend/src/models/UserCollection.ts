@@ -1,7 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
 
-export type CollectionStatus = 'playing' | 'completed' | 'paused' | 'abandoned' | 'not_started' | 'wishlist' | 'backlog';
+export type CollectionStatus = 'playing' | 'completed' | 'paused' | 'abandoned' | 'not_started' | 'wishlist' | 'backlog' | 'owned' | 'dropped';
 
 export interface UserCollectionAttributes {
     id: number;
@@ -69,7 +69,7 @@ UserCollection.init(
             },
         },
         status: {
-            type: DataTypes.ENUM('playing', 'completed', 'paused', 'abandoned', 'not_started', 'wishlist', 'backlog'),
+            type: DataTypes.ENUM('playing', 'completed', 'paused', 'abandoned', 'not_started', 'wishlist', 'backlog', 'owned', 'dropped'),
             defaultValue: 'not_started',
             allowNull: false
         },

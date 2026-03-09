@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gameService } from '../services/gameService';
+import { collectionService, CollectionItem } from '../services/collectionService';
 import { Game } from '../types/game.types';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
@@ -24,30 +24,25 @@ const itemVariants = {
 };
 
 export const CompletedGames: React.FC = () => {
+    const [items, setItems] = useState<CollectionItem[]>([]);
     const [games, setGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [completedIds, setCompletedIds] = useState<number[]>([]);
 
     const fetchCompletedGames = useCallback(async () => {
         try {
             setLoading(true);
             setError('');
 
-            const storedCompleted = JSON.parse(localStorage.getItem('completed') || '[]');
-            setCompletedIds(storedCompleted);
-
-            if (storedCompleted.length === 0) {
-                setGames([]);
-                setLoading(false);
-                return;
-            }
-
-            const response = await gameService.getAllGames({ page: 1, limit: 200 });
-            const allGames = response.data?.games || [];
-            const completedGames = allGames.filter((game: Game) => storedCompleted.includes(game.id));
-            setGames(completedGames);
+            const response = await collectionService.getCollection({ status: 'completed', limit: 100 });
+            const data = response.data || response;
+            const collectionItems: CollectionItem[] = data.items || [];
+            setItems(collectionItems);
+            const extractedGames = collectionItems
+                .map((item: any) => item.game || item.Game)
+                .filter(Boolean);
+            setGames(extractedGames);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to load completed games');
         } finally {
@@ -59,29 +54,27 @@ export const CompletedGames: React.FC = () => {
         fetchCompletedGames();
     }, [fetchCompletedGames]);
 
-    const removeFromCompleted = (gameId: number) => {
-        const newCompleted = completedIds.filter(id => id !== gameId);
-        localStorage.setItem('completed', JSON.stringify(newCompleted));
-
-        // Also update the detailed list
-        try {
-            const detailed = JSON.parse(localStorage.getItem('gamevault_completed') || '[]');
-            const newDetailed = detailed.filter((item: any) => item.id !== gameId);
-            localStorage.setItem('gamevault_completed', JSON.stringify(newDetailed));
-        } catch { }
-
-        setCompletedIds(newCompleted);
-        setGames(games.filter(game => game.id !== gameId));
-        window.dispatchEvent(new Event('completed-updated'));
+    const removeFromCompleted = async (gameId: number) => {
+        const item = items.find((i: any) => {
+            const g = (i as any).game || (i as any).Game;
+            return g && g.id === gameId;
+        });
+        if (item) {
+            try {
+                await collectionService.removeFromCollection(item.id);
+                setItems(items.filter(i => i.id !== item.id));
+                setGames(games.filter(game => game.id !== gameId));
+            } catch { }
+        }
     };
 
-    const clearCompleted = () => {
+    const clearCompleted = async () => {
         if (window.confirm('Are you sure you want to clear your entire Completed list?')) {
-            localStorage.setItem('completed', JSON.stringify([]));
-            localStorage.setItem('gamevault_completed', JSON.stringify([]));
-            setCompletedIds([]);
+            for (const item of items) {
+                try { await collectionService.removeFromCollection(item.id); } catch { }
+            }
+            setItems([]);
             setGames([]);
-            window.dispatchEvent(new Event('completed-updated'));
         }
     };
 

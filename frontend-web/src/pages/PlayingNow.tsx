@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gameService } from '../services/gameService';
+import { collectionService, CollectionItem } from '../services/collectionService';
 import { Game } from '../types/game.types';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
@@ -24,30 +24,25 @@ const itemVariants = {
 };
 
 export const PlayingNow: React.FC = () => {
+    const [items, setItems] = useState<CollectionItem[]>([]);
     const [games, setGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [playingIds, setPlayingIds] = useState<number[]>([]);
 
     const fetchPlayingGames = useCallback(async () => {
         try {
             setLoading(true);
             setError('');
 
-            const storedPlaying = JSON.parse(localStorage.getItem('playing_now') || '[]');
-            setPlayingIds(storedPlaying);
-
-            if (storedPlaying.length === 0) {
-                setGames([]);
-                setLoading(false);
-                return;
-            }
-
-            const response = await gameService.getAllGames({ page: 1, limit: 200 });
-            const allGames = response.data?.games || [];
-            const playingGames = allGames.filter((game: Game) => storedPlaying.includes(game.id));
-            setGames(playingGames);
+            const response = await collectionService.getCollection({ status: 'playing', limit: 100 });
+            const data = response.data || response;
+            const collectionItems: CollectionItem[] = data.items || [];
+            setItems(collectionItems);
+            const extractedGames = collectionItems
+                .map((item: any) => item.game || item.Game)
+                .filter(Boolean);
+            setGames(extractedGames);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to load playing games');
         } finally {
@@ -59,29 +54,27 @@ export const PlayingNow: React.FC = () => {
         fetchPlayingGames();
     }, [fetchPlayingGames]);
 
-    const removeFromPlaying = (gameId: number) => {
-        const newPlaying = playingIds.filter(id => id !== gameId);
-        localStorage.setItem('playing_now', JSON.stringify(newPlaying));
-
-        // Also update the detailed list
-        try {
-            const detailed = JSON.parse(localStorage.getItem('gamevault_playing_now') || '[]');
-            const newDetailed = detailed.filter((item: any) => item.id !== gameId);
-            localStorage.setItem('gamevault_playing_now', JSON.stringify(newDetailed));
-        } catch { }
-
-        setPlayingIds(newPlaying);
-        setGames(games.filter(game => game.id !== gameId));
-        window.dispatchEvent(new Event('playing-updated'));
+    const removeFromPlaying = async (gameId: number) => {
+        const item = items.find((i: any) => {
+            const g = (i as any).game || (i as any).Game;
+            return g && g.id === gameId;
+        });
+        if (item) {
+            try {
+                await collectionService.removeFromCollection(item.id);
+                setItems(items.filter(i => i.id !== item.id));
+                setGames(games.filter(game => game.id !== gameId));
+            } catch { }
+        }
     };
 
-    const clearPlaying = () => {
+    const clearPlaying = async () => {
         if (window.confirm('Are you sure you want to clear your entire Playing Now list?')) {
-            localStorage.setItem('playing_now', JSON.stringify([]));
-            localStorage.setItem('gamevault_playing_now', JSON.stringify([]));
-            setPlayingIds([]);
+            for (const item of items) {
+                try { await collectionService.removeFromCollection(item.id); } catch { }
+            }
+            setItems([]);
             setGames([]);
-            window.dispatchEvent(new Event('playing-updated'));
         }
     };
 

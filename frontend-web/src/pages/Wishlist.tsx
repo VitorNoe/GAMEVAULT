@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { wishlistService, WishlistItem } from '../services/wishlistService';
+import { Game } from '../types/game.types';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 import { ErrorMessage } from '../components/common/ErrorMessage';
@@ -125,7 +126,7 @@ export const Wishlist: React.FC = () => {
                         variants={containerVariants}
                     >
                         {items.map((item) => {
-                            const game = item.Game;
+                            const game = ((item as any).game || (item as any).Game) as Game | undefined;
                             if (!game) return null;
 
                             const priorityColors: Record<string, string> = {
@@ -152,8 +153,8 @@ export const Wishlist: React.FC = () => {
                                             />
                                             {game.metacritic_score && (
                                                 <div className={`absolute top-2 right-2 px-2 py-1 rounded-lg text-white text-sm font-bold backdrop-blur-sm ${game.metacritic_score >= 90 ? 'bg-green-500/80' :
-                                                        game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
-                                                            game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
+                                                    game.metacritic_score >= 75 ? 'bg-yellow-500/80' :
+                                                        game.metacritic_score >= 50 ? 'bg-orange-500/80' : 'bg-red-500/80'
                                                     }`}>
                                                     {game.metacritic_score}
                                                 </div>

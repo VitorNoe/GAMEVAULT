@@ -60,7 +60,10 @@ CREATE TYPE collection_status AS ENUM (
     'paused',
     'abandoned',
     'not_started',
-    'wishlist'
+    'wishlist',
+    'backlog',
+    'owned',
+    'dropped'
 );
 
 -- Game format
@@ -313,6 +316,7 @@ CREATE TABLE user_collection (
     price_paid DECIMAL(10,2),
     hours_played INTEGER DEFAULT 0,
     personal_notes TEXT,
+    rating DECIMAL(3,1) CHECK (rating >= 0 AND rating <= 10),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, game_id, platform_id)

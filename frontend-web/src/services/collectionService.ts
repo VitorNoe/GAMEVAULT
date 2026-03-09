@@ -13,7 +13,13 @@ export interface CollectionItem {
   price_paid?: number;
   created_at: string;
   updated_at: string;
+  game?: Game;
   Game?: Game;
+  platform?: {
+    id: number;
+    name: string;
+    slug: string;
+  };
   Platform?: {
     id: number;
     name: string;
