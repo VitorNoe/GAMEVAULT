@@ -26,6 +26,9 @@ initSentry();
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust the first proxy (nginx) so express-rate-limit and req.ip work correctly
+app.set('trust proxy', 1);
+
 // ─── Prometheus metrics middleware (must be early) ────────────────────
 app.use(metricsMiddleware);
 
