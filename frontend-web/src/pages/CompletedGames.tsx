@@ -87,11 +87,15 @@ export const CompletedGames: React.FC = () => {
         game.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    if (loading) return <Loading />;
+    if (loading) return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+            <Loading />
+        </div>
+    );
 
     return (
         <motion.div
-            className="space-y-6"
+            className="space-y-6 min-h-[60vh]"
             variants={containerVariants}
             initial="hidden"
             animate="visible"

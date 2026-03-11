@@ -637,10 +637,8 @@ export const getUpcomingReleases = async (req: Request, res: Response): Promise<
 
     const { count, rows: games } = await Game.findAndCountAll({
       where: {
-        [Op.or]: [
-          { release_status: { [Op.in]: ['coming_soon', 'in_development'] } },
-          { release_date: { [Op.gt]: today }, release_status: 'released' },
-        ],
+        release_date: { [Op.gt]: today },
+        release_status: { [Op.ne]: 'cancelled' },
       },
       include: [
         { model: Developer, as: 'developer', attributes: ['id', 'name', 'slug'] },

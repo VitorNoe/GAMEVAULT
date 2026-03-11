@@ -375,13 +375,8 @@ export const getUpcomingWithCountdowns = async (req: Request, res: Response): Pr
 
     const { count, rows: games } = await Game.findAndCountAll({
       where: {
-        [Op.or]: [
-          { release_status: { [Op.in]: ['coming_soon', 'in_development', 'alpha', 'closed_beta', 'open_beta', 'early_access'] } },
-          {
-            release_date: { [Op.gt]: today },
-            release_status: { [Op.ne]: 'cancelled' },
-          },
-        ],
+        release_date: { [Op.gt]: today },
+        release_status: { [Op.ne]: 'cancelled' },
       },
       include: [
         { model: Developer, as: 'developer', attributes: ['id', 'name', 'slug'] },
@@ -392,7 +387,7 @@ export const getUpcomingWithCountdowns = async (req: Request, res: Response): Pr
         },
       ],
       attributes: [
-        'id', 'title', 'slug', 'cover_url', 'release_date', 'release_year',
+        'id', 'title', 'slug', 'cover_url', 'description', 'release_date', 'release_year',
         'release_status', 'metacritic_score', 'developer_id',
       ],
       limit,
