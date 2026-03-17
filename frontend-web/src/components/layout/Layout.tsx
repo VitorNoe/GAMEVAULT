@@ -1,10 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserStats } from '../../hooks/useUserStats';
 import { ROUTES, APP_NAME } from '../../utils/constants';
 import { AuroraBackground } from '../effects/AuroraBackground';
+import {
+  AppNotification,
+  getNotifications,
+  getUnreadNotificationsCount,
+  markAllNotificationsAsRead,
+} from '../../utils/notifications';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -41,6 +47,66 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { stats, formatCount } = useUserStats();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
+
+  const refreshNotifications = useCallback(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      setUnreadNotifications(0);
+      return;
+    }
+
+    setNotifications(getNotifications());
+    setUnreadNotifications(getUnreadNotificationsCount());
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    refreshNotifications();
+  }, [refreshNotifications]);
+
+  useEffect(() => {
+    const handleNotificationsUpdated = () => {
+      refreshNotifications();
+    };
+
+    window.addEventListener('notifications-updated', handleNotificationsUpdated);
+    return () => {
+      window.removeEventListener('notifications-updated', handleNotificationsUpdated);
+    };
+  }, [refreshNotifications]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!notificationsRef.current) return;
+
+      if (!notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    if (isNotificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
+
+  const openNotifications = () => {
+    setIsNotificationsOpen((prev) => {
+      const willOpen = !prev;
+
+      if (willOpen && unreadNotifications > 0) {
+        markAllNotificationsAsRead();
+      }
+
+      return willOpen;
+    });
+  };
 
   const handleLogout = async () => {
     try {
@@ -51,6 +117,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const totalNotificationCount = stats.notifications + unreadNotifications;
 
   // Memoize the badge value getter
   const getBadgeValue = useMemo(() => {
@@ -273,17 +340,63 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex items-center gap-4 ml-4">
             {isAuthenticated && (
               <>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="icon-btn relative cursor-pointer"
-                >
-                  <span className="text-lg">🔔</span>
-                  {stats.notifications > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center font-bold">
-                      {stats.notifications > 99 ? '99+' : stats.notifications}
-                    </span>
-                  )}
-                </motion.div>
+                <div className="relative" ref={notificationsRef}>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.05 }}
+                    className="icon-btn relative cursor-pointer"
+                    onClick={openNotifications}
+                    aria-label="Open notifications"
+                    aria-expanded={isNotificationsOpen}
+                  >
+                    <span className="text-lg">🔔</span>
+                    {totalNotificationCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center font-bold">
+                        {totalNotificationCount > 99 ? '99+' : totalNotificationCount}
+                      </span>
+                    )}
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {isNotificationsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.18 }}
+                        className="absolute right-0 mt-2 w-80 glass-card rounded-xl p-3 shadow-xl z-50"
+                        style={{ top: '100%' }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-sm font-semibold text-white">Notifications</p>
+                          <span className="text-xs text-gray-400">{notifications.length} total</span>
+                        </div>
+
+                        {notifications.length === 0 ? (
+                          <p className="text-sm text-gray-400">No notifications yet.</p>
+                        ) : (
+                          <div className="max-h-64 overflow-y-auto space-y-2">
+                            {notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                className="p-2 rounded-lg"
+                                style={{
+                                  background: 'rgba(255, 255, 255, 0.04)',
+                                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                                }}
+                              >
+                                <p className="text-sm text-white">{notification.message}</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {new Date(notification.createdAt).toLocaleString('en-US')}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 <Link to={ROUTES.PROFILE}>
                   <motion.div

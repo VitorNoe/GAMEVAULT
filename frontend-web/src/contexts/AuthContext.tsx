@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, LoginCredentials, RegisterData } from '../types/user.types';
 import { authService } from '../services/authService';
+import { addLoginNotification } from '../utils/notifications';
 
 interface AuthContextType {
   user: User | null;
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authService.login(credentials);
       if (response.data?.user) {
         setUser(response.data.user);
+        addLoginNotification();
       }
     } catch (error) {
       console.error('Login error:', error);
