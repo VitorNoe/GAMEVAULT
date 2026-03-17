@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserStats } from '../../hooks/useUserStats';
@@ -10,6 +10,7 @@ import {
   getNotifications,
   getUnreadNotificationsCount,
   markAllNotificationsAsRead,
+  markNotificationAsRead,
 } from '../../utils/notifications';
 
 interface LayoutProps {
@@ -46,6 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const { stats, formatCount } = useUserStats();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -96,16 +98,33 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
   }, [isNotificationsOpen]);
 
-  const openNotifications = () => {
-    setIsNotificationsOpen((prev) => {
-      const willOpen = !prev;
-
-      if (willOpen && unreadNotifications > 0) {
-        markAllNotificationsAsRead();
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsNotificationsOpen(false);
       }
+    };
 
-      return willOpen;
-    });
+    if (isNotificationsOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isNotificationsOpen]);
+
+  const openNotifications = () => {
+    setIsNotificationsOpen((prev) => !prev);
+  };
+
+  const handleNotificationClick = (notification: AppNotification) => {
+    if (!notification.read) {
+      markNotificationAsRead(notification.id);
+    }
+
+    setIsNotificationsOpen(false);
+    navigate(notification.route || ROUTES.PROFILE);
   };
 
   const handleLogout = async () => {
@@ -328,7 +347,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           {/* Search Bar */}
           <div className="flex-1 max-w-xl relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none">🔍</span>
             <input
               type="text"
               placeholder="Search games, platforms, or genres..."
@@ -369,7 +388,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-sm font-semibold text-white">Notifications</p>
-                          <span className="text-xs text-gray-400">{notifications.length} total</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">{notifications.length} total</span>
+                            {unreadNotifications > 0 && (
+                              <button
+                                type="button"
+                                onClick={markAllNotificationsAsRead}
+                                className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors"
+                              >
+                                Mark all as read
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         {notifications.length === 0 ? (
@@ -377,19 +407,30 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         ) : (
                           <div className="max-h-64 overflow-y-auto space-y-2">
                             {notifications.map((notification) => (
-                              <div
+                              <button
+                                type="button"
                                 key={notification.id}
-                                className="p-2 rounded-lg"
+                                onClick={() => handleNotificationClick(notification)}
+                                className="w-full p-2 rounded-lg text-left transition-colors hover:bg-white/10"
                                 style={{
-                                  background: 'rgba(255, 255, 255, 0.04)',
-                                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                                  background: notification.read
+                                    ? 'rgba(255, 255, 255, 0.04)'
+                                    : 'rgba(6, 182, 212, 0.12)',
+                                  border: notification.read
+                                    ? '1px solid rgba(255, 255, 255, 0.08)'
+                                    : '1px solid rgba(6, 182, 212, 0.35)',
                                 }}
                               >
-                                <p className="text-sm text-white">{notification.message}</p>
+                                <div className="flex items-center gap-2">
+                                  {!notification.read && (
+                                    <span className="w-2 h-2 rounded-full bg-cyan-300 flex-shrink-0" />
+                                  )}
+                                  <p className="text-sm text-white">{notification.message}</p>
+                                </div>
                                 <p className="text-xs text-gray-400 mt-1">
                                   {new Date(notification.createdAt).toLocaleString('en-US')}
                                 </p>
-                              </div>
+                              </button>
                             ))}
                           </div>
                         )}

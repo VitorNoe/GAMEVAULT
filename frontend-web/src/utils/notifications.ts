@@ -4,6 +4,7 @@ export interface AppNotification {
   message: string;
   createdAt: string;
   read: boolean;
+  route?: string;
 }
 
 const STORAGE_KEY = 'gamevault_notifications';
@@ -46,6 +47,7 @@ export const addLoginNotification = () => {
     message: 'You have logged in successfully.',
     createdAt: new Date().toISOString(),
     read: false,
+    route: '/dashboard',
   };
 
   saveNotifications([next, ...notifications].slice(0, 50));
@@ -55,5 +57,14 @@ export const markAllNotificationsAsRead = () => {
   const notifications = getRawNotifications();
   saveNotifications(
     notifications.map((notification) => ({ ...notification, read: true }))
+  );
+};
+
+export const markNotificationAsRead = (id: string) => {
+  const notifications = getRawNotifications();
+  saveNotifications(
+    notifications.map((notification) =>
+      notification.id === id ? { ...notification, read: true } : notification
+    )
   );
 };

@@ -63,7 +63,7 @@ const FiltersPanelComponent: React.FC<FiltersPanelProps> = ({
                     <div className="flex-1 min-w-[200px]">
                         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Search</label>
                         <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 z-10 pointer-events-none">🔍</span>
                             <input
                                 type="text"
                                 value={filters.search || ''}
