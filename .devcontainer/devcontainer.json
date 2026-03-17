@@ -34,12 +34,12 @@
       "onAutoForward": "notify"
     },
     "3000": {
-      "label": "Frontend React",
+      "label": "Backend API",
       "onAutoForward": "notify",
       "visibility": "public"
     },
     "3001": {
-      "label": "Backend API",
+      "label": "Frontend UI",
       "onAutoForward": "notify",
       "visibility": "public"
     },
