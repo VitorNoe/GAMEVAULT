@@ -1,6 +1,6 @@
 export interface AppNotification {
   id: string;
-  type: 'login' | 'system';
+  type: 'login' | 'system' | 'wishlist' | 'collection';
   message: string;
   createdAt: string;
   read: boolean;
@@ -40,14 +40,18 @@ export const getUnreadNotificationsCount = (): number => {
 };
 
 export const addLoginNotification = () => {
+  addNotification('You logged in successfully.', 'login', '/dashboard');
+};
+
+export const addNotification = (message: string, type: AppNotification['type'] = 'system', route?: string) => {
   const notifications = getRawNotifications();
   const next: AppNotification = {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    type: 'login',
-    message: 'You have logged in successfully.',
+    type,
+    message,
     createdAt: new Date().toISOString(),
     read: false,
-    route: '/dashboard',
+    route,
   };
 
   saveNotifications([next, ...notifications].slice(0, 50));

@@ -6,6 +6,7 @@ import { wishlistService } from '../services/wishlistService';
 import { useAuth } from '../hooks/useAuth';
 import { Pagination } from '../components/common/Pagination';
 import { RELEASE_STATUS_LABELS } from '../utils/constants';
+import { addNotification } from '../utils/notifications';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -79,6 +80,7 @@ export const UpcomingReleases: React.FC = () => {
             } else {
                 await wishlistService.addToWishlist({ game_id: gameId, priority: 'high' });
                 setWishlistNotice(`"${gameTitle}" added to wishlist! You'll be notified on release.`);
+                addNotification(`Added "${gameTitle}" to your wishlist.`, 'wishlist', '/wishlist');
             }
             setTimeout(() => setWishlistNotice(null), 3500);
         } catch (err) {

@@ -12,6 +12,7 @@ import { ErrorMessage } from '../components/common/ErrorMessage';
 import { ReviewsList } from '../components/games/ReviewsList';
 import { useAuth } from '../hooks/useAuth';
 import { RELEASE_STATUS_LABELS, AVAILABILITY_STATUS_LABELS, ROUTES } from '../utils/constants';
+import { addNotification } from '../utils/notifications';
 
 const PLACEHOLDER_IMAGE = 'https://placehold.co/400x600/1a1a2e/a78bfa?text=No+Cover';
 
@@ -116,6 +117,7 @@ export const GameDetail: React.FC = () => {
                 const response = await wishlistService.addToWishlist({ game_id: gameId });
                 setIsInWishlist(true);
                 setWishlistItemId(response.data?.id || null);
+                addNotification(`Added "${game?.title}" to your wishlist.`, 'wishlist', '/wishlist');
             }
         } catch (err: any) {
             console.error('Wishlist toggle failed:', err);
@@ -143,6 +145,7 @@ export const GameDetail: React.FC = () => {
                 const response = await collectionService.addToCollection({ game_id: gameId, platform_id: 1, status });
                 setCollectionStatus(status);
                 setCollectionItemId(response.data?.id || null);
+                addNotification(`Added "${game?.title}" to your collection.`, 'collection', '/collection');
             }
         } catch (err: any) {
             console.error('Collection toggle failed:', err);

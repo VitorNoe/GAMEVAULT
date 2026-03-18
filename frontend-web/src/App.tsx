@@ -5,6 +5,7 @@ import { Layout } from './components/layout/Layout';
 import { useAuth } from './hooks/useAuth';
 import { ROUTES } from './utils/constants';
 import { Loading } from './components/common/Loading';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -67,122 +68,124 @@ const PageLoading = () => (
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <Layout>
-          <Suspense fallback={<PageLoading />}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path={ROUTES.HOME} element={<Home />} />
-              <Route path={ROUTES.GAMES} element={<Games />} />
-              <Route path={ROUTES.GAME_DETAILS} element={<GameDetail />} />
-              <Route path={ROUTES.GOTY_AWARDS} element={<GotyAwards />} />
-              <Route path={ROUTES.UPCOMING} element={<UpcomingReleases />} />
-              <Route path={ROUTES.ABANDONWARE} element={<Abandonware />} />
+      <NotificationProvider>
+        <AuthProvider>
+          <Layout>
+            <Suspense fallback={<PageLoading />}>
+              <Routes>
+                {/* Public Routes */}
+                <Route path={ROUTES.HOME} element={<Home />} />
+                <Route path={ROUTES.GAMES} element={<Games />} />
+                <Route path={ROUTES.GAME_DETAILS} element={<GameDetail />} />
+                <Route path={ROUTES.GOTY_AWARDS} element={<GotyAwards />} />
+                <Route path={ROUTES.UPCOMING} element={<UpcomingReleases />} />
+                <Route path={ROUTES.ABANDONWARE} element={<Abandonware />} />
 
-              {/* Public Only Routes */}
-              <Route
-                path={ROUTES.LOGIN}
-                element={
-                  <PublicOnlyRoute>
-                    <Login />
-                  </PublicOnlyRoute>
-                }
-              />
-              <Route
-                path={ROUTES.REGISTER}
-                element={
-                  <PublicOnlyRoute>
-                    <Register />
-                  </PublicOnlyRoute>
-                }
-              />
+                {/* Public Only Routes */}
+                <Route
+                  path={ROUTES.LOGIN}
+                  element={
+                    <PublicOnlyRoute>
+                      <Login />
+                    </PublicOnlyRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.REGISTER}
+                  element={
+                    <PublicOnlyRoute>
+                      <Register />
+                    </PublicOnlyRoute>
+                  }
+                />
 
-              {/* Protected Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.COLLECTION}
-                element={
-                  <ProtectedRoute>
-                    <Collection />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.WISHLIST}
-                element={
-                  <ProtectedRoute>
-                    <Wishlist />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.PLAYING}
-                element={
-                  <ProtectedRoute>
-                    <PlayingNow />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.COMPLETED}
-                element={
-                  <ProtectedRoute>
-                    <CompletedGames />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.PROFILE}
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.SETTINGS}
-                element={
-                  <ProtectedRoute>
+                {/* Protected Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.COLLECTION}
+                  element={
+                    <ProtectedRoute>
+                      <Collection />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.WISHLIST}
+                  element={
+                    <ProtectedRoute>
+                      <Wishlist />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.PLAYING}
+                  element={
+                    <ProtectedRoute>
+                      <PlayingNow />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.COMPLETED}
+                  element={
+                    <ProtectedRoute>
+                      <CompletedGames />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.PROFILE}
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.SETTINGS}
+                  element={
+                    <ProtectedRoute>
+                      <div className="text-center py-12">
+                        <h1 className="text-3xl font-bold">Settings</h1>
+                        <p className="text-gray-600 mt-2">Coming soon...</p>
+                      </div>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.ADMIN}
+                  element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* 404 Not Found */}
+                <Route
+                  path="*"
+                  element={
                     <div className="text-center py-12">
-                      <h1 className="text-3xl font-bold">Settings</h1>
-                      <p className="text-gray-600 mt-2">Coming soon...</p>
+                      <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                      <p className="text-gray-600 mb-4">Page not found</p>
+                      <a href={ROUTES.HOME} className="text-blue-600 hover:underline">
+                        Go back home
+                      </a>
                     </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.ADMIN}
-                element={
-                  <ProtectedRoute>
-                    <Admin />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 404 Not Found */}
-              <Route
-                path="*"
-                element={
-                  <div className="text-center py-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-                    <p className="text-gray-600 mb-4">Page not found</p>
-                    <a href={ROUTES.HOME} className="text-blue-600 hover:underline">
-                      Go back home
-                    </a>
-                  </div>
-                }
-              />
-            </Routes>
-          </Suspense>
-        </Layout>
-      </AuthProvider>
+                  }
+                />
+              </Routes>
+            </Suspense>
+          </Layout>
+        </AuthProvider>
+      </NotificationProvider>
     </Router >
   );
 }
