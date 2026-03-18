@@ -15,10 +15,11 @@ export const useNotificationSync = () => {
       unreadNotifications.forEach((notification) => {
         let type: 'success' | 'error' | 'info' | 'warning' = 'info';
 
-        if (notification.type === 'login') {
+        // Map storage notification types to display types
+        if (notification.type === 'login' || notification.type === 'wishlist' || notification.type === 'collection') {
           type = 'success';
-        } else if (notification.type === 'error') {
-          type = 'error';
+        } else if (notification.type === 'system') {
+          type = 'info';
         }
 
         addNotification(notification.message, type);
