@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserStats } from '../../hooks/useUserStats';
+import { useNotificationSync } from '../../hooks/useNotificationSync';
 import { ROUTES, APP_NAME } from '../../utils/constants';
 import { AuroraBackground } from '../effects/AuroraBackground';
 import {
@@ -46,6 +47,7 @@ const DISCOVER_ITEMS: NavItemType[] = [
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const { stats, formatCount } = useUserStats();
+  useNotificationSync();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);

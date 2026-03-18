@@ -6,6 +6,7 @@ import { useAuth } from './hooks/useAuth';
 import { ROUTES } from './utils/constants';
 import { Loading } from './components/common/Loading';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { NotificationDisplay } from './components/common/NotificationDisplay';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -69,6 +70,7 @@ function App() {
   return (
     <Router>
       <NotificationProvider>
+        <NotificationDisplay />
         <AuthProvider>
           <Layout>
             <Suspense fallback={<PageLoading />}>
