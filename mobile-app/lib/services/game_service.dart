@@ -1,3 +1,4 @@
+import '../config/api_endpoints.dart';
 import '../models/game.dart';
 import 'api_service.dart';
 
@@ -46,7 +47,7 @@ class GameService {
     if (genre != null) params['genre'] = genre;
     if (sort != null) params['sort'] = sort;
 
-    final response = await _api.get('/games', queryParams: params);
+    final response = await _api.get(ApiEndpoints.games, queryParams: params);
     final data = response['data'] as Map<String, dynamic>;
     final pagination = data['pagination'] as Map<String, dynamic>? ??
         response['pagination'] as Map<String, dynamic>? ??
@@ -65,18 +66,14 @@ class GameService {
     );
   }
 
-  /// Get a single game by ID.
+  /// Get a single game by ID with caching enabled.
   Future<Game> getGameById(int id) async {
-    final response = await _api.get('/games/$id');
+    final response = await _api.get(ApiEndpoints.gameById(id));
     final data = response['data'] as Map<String, dynamic>;
     return Game.fromJson(data['game'] as Map<String, dynamic>? ?? data);
   }
 
   /// Search games by text query.
-  ///
-  /// Uses the main `/games` endpoint with a `search` parameter because the
-  /// dedicated `/games/search` endpoint may not be available in all backend
-  /// versions.
   Future<PaginatedGames> searchGames({
     required String query,
     int page = 1,
@@ -91,7 +88,7 @@ class GameService {
 
   /// Get upcoming game releases.
   Future<PaginatedGames> getUpcomingReleases({int page = 1, int limit = 20}) async {
-    final response = await _api.get('/games/upcoming-releases', queryParams: {
+    final response = await _api.get(ApiEndpoints.upcomingReleases, queryParams: {
       'page': page.toString(),
       'limit': limit.toString(),
     });
@@ -113,9 +110,9 @@ class GameService {
 
   /// Get abandonware games.
   Future<PaginatedGames> getAbandonwareGames({int page = 1, int limit = 20}) async {
-    final response = await _api.get('/games/abandonware', queryParams: {
+    final response = await _api.get(ApiEndpoints.abandonware, queryParams: {
       'page': page.toString(),
-      'limit': limit.toString(),
+      'limit': page.toString(),
     });
 
     final data = response['data'] as Map<String, dynamic>;
@@ -135,7 +132,7 @@ class GameService {
 
   /// Get GOTY games.
   Future<PaginatedGames> getGotyGames({int page = 1, int limit = 20}) async {
-    final response = await _api.get('/games/goty', queryParams: {
+    final response = await _api.get(ApiEndpoints.goty, queryParams: {
       'page': page.toString(),
       'limit': limit.toString(),
     });

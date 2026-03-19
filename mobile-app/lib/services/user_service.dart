@@ -1,3 +1,4 @@
+import '../config/api_endpoints.dart';
 import '../models/collection_item.dart';
 import '../models/user.dart';
 import 'api_service.dart';
@@ -19,7 +20,7 @@ class UserService {
     };
     if (status != null && status.isNotEmpty) params['status'] = status;
 
-    final response = await _api.get('/collection', auth: true, queryParams: params);
+    final response = await _api.get(ApiEndpoints.collection, auth: true, queryParams: params);
     final data = response['data'] as Map<String, dynamic>? ?? response;
     final itemsJson = data['items'] as List<dynamic>? ?? [];
 
@@ -30,7 +31,7 @@ class UserService {
 
   /// Get collection stats.
   Future<CollectionStats> getCollectionStats() async {
-    final response = await _api.get('/collection/stats', auth: true);
+    final response = await _api.get(ApiEndpoints.collectionStats, auth: true);
     final data = response['data'] as Map<String, dynamic>? ?? response;
     // Backend nests the counts inside a 'stats' key
     final stats = data['stats'] as Map<String, dynamic>? ?? data;
@@ -40,7 +41,10 @@ class UserService {
   /// Check if a game is in the user's collection.
   Future<CollectionItem?> getCollectionStatus(int gameId) async {
     try {
-      final response = await _api.get('/collection/status/$gameId', auth: true);
+      final response = await _api.get(
+        ApiEndpoints.collectionStatus(gameId),
+        auth: true,
+      );
       final data = response['data'] as Map<String, dynamic>?;
       if (data != null && data['item'] != null) {
         return CollectionItem.fromJson(data['item'] as Map<String, dynamic>);
@@ -66,7 +70,7 @@ class UserService {
     };
     if (platformId != null) body['platform_id'] = platformId;
 
-    final response = await _api.post('/collection', auth: true, body: body);
+    final response = await _api.post(ApiEndpoints.collection, auth: true, body: body);
     final data = response['data'] as Map<String, dynamic>? ?? response;
     return CollectionItem.fromJson(data['item'] as Map<String, dynamic>? ?? data);
   }
@@ -87,21 +91,25 @@ class UserService {
     if (personalNotes != null) body['personal_notes'] = personalNotes;
     if (rating != null) body['rating'] = rating;
 
-    final response = await _api.put('/collection/$gameId', auth: true, body: body);
+    final response = await _api.put(
+      ApiEndpoints.updateCollection(gameId),
+      auth: true,
+      body: body,
+    );
     final data = response['data'] as Map<String, dynamic>? ?? response;
     return CollectionItem.fromJson(data['item'] as Map<String, dynamic>? ?? data);
   }
 
   /// Remove a game from the collection.
   Future<void> removeFromCollection(int gameId) async {
-    await _api.delete('/collection/$gameId', auth: true);
+    await _api.delete(ApiEndpoints.removeCollection(gameId), auth: true);
   }
 
   // ── User stats ──
 
   /// Get authenticated user's overview stats.
   Future<UserStats> getUserStats() async {
-    final response = await _api.get('/users/me/stats', auth: true);
+    final response = await _api.get(ApiEndpoints.userStats, auth: true);
     final data = response['data'] as Map<String, dynamic>? ?? response;
     // Backend nests the counts inside a 'stats' key
     final stats = data['stats'] as Map<String, dynamic>? ?? data;
@@ -109,6 +117,13 @@ class UserService {
   }
 
   // ── Profile ──
+
+  /// Get user profile.
+  Future<User> getProfile() async {
+    final response = await _api.get(ApiEndpoints.userMe, auth: true);
+    final data = response['data'] as Map<String, dynamic>? ?? response;
+    return User.fromJson(data['user'] as Map<String, dynamic>? ?? data);
+  }
 
   /// Update user profile.
   Future<User> updateProfile({
@@ -121,7 +136,7 @@ class UserService {
     if (bio != null) body['bio'] = bio;
     if (avatarUrl != null) body['avatar_url'] = avatarUrl;
 
-    final response = await _api.put('/users/me', auth: true, body: body);
+    final response = await _api.put(ApiEndpoints.updateProfile, auth: true, body: body);
     final data = response['data'] as Map<String, dynamic>? ?? response;
     return User.fromJson(data['user'] as Map<String, dynamic>? ?? data);
   }

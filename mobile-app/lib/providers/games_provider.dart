@@ -21,6 +21,10 @@ class GamesProvider extends ChangeNotifier {
   int _totalGames = 0;
   String? _currentSearch;
   String? _currentReleaseStatus;
+  DateTime? _lastFetchTime;
+
+  // Cache for individual games
+  final Map<int, Game> _gameCache = {};
 
   // ── Getters ──
   List<Game> get games => _games;
@@ -33,14 +37,25 @@ class GamesProvider extends ChangeNotifier {
   bool get hasMore => _currentPage < _totalPages;
   int get totalGames => _totalGames;
   int get currentPage => _currentPage;
+  bool get isCached => _lastFetchTime != null;
 
-  /// Fetch games list (first page).
+  /// Fetch games list (first page) with caching.
   Future<void> fetchGames({
     String? search,
     String? releaseStatus,
     String? sort,
     bool refresh = false,
+    bool skipIfRecent = true,
   }) async {
+    // Skip if recently fetched (unless refresh is true)
+    if (!refresh && skipIfRecent && _lastFetchTime != null) {
+      final timeSinceLastFetch = DateTime.now().difference(_lastFetchTime!);
+      if (timeSinceLastFetch.inMinutes < 5) {
+        debugPrint('🎮 Using cached games (fetched ${timeSinceLastFetch.inSeconds}s ago)');
+        return;
+      }
+    }
+
     if (_isLoading && !refresh) return;
 
     _isLoading = true;
@@ -63,17 +78,25 @@ class GamesProvider extends ChangeNotifier {
       _currentPage = result.page;
       _totalPages = result.totalPages;
       _totalGames = result.total;
+      _lastFetchTime = DateTime.now();
+
+      // Cache individual games
+      for (var game in _games) {
+        _gameCache[game.id] = game;
+      }
     } on ApiException catch (e) {
       _error = e.message;
+      debugPrint('🎮 Games fetch error: ${e.message}');
     } catch (e) {
       _error = 'Failed to load games. Please try again.';
+      debugPrint('🎮 Games fetch error: $e');
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Load next page.
+  /// Load next page with pagination.
   Future<void> loadMore() async {
     if (_isLoadingMore || !hasMore) return;
 
@@ -90,8 +113,14 @@ class GamesProvider extends ChangeNotifier {
       _currentPage = result.page;
       _totalPages = result.totalPages;
       _totalGames = result.total;
+
+      // Cache individual games
+      for (var game in result.games) {
+        _gameCache[game.id] = game;
+      }
     } catch (e) {
-      debugPrint('Failed to load more games: $e');
+      debugPrint('🎮 Load more error: $e');
+      _error = 'Failed to load more games. Please try again.';
     }
 
     _isLoadingMore = false;
@@ -112,28 +141,45 @@ class GamesProvider extends ChangeNotifier {
     try {
       final result = await _gameService.searchGames(query: query);
       _searchResults = result.games;
+
+      // Cache search results
+      for (var game in _searchResults) {
+        _gameCache[game.id] = game;
+      }
     } on ApiException catch (e) {
       _error = e.message;
+      debugPrint('🎮 Search error: ${e.message}');
     } catch (e) {
       _error = 'Search failed. Please try again.';
+      debugPrint('🎮 Search error: $e');
     }
 
     _isSearching = false;
     notifyListeners();
   }
 
-  /// Get single game details.
+  /// Get single game details with cache.
   Future<void> getGameById(int id) async {
+    // Check cache first
+    if (_gameCache.containsKey(id)) {
+      _selectedGame = _gameCache[id];
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       _selectedGame = await _gameService.getGameById(id);
+      _gameCache[id] = _selectedGame!;
     } on ApiException catch (e) {
       _error = e.message;
+      debugPrint('🎮 Game detail error: ${e.message}');
     } catch (e) {
       _error = 'Failed to load game details.';
+      debugPrint('🎮 Game detail error: $e');
     }
 
     _isLoading = false;
@@ -156,6 +202,17 @@ class GamesProvider extends ChangeNotifier {
   /// Clear error.
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  /// Clear all caches
+  void clearCaches() {
+    _gameCache.clear();
+    _games.clear();
+    _searchResults.clear();
+    _selectedGame = null;
+    _lastFetchTime = null;
+    debugPrint('🎮 All caches cleared');
     notifyListeners();
   }
 }

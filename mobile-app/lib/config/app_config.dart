@@ -1,3 +1,9 @@
+enum ApiEnvironment {
+  emulator,
+  localDevice,
+  production,
+}
+
 class AppConfig {
   AppConfig._();
 
@@ -5,33 +11,71 @@ class AppConfig {
   static const String appVersion = '1.0.0';
   static const bool isDebug = true;
 
+  // ── API Configuration ──
+  
+  /// Current API environment
+  static ApiEnvironment _environment = ApiEnvironment.emulator;
+  
   /// The API base URL used at runtime.
-  /// Defaults to [_defaultApiUrl] but can be changed via [setApiBaseUrl].
-  static String _apiBaseUrl = _defaultApiUrl;
+  /// Defaults to [_getDefaultApiUrl] based on environment
+  static String _apiBaseUrl = _getDefaultApiUrl();
 
-  /// Default API URL.
-  /// For Android emulators 10.0.2.2 maps to the host machine's localhost.
-  /// Change this to your Codespace public URL or production URL as needed.
-  static const String _defaultApiUrl = 'http://10.0.2.2:3000/api';
+  /// Get default API URL based on current environment
+  static String _getDefaultApiUrl() {
+    switch (_environment) {
+      case ApiEnvironment.emulator:
+        // Android emulator uses 10.0.2.2 to access host localhost
+        return 'http://10.0.2.2:3000/api';
+      case ApiEnvironment.localDevice:
+        // For real devices on same network, use your machine's IP
+        // You can set this via setLocalDeviceUrl()
+        return 'http://192.168.1.100:3000/api';
+      case ApiEnvironment.production:
+        return 'https://api.gamevault.com/api';
+    }
+  }
 
   /// Returns the current API base URL.
   static String get apiBaseUrl => _apiBaseUrl;
 
-  /// Override the API base URL at runtime (e.g. from a settings screen or
-  /// environment variable).  Call this before any network requests.
-  static void setApiBaseUrl(String url) {
+  /// Set the API environment and update base URL accordingly
+  static void setEnvironment(ApiEnvironment environment) {
+    _environment = environment;
+    _apiBaseUrl = _getDefaultApiUrl();
+  }
+
+  /// Override the API base URL at runtime for local device development.
+  /// Pass your local machine IP address (e.g., '192.168.1.100')
+  static void setLocalDeviceUrl(String ipAddress) {
+    _environment = ApiEnvironment.localDevice;
+    _apiBaseUrl = 'http://$ipAddress:3000/api';
+  }
+
+  /// Override the API base URL completely.
+  static void setCustomApiUrl(String url) {
     _apiBaseUrl = url;
   }
 
-  static const String localApiUrl = 'http://10.0.2.2:3000/api';
-  static const String productionApiUrl = 'https://your-production-url.com/api';
+  static const String emulatorApiUrl = 'http://10.0.2.2:3000/api';
+  static const String productionApiUrl = 'https://api.gamevault.com/api';
 
+  /// Request timeout - increased to handle slow connections
   static const Duration requestTimeout = Duration(seconds: 30);
+  
+  /// Retry configuration
+  static const int maxRetries = 3;
+  static const Duration retryDelay = Duration(milliseconds: 500);
+  
+  /// Token storage keys
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
+  static const String lastSyncKey = 'last_sync_timestamp';
+  
+  /// Pagination defaults
   static const int defaultPageSize = 20;
+  static const int maxPageSize = 100;
 
-  // Collection status values
+  // ── Collection status values ──
   static const List<String> collectionStatuses = [
     'playing',
     'completed',
@@ -42,6 +86,15 @@ class AppConfig {
     'backlog',
   ];
 
-  // Collection format values
+  /// Collection format values
   static const List<String> collectionFormats = ['physical', 'digital'];
+  
+  // ── API Response Timeouts (ms) ──
+  static const int connectionTimeout = 30000;
+  static const int readTimeout = 30000;
+  static const int writeTimeout = 30000;
+  
+  // ── Cache Configuration ──
+  static const Duration cacheExpiration = Duration(hours: 1);
+  static const int maxCacheSize = 50; // Max items per cache bucket
 }
