@@ -8,13 +8,13 @@ class DebugConfig {
   /// Returns the API URL for debugging.
   /// Pass a [customIp] to target a specific host.
   /// By default returns the URL configured in [AppConfig].
-  static String getApiUrl({String? customIp, int port = 3001}) {
+  static String getApiUrl({String? customIp, int port = 3000}) {
     if (customIp != null) return 'http://$customIp:$port/api';
     return AppConfig.apiBaseUrl;
   }
 
   /// Convenience: configure [AppConfig] with a custom IP at startup.
-  static void configureApiUrl({String? customIp, int port = 3001}) {
+  static void configureApiUrl({String? customIp, int port = 3000}) {
     if (customIp != null) {
       AppConfig.setApiBaseUrl('http://$customIp:$port/api');
     }

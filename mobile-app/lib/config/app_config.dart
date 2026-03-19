@@ -12,7 +12,7 @@ class AppConfig {
   /// Default API URL.
   /// For Android emulators 10.0.2.2 maps to the host machine's localhost.
   /// Change this to your Codespace public URL or production URL as needed.
-  static const String _defaultApiUrl = 'http://10.0.2.2:3001/api';
+  static const String _defaultApiUrl = 'http://10.0.2.2:3000/api';
 
   /// Returns the current API base URL.
   static String get apiBaseUrl => _apiBaseUrl;
@@ -23,7 +23,7 @@ class AppConfig {
     _apiBaseUrl = url;
   }
 
-  static const String localApiUrl = 'http://10.0.2.2:3001/api';
+  static const String localApiUrl = 'http://10.0.2.2:3000/api';
   static const String productionApiUrl = 'https://your-production-url.com/api';
 
   static const Duration requestTimeout = Duration(seconds: 30);
