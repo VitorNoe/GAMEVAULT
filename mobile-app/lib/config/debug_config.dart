@@ -16,7 +16,7 @@ class DebugConfig {
   /// Convenience: configure [AppConfig] with a custom IP at startup.
   static void configureApiUrl({String? customIp, int port = 3000}) {
     if (customIp != null) {
-      AppConfig.setApiBaseUrl('http://$customIp:$port/api');
+      AppConfig.setCustomApiUrl('http://$customIp:$port/api');
     }
   }
 
