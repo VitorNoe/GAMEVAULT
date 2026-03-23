@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 enum ApiEnvironment {
   emulator,
   localDevice,
@@ -24,11 +27,18 @@ class AppConfig {
   static String _getDefaultApiUrl() {
     switch (_environment) {
       case ApiEnvironment.emulator:
-        // Android emulator uses 10.0.2.2 to access host localhost
-        return 'http://10.0.2.2:3000/api';
+        if (kIsWeb) {
+          return 'http://localhost:3000/api';
+        } else if (Platform.isAndroid) {
+          // Android Emulator uses 10.0.2.2 to access host localhost
+          return 'http://10.0.2.2:3000/api';
+        }
+        // iOS Simulator, Windows, macOS, Linux desktop apps can use localhost directly
+        return 'http://127.0.0.1:3000/api';
       case ApiEnvironment.localDevice:
         // For real devices on same network, use your machine's IP
-        // You can set this via setLocalDeviceUrl()
+        // ATENÇÃO: Se for testar no seu celular físico (Android/iOS), 
+        // mude este IP para o IP da sua máquina na rede Wi-Fi (ex: 192.168.0.X)
         return 'http://192.168.1.100:3000/api';
       case ApiEnvironment.production:
         return 'https://api.gamevault.com/api';
