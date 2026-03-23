@@ -30,8 +30,9 @@ class AppConfig {
         if (kIsWeb) {
           return 'http://localhost:3000/api';
         } else if (Platform.isAndroid) {
-          // Android Emulator uses 10.0.2.2 to access host localhost
-          return 'http://10.0.2.2:3000/api';
+          // Se 10.0.2.2 falhar (muito comum usando WSL/DevContainers),
+          // vamos tentar usar 127.0.0.1 com 'adb reverse'
+          return 'http://127.0.0.1:3000/api';
         }
         // iOS Simulator, Windows, macOS, Linux desktop apps can use localhost directly
         return 'http://127.0.0.1:3000/api';

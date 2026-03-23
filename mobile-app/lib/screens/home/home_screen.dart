@@ -25,17 +25,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadData() {
-    final games = context.read<GamesProvider>();
-    if (games.games.isEmpty) {
-      games.fetchGames(sort: 'release_date');
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final games = context.read<GamesProvider>();
+      if (games.games.isEmpty) {
+        games.fetchGames(sort: 'release_date');
+      }
 
-    final auth = context.read<AuthProvider>();
-    if (auth.isAuthenticated) {
-      final userData = context.read<UserDataProvider>();
-      userData.fetchStats();
-      userData.fetchUserStats();
-    }
+      final auth = context.read<AuthProvider>();
+      if (auth.isAuthenticated) {
+        final userData = context.read<UserDataProvider>();
+        userData.fetchStats();
+        userData.fetchUserStats();
+      }
+    });
   }
 
   @override
