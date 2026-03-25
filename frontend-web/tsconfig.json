@@ -20,7 +20,6 @@
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
-    "suppressImplicitAnyIndexErrors": true,
     "types": [
       "node",
       "react",
