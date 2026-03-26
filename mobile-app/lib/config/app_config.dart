@@ -30,9 +30,9 @@ class AppConfig {
         if (kIsWeb) {
           return 'http://localhost:3000/api';
         } else if (Platform.isAndroid) {
-          // Se estiver rodando no Emulador Android, `10.0.2.2` aponta para o localhost da máquina hospedeira
-          // (onde o backend/devcontainer está mapeando a porta 3000). 127.0.0.1 apontaria para o próprio emulador interno.
-          return 'http://10.0.2.2:3000/api';
+          // GitHub Codespaces URL - substitua pela sua URL real
+          // Exemplo: https://organic-waddle-v6pqv4rj459g2wpj7-3000.app.github.dev/api
+          return 'https://organic-waddle-v6pqv4rj459g2wpj7-3000.app.github.dev/api';
         }
         // iOS Simulator, Windows, macOS, Linux desktop apps can use localhost directly
         return 'http://127.0.0.1:3000/api';

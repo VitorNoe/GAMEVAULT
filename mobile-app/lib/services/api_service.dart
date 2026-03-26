@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 import '../config/app_config.dart';
 
@@ -45,9 +46,27 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
+  late final http.Client _client;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final http.Client _client = http.Client();
   final Map<String, _CacheEntry> _cache = {};
+
+  ApiService._internal() {
+    _client = _createHttpClient();
+  }
+
+  /// Create HTTP client with SSL bypass for development (GitHub Codespaces)
+  /// In production, use the standard HTTP client with certificate validation
+  http.Client _createHttpClient() {
+    if (AppConfig.isDebug && (AppConfig.apiBaseUrl.contains('codespaces') || 
+        AppConfig.apiBaseUrl.contains('github.dev'))) {
+      // For GitHub Codespaces with self-signed certificates
+      final httpClient = HttpClient()
+        ..badCertificateCallback = (cert, host, port) => true;
+      return IOClient(httpClient);
+    }
+    // Standard HTTP client for production/localhost
+    return http.Client();
+  }
 
   String get _baseUrl => AppConfig.apiBaseUrl;
 
