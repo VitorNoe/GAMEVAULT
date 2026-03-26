@@ -44,7 +44,6 @@ class _CacheEntry {
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
-  ApiService._internal();
 
   late final http.Client _client;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
